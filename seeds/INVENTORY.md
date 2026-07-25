@@ -302,3 +302,23 @@ See `PLACEHOLDERS.md` for what each one means and how to fill it in.
 ### 溯源
 
 1.x 的 `group_id`、`is_locked` 等内部字段收进 `source_1x` 对象保留,供审计与回溯,引擎不读取。转换过程中的判断也记在 `source_1x.notes` 里。
+
+### 缺陷 5:6 条策略因算子误用而永不命中
+
+`IP多用户请求下单`、`IP多设备请求下单`、`用户多IP请求下单`、`用户多设备请求下单`、`设备多IP请求下单`、`设备多用户请求下单` 的内联计数器过滤条件写的是:
+
+```
+page contains "^\s*$"
+```
+
+`contains` 是**子串包含**,不是正则匹配——它在页面路径里查找字面量 `^\s*$` 这个字符串,永远找不到。计数器因此恒为 0,策略永不命中。作者本意显然是 `!regex ^\s*$`(页面路径非空),与其它策略的写法一致。
+
+**已实证**:构造 30 条完全符合该策略表面意图的订单事件(同一 IP 下多个不同用户下单),原策略命中 0 次;仅把 `contains` 改为 `!regex`、其余不变,同一批事件命中 1 次。回归测试见 `packages/reference-engine/test/engine.test.js`。
+
+**未修改**,原因同其它数据缺陷:改动涉及风控语义,应由业务判断。
+
+### index.json 改为派生生成
+
+`seeds/strategies/index.json` 此前是手工维护的,策略转为 2.0 结构后它仍带着 1.x 的 `status: online` 与 `term_count` 字段,与实际文件脱节而无人发现——因为 `validate_seeds.py` 只校验策略文件本身。
+
+现由 `tools/gen_seeds_index.py` 从策略文件派生,并纳入 CI 的 `--check` 门禁,不会再漂移。重新生成后,需要配置才能生效的策略从 7 条修正为 **10 条**(补上了 3 条把页面路径写成字面量 `A`/`B` 的骨架策略)。

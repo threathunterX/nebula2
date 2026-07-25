@@ -45,11 +45,13 @@ secrets-scan: ## 本地跑一遍凭据扫描(需已安装 gitleaks)
 docs: ## 重新生成自动生成的参考文档
 	@$(PYTHON) tools/gen_variable_reference.py
 	@$(PYTHON) tools/gen_strategy_reference.py
+	@$(PYTHON) tools/gen_seeds_index.py
 
 .PHONY: docs-check
 docs-check: ## 校验生成的参考文档与 seeds 一致(CI 门禁)
 	@$(PYTHON) tools/gen_variable_reference.py --check
 	@$(PYTHON) tools/gen_strategy_reference.py --check
+	@$(PYTHON) tools/gen_seeds_index.py --check
 
 # ---------- 代码生成 ----------
 

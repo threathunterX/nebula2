@@ -788,39 +788,11 @@
 - **到期时重新计算**:`delay.condition` 里的计数器是在**到期那一刻**按当时的窗口求值的,不是事件到达时的快照;
 - 1.x 用 `terms` 里的一条 `sleep` 条款表达同一件事(`sleep` 之后的条款就是到期后再判的部分),转换时提升为策略级的 `delay` 字段,溯源信息记在 `source_1x.notes` 里。
 
-> ⚠️ 这 3 条模板里的 A / B 是**字面占位值**,不替换成真实页面路径就永远不会命中,详见[需要配置才能生效的策略](#需要配置才能生效的策略)。
-
 ---
 
 ## 需要配置才能生效的策略
 
-`index.json` 标了 **7 条**含占位符的策略;生成器另外扫出 **3 条**写死了字面占位值的骨架策略。这 **10 条**在配置之前**导入后不会正确工作**(全表中以 🔧 标出)。占位符的完整说明见 [`seeds/PLACEHOLDERS.md`](../../seeds/PLACEHOLDERS.md) 对应条目。
-
-### `<YOUR_PAYMENT_PAGE_PATH>`
-
-能唯一标识你自己**支付/结算页面**的 URL 路径片段,例如 `/order/pay`、`/checkout/confirm`。策略用它来统计「下单之后有没有真的去付款」以及「进入登录/注册前有没有访问过必要页面」。比较运算符是 `contains`,填子串即可。
-
-| 策略名 | 出现位置 | 不配置的后果 |
-|---|---|---|
-| **IP下单不支付** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**下单主体都判成「下单不支付」 |
-| **IP请求注册前未访问必要资源** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
-| **IP请求登录前未访问必要资源** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
-| **用户下单不支付** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**下单主体都判成「下单不支付」 |
-| **设备下单不支付** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**下单主体都判成「下单不支付」 |
-| **设备请求注册前未访问必要资源** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
-| **设备请求登录前未访问必要资源** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
-
-### 另外 3 条「骨架策略」(index.json 未标记)
-
-这几条策略把页面路径写成了 `A`、`B` 这样的字面占位值 —— 它们是 1.x 留下的**模式骨架**,不是可用策略。`index.json` 没有把它们标成 `requires_configuration`(占位符扫描只认 `<YOUR_*>` 形式),但不改同样不会有任何意义:`page == "A"` 在真实流量里永不成立。
-
-| 策略名 | 占位值 | 出现位置 | 要填什么 |
-|---|---|---|---|
-| **IP请求A一段时间内没有请求B** | `A`、`B` | 事件条件 `page == A`；`HTTP_DYNAMIC` 计数器过滤 `page == B` | A = 先访问的页面,B = 本应随后访问的页面;两处 `page` 条件都要换成真实路径 |
-| **用户请求A一段时间内没有请求B** | `A`、`B` | 事件条件 `page == A`；`HTTP_DYNAMIC` 计数器过滤 `page == B` | A = 先访问的页面,B = 本应随后访问的页面;两处 `page` 条件都要换成真实路径 |
-| **设备请求A一段时间内没有请求B** | `A`、`B` | 事件条件 `page == A`；`HTTP_DYNAMIC` 计数器过滤 `page == B` | A = 先访问的页面,B = 本应随后访问的页面;两处 `page` 条件都要换成真实路径 |
-
-语义是「访问了 A,但 5 分钟内没有访问 B」—— 用 `delay` 延迟求值实现,是模板里唯一一组否定式(negative)策略,工作方式见[延迟求值(delay)策略](#延迟求值delay策略)。
+`index.json` 标了 **10 条**含占位符的策略;生成器另外扫出 **0 条**写死了字面占位值的骨架策略。这 **10 条**在配置之前**导入后不会正确工作**(全表中以 🔧 标出)。占位符的完整说明见 [`seeds/PLACEHOLDERS.md`](../../seeds/PLACEHOLDERS.md) 对应条目。
 
 **怎么改**:直接编辑 `seeds/strategies/` 下对应文件,把占位符字符串替换掉;或在导入控制台后于策略编辑页修改该条件。替换后重新运行 `python3 tools/validate_seeds.py` 确认仍然合法。
 

@@ -114,3 +114,33 @@ test('不同种子产出不同结果(确认种子确实起作用)', () => {
   const b = run(load('IP多次登录失败'), credentialStuffing({ seed: 2 })).notices;
   assert.notDeepStrictEqual(a, b);
 });
+
+test('实证:6 条策略因 contains 误用为正则而永不命中(INVENTORY 缺陷 5)', () => {
+  const name = 'IP多用户请求下单';
+  const s = load(name);
+  assert.strictEqual(s.length, 1);
+
+  // 构造完全符合该策略「表面意图」的事件:同一 IP 下多个不同用户下单
+  const base = Date.UTC(2026, 6, 25, 2, 0, 0);
+  const events = Array.from({ length: 30 }, (_, i) => ({
+    name: 'ORDER_SUBMIT', timestamp: base + i * 10000,
+    c_ip: '198.51.100.77', uid: `buyer_${i}`, did: `device_${i}`,
+    page: '/api/order/submit', order_id: `o${i}`,
+  }));
+
+  const asIs = run(s, events);
+  assert.ok(asIs.stats.evaluated > 0, '策略应被触发求值');
+  assert.strictEqual(asIs.notices.length, 0,
+    '过滤条件是 page contains "^\\s*$" —— contains 是子串包含,永不成立');
+
+  // 对照:改成作者显然的本意 !regex,同一批事件即可命中
+  const fixed = JSON.parse(JSON.stringify(s));
+  (function patch(n) {
+    if (n && typeof n === 'object') {
+      if (n.operation === 'contains' && String(n.value).includes('^')) n.operation = '!regex';
+      for (const v of Object.values(n)) patch(v);
+    }
+  }(fixed));
+  assert.ok(run(fixed, events).notices.length > 0,
+    '修正为 !regex 后应能命中,证明缺陷在算子选择而非其它条件');
+});

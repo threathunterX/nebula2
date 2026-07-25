@@ -68,6 +68,7 @@ jobs:
         run: |
           python tools/gen_variable_reference.py --check
           python tools/gen_strategy_reference.py --check
+          python tools/gen_seeds_index.py --check
       - name: 校验文档内部链接可达
         run: python tools/check_doc_links.py
 
