@@ -13,6 +13,8 @@
 const { WindowedAggregate } = require('./windows');
 const { evalFilter, CONDITIONS } = require('./conditions');
 const { evalCel } = require('./cel');
+const { VariableGraph } = require('./variables');
+const { EventModel } = require('./events');
 
 class Engine {
   /**
@@ -20,7 +22,7 @@ class Engine {
    * @param {Array}  opts.strategies 2.0 结构的策略数组
    * @param {number} opts.dedupWindowMs 告警去重窗口,缺省取策略的 dedup_window
    */
-  constructor({ strategies = [], now = () => Date.now() } = {}) {
+  constructor({ strategies = [], variables = null, events = null, now = () => Date.now() } = {}) {
     // 只有 online 与 test 状态的策略参与计算;test 产出的告警标记 test=true
     this.strategies = strategies.filter((s) => s.status === 'online' || s.status === 'test');
     this.counters = new Map();      // 内联计数器状态:key -> WindowedAggregate
@@ -29,6 +31,20 @@ class Engine {
     this.pendingDelays = [];        // 延迟求值队列
     this.now = now;
     this.watermark = -Infinity;     // 流级水位线
+    this.eventModel = events && events.length ? new EventModel(events) : null;
+
+    // 变量计算图:只构建策略实际引用到的变量及其依赖闭包
+    this.graph = null;
+    if (variables && variables.length) {
+      const referenced = new Set();
+      const collect = (n) => {
+        if (!n || typeof n !== 'object') return;
+        if (n.kind === 'variable' && n.variable) referenced.add(n.variable);
+        for (const v of Object.values(n)) collect(v);
+      };
+      for (const st of this.strategies) { collect(st.condition); collect(st.delay); }
+      if (referenced.size) this.graph = new VariableGraph(variables, referenced, this.eventModel);
+    }
     this.stats = { events: 0, evaluated: 0, hits: 0, deduped: 0, lateDropped: 0, lateAccepted: 0 };
   }
 
@@ -77,9 +93,11 @@ class Engine {
         return ctx.event[operand.field];
       case 'counter':
         return this.updateCounter(ctx.strategy.name, ctx.path, operand.counter, ctx.event);
-      case 'variable':
-        // 参考实现暂不加载完整变量图;由外部注入的变量值表提供
+      case 'variable': {
+        if (this.graph) return this.graph.valueOf(operand.variable, ctx.event);
+        // 未加载变量图时允许由外部注入(便于单测隔离)
         return ctx.variables ? ctx.variables[operand.variable] : null;
+      }
       default:
         throw new Error(`未知的操作数类型: ${operand.kind}`);
     }
@@ -131,18 +149,24 @@ class Engine {
     return result;
   }
 
+  /** 事件名匹配:考虑单继承链(ACCOUNT_LOGIN 也是 HTTP_DYNAMIC) */
+  matchesEvent(actual, expected) {
+    if (actual === expected) return true;
+    return this.eventModel ? this.eventModel.isA(actual, expected) : false;
+  }
+
   // ---------------------------------------------------------------- 主流程
 
   process(event) {
     this.stats.events += 1;
     // 先按当前水位线判定迟到,再推进水位线
-    const prevWatermark = this.watermark;
     this.watermark = Math.max(this.watermark, event.timestamp);
-    void prevWatermark;
+    // 变量图先于策略求值 —— 策略读到的是包含本条事件在内的最新值
+    if (this.graph) this.graph.process(event);
     this.fireDueDelays(event.timestamp);
 
     for (const strategy of this.strategies) {
-      if (strategy.trigger && strategy.trigger.event && strategy.trigger.event !== event.name) {
+      if (strategy.trigger && strategy.trigger.event && !this.matchesEvent(event.name, strategy.trigger.event)) {
         continue;
       }
       this.stats.evaluated += 1;

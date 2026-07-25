@@ -105,4 +105,43 @@ function withLateEvents(events, { lateCount = 5, lagMs = 5 * 60 * 1000 } = {}) {
   return out;   // 故意不排序:迟到事件排在最后到达
 }
 
-module.exports = { credentialStuffing, withLateEvents, makeRandom, baseEvent };
+/**
+ * 场景:爬虫高频抓取。
+ *
+ * 单个 IP 在 5 分钟窗口内持续请求商品页,用于验证「变量引用」类策略
+ * (如 IP大量访问 引用 ip__visit_count__5m__rt > 300)。
+ */
+function crawler({
+  seed = 20260725,
+  startTs = Date.UTC(2026, 6, 25, 2, 0, 0),
+  ip = '198.51.100.66',
+  requests = 400,
+  intervalMs = 700,
+} = {}) {
+  const rnd = makeRandom(seed);
+  const events = [];
+  for (let i = 0; i < requests; i++) {
+    events.push(baseEvent('HTTP_DYNAMIC', startTs + i * intervalMs + Math.floor(rnd() * 100), {
+      c_ip: ip,
+      uid: '',
+      did: 'device_bot',
+      page: `/product/${i % 50}`,
+      uri_stem: `/product/${i % 50}`,
+      method: 'GET',
+    }));
+  }
+  // 背景:少量正常浏览,分散在不同 IP
+  for (let i = 0; i < 60; i++) {
+    events.push(baseEvent('HTTP_DYNAMIC', startTs + Math.floor(rnd() * 300000), {
+      c_ip: `198.51.100.${10 + (i % 40)}`,
+      uid: `user_${1000 + i}`,
+      did: `device_${2000 + i}`,
+      page: `/product/${i % 20}`,
+      method: 'GET',
+    }));
+  }
+  events.sort((a, b) => a.timestamp - b.timestamp);
+  return events;
+}
+
+module.exports = { credentialStuffing, crawler, withLateEvents, makeRandom, baseEvent };
