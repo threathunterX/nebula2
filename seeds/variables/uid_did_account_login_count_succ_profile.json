@@ -31,6 +31,7 @@
     "value": ""
   },
   "remark": "账号登录成功did去重列表，并按照次数自增",
+  "sensitivity": "pii",
   "source": [
     {
       "app": "nebula",
@@ -40,6 +41,7 @@
   "status": "enable",
   "type": "aggregate",
   "value_category": "",
+  "value_masking": "hash",
   "value_subtype": "long",
   "value_type": "map",
   "visible_name": "账号登录成功did去重列表，并按照次数自增"

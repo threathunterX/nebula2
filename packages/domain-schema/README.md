@@ -41,8 +41,21 @@ Nebula 1.x 有一个贯穿始终的缺陷:同一套领域模型在 Python(`nebul
 
 - 策略条件从"单层 AND"扩展为嵌套布尔树
 - `distinct_count` 精度模式可选(1.x 为固定的混合近似方案)
-- 新增字段敏感级别与脱敏声明
+- 新增**两级**敏感级别声明:事件字段的 `sensitivity` / `masking`(采集端脱敏),以及变量值的 `sensitivity` / `value_masking`(存储保护)。两者独立评估——非敏感字段可以聚合出敏感的值(如把分散的访问记录汇聚成关联图谱),敏感字段也可以聚合出非敏感的值(如"手机号修改次数")
 - 新增处置动作(handlers)与告警可解释性(explain)
+
+## 强制校验一览
+
+| 校验 | 由谁执行 | 违反时 |
+|---|---|---|
+| schema 自身合法 | CI | 构建失败 |
+| seeds 资产符合 schema | `tools/validate_seeds.py` | 构建失败 |
+| 变量引用无悬空、无环 | `tools/validate_seeds.py` | 构建失败 |
+| profile 层可读类型变量必须声明敏感级别 | `tools/validate_seeds.py` | 构建失败 |
+| `pii` / `sensitive` 变量必须声明存储保护方式 | schema 条件约束 | 构建失败 |
+| `sensitive` 字段必须声明采集端脱敏方式 | schema 条件约束 | 构建失败 |
+| 声明的算子必须有实现与测试 | CI 覆盖率检查 | 构建失败 |
+| 生成的参考文档与资产一致 | `--check` 模式 | 构建失败 |
 
 ## 代码生成
 

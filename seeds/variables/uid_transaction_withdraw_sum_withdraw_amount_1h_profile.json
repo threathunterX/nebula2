@@ -22,6 +22,7 @@
     "value": "1"
   },
   "remark": "账号每小时消费金额",
+  "sensitivity": "internal",
   "source": [
     {
       "app": "nebula",

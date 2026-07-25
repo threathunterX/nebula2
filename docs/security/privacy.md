@@ -51,6 +51,43 @@ masking:
 
 ---
 
+### 变量值也可能是个人信息
+
+事件字段的敏感级别只解决了一半问题。**变量的值同样可能承载个人信息**,而且两者并不对应:
+
+- 由非敏感字段可以聚合出敏感的值。「账号最近 10 个登录 IP」的每一条输入都只是一次普通访问记录,但汇聚起来就构成了可追踪的行为轨迹。
+- 由敏感字段也可以聚合出非敏感的值。「手机号修改次数」的输入是手机号,输出只是一个计数,不再可识别到个人。
+
+因此变量定义中有独立的 `sensitivity` 与 `value_masking` 字段,与事件字段的标注分开评估。schema 强制约束:标注为 `pii` 或 `sensitive` 的变量,`value_masking` 不允许为 `none`。
+
+当前内置资产中有 **20 个变量标注为 `pii`**,全部要求 HMAC 存储。按性质分三类:
+
+**① 直接存储个人标识(明文原值)**
+
+`uid__account_token_change_mobile__profile`(账号绑定手机号)、`uid__account_token_change_mail__profile`(绑定邮箱)、`uid__registration__account__{mobile,mail,username,ip}__profile`(注册时的手机号、邮箱、用户名、IP)、`uid__account_login_ip_last__profile`(最近登录 IP)。
+
+**② 汇聚成关联图谱**
+
+`uid__visit_distinct_{did,ip}__1h__profile`、`did__visit_distinct_{uid,ip}__1h__profile`、`ip__visit_distinct_{uid,did}__1h__profile`、`uid_did__*__profile`、`uid__account_login_distinct_did__1h__profile`。
+
+这类变量的每一条输入都只是普通访问记录,但汇聚后构成账号—设备—IP 的三方关联图谱,可以还原出"谁在什么设备上用什么网络访问过"。**这是最容易被低估的一类**——单看定义像是纯统计量。
+
+**③ 构成位置或指纹轨迹**
+
+`uid__account_login_geocity_last10__profile`(最近 10 次登录城市)、`uid_geo_city__visit_dynamic_count__profile`(城市分布)、`uid_useragent__visit_dynamic_count__profile`(UA 分布,是设备指纹的组成部分)。
+
+**这 20 个全部属于 `profile` 模块,也就是保留期最长的一层(默认 180 天)。** 这不是巧合:长期画像的价值恰恰来自于保留可识别的历史,因此它也是隐私风险最集中的地方。
+
+为防止新增变量时遗漏评估,`tools/validate_seeds.py` 强制要求:**`profile` 模块中值为可读类型(字符串、列表、映射)的变量必须显式声明 `sensitivity`**,不允许依赖默认值。CI 会拦截未声明的变量。
+
+> **关于位置信息用 HMAC 的说明**:哈希会让城市名不可读,但风控判定需要的只是"本次登录城市是否与历史一致"这一可比较性,HMAC 完整保留了它。分析人员查看明文城市应通过事件明细(受访问控制与审计约束),而不是从长期画像里读取。
+>
+> **一个刻意的例外**:`uid__transaction_withdraw_sum_withdraw_amount__1h__profile`(账号每小时提现金额)标注为 `internal` 而非 `pii`——金额需要参与阈值比较,哈希会破坏其用途。处理金融数据的部署方应按自身合规要求重新评估这一判定。
+
+HMAC 存储保留了这些值的**可比较性**(能判断"这次登录的 IP 与历史是否一致"),但去掉了**可读性**(无法从库中还原出手机号本身)——这正是风控场景需要的性质。
+
+完整清单见[变量参考](../reference/variables.md)中的「承载个人信息的变量」一节。
+
 ## 三、存储与访问
 
 **标识符加密**:标注为 `pii` 的字段以 HMAC 形式存储。HMAC 密钥独立于数据库,支持轮换(轮换期间新旧密钥并存,便于平滑过渡)。这意味着即使数据库被拖库,攻击者也无法直接得到原始账号或设备 ID。

@@ -74,6 +74,18 @@
       "maxItems": 2,
       "description": "分组键。0 个为全局聚合,1 个为一级 key,2 个为二级 key。"
     },
+    "sensitivity": {
+      "type": "string",
+      "enum": ["public", "internal", "pii", "sensitive"],
+      "default": "internal",
+      "description": "2.0 新增。**变量值本身**的敏感级别。注意这与事件字段的敏感级别是两件事:一个变量可以由非敏感字段聚合出敏感的值(例如「账号最近 10 个登录 IP」把分散的访问记录汇聚成可追踪的行为轨迹),也可以由敏感字段聚合出非敏感的值(例如「手机号修改次数」)。profile 模块的变量保留期最长,尤其需要正确标注。"
+    },
+    "value_masking": {
+      "type": "string",
+      "enum": ["none", "hash", "partial"],
+      "default": "none",
+      "description": "2.0 新增。变量值的存储保护方式。sensitivity 为 pii 或 sensitive 时不允许为 none。hash 为 HMAC(密钥可轮换,保留可比较性,失去可读性);partial 为部分掩码(如手机号保留前三后四)。"
+    },
     "hint": { "type": "object", "default": {}, "description": "引擎优化提示,可选。" }
   },
 
@@ -111,6 +123,17 @@
       "$comment": "二元变量必须恰好有两个输入。",
       "if": { "properties": { "type": { "const": "dual" } }, "required": ["type"] },
       "then": { "properties": { "source": { "minItems": 2, "maxItems": 2 } } }
+    },
+    {
+      "$comment": "承载个人信息的变量值必须声明存储保护方式,不允许以明文长期留存。",
+      "if": {
+        "properties": { "sensitivity": { "enum": ["pii", "sensitive"] } },
+        "required": ["sensitivity"]
+      },
+      "then": {
+        "required": ["value_masking"],
+        "properties": { "value_masking": { "enum": ["hash", "partial"] } }
+      }
     }
   ],
 

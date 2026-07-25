@@ -8,7 +8,7 @@
 |---|---|
 | [核心概念:风控数据模型](concepts/data-model.md) | **建议第一篇阅读**。事件 → 变量 → 策略 → 名单四层模型 |
 | [快速开始](guide/quickstart.md) 🚧 | 5 分钟跑通第一条告警 |
-| [系统架构](concepts/architecture.md) 🚧 | 组件构成与数据流 |
+| [系统架构](concepts/architecture.md) | 组件构成与数据流 |
 
 ## 使用
 
@@ -22,8 +22,10 @@
 
 | | |
 |---|---|
-| [变量全表](reference/variables.md) 🚧 | 253 个内置变量(由 seeds 自动生成) |
-| [算子语义](reference/operators.md) 🚧 | 每个聚合与条件算子的精确定义 |
+| [变量全表](reference/variables.md) | 253 个内置变量与 39 个画像变量详解(自动生成) |
+| [算子语义规格](reference/operators.md) | **规范性文档**。每个算子的精确定义与 1.x 差异对照 |
+| [类型推导规则](reference/type-inference.md) | 窗口 × 类型 × 算子的合法组合与输出类型 |
+| [策略模板参考](reference/strategies.md) | 170 条内置策略(自动生成) |
 | [API 参考](reference/api.md) 🚧 | OpenAPI(自动生成) |
 | [配置项](reference/configuration.md) 🚧 | 全部配置项及默认值 |
 

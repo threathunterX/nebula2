@@ -22,6 +22,7 @@
     "value": ""
   },
   "remark": "账号最近10条登录时间",
+  "sensitivity": "internal",
   "source": [
     {
       "app": "nebula",

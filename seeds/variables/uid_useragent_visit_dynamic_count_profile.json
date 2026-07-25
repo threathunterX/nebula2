@@ -22,6 +22,7 @@
     "value": ""
   },
   "remark": "用户访问User Agent分布",
+  "sensitivity": "pii",
   "source": [
     {
       "app": "nebula",
@@ -31,6 +32,7 @@
   "status": "enable",
   "type": "aggregate",
   "value_category": "",
+  "value_masking": "hash",
   "value_subtype": "long",
   "value_type": "map",
   "visible_name": "用户访问User Agent分布"

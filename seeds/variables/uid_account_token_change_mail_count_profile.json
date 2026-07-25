@@ -46,6 +46,7 @@
     "value": ""
   },
   "remark": "账号累计修改邮箱次数",
+  "sensitivity": "internal",
   "source": [
     {
       "app": "nebula",

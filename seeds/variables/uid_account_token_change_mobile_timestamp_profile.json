@@ -46,6 +46,7 @@
     "value": ""
   },
   "remark": "帐号修改的手机号时间",
+  "sensitivity": "internal",
   "source": [
     {
       "app": "nebula",

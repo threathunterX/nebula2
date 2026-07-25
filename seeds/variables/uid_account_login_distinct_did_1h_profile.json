@@ -31,6 +31,7 @@
     "value": "1"
   },
   "remark": "账号登陆成功did按小时去重列表",
+  "sensitivity": "pii",
   "source": [
     {
       "app": "nebula",
@@ -40,6 +41,7 @@
   "status": "enable",
   "type": "aggregate",
   "value_category": "did",
+  "value_masking": "hash",
   "value_subtype": "string",
   "value_type": "mlist",
   "visible_name": "账号登陆成功did按小时去重列表"

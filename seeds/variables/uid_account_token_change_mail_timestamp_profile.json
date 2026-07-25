@@ -46,6 +46,7 @@
     "value": ""
   },
   "remark": "帐号修改的邮箱的时间",
+  "sensitivity": "internal",
   "source": [
     {
       "app": "nebula",

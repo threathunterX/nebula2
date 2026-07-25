@@ -211,3 +211,23 @@ See `PLACEHOLDERS.md` for what each one means and how to fill it in.
 另有一处是 2.0 schema 自身的疏漏,已补正:`last_value` 算子(1.x `SIMPLE_CALCULATOR_MAP` 中的真实算子,用于取 map 型变量的最新值)最初未纳入 schema 的算子枚举。
 
 > 这四处问题都是在 CI 校验中被自动发现的,而非人工审阅。这正是 [ADR-0005](../docs/adr/0005-schema-single-source-of-truth.md) 采用「schema 作为单一真相源 + 强制校验」的意义:1.x 的元数据没有任何机器校验,这类缺陷只能靠运行时报错或人工发现。
+
+---
+
+## 隐私标注(2.0 新增)
+
+1.x 的变量定义中没有任何敏感级别信息。迁移到 2.0 时,对全部 253 个变量的**值**做了敏感性评估,结果:
+
+| 级别 | 数量 | 含义 |
+|---|---|---|
+| `pii` | 20 | 值(或 map 的键)是个人标识,要求 HMAC 存储 |
+| `internal` | 7 | 由个人信息派生但本身不可识别到个人(计数、时间戳、金额) |
+| 未标注(按 `internal` 处理) | 226 | 纯统计量 |
+
+20 个 `pii` 变量**全部位于 `profile` 模块**——保留期最长的一层(默认 180 天)。这不是巧合:长期画像的价值来自保留可识别的历史,风险也集中在此。
+
+其中最容易被低估的是「关联图谱」一类:`uid__visit_distinct_did__1h__profile` 这类变量单看定义像纯统计量,但值是设备标识的集合,与账号维度交叉后可以还原出"谁在什么设备上用什么网络访问过"。
+
+评估依据与逐条理由见[隐私设计](../docs/security/privacy.md),完整清单见[变量参考](../docs/reference/variables.md)。
+
+**机制保障**:`tools/validate_seeds.py` 强制要求 `profile` 模块中值为可读类型的变量必须显式声明 `sensitivity`,新增变量时无法跳过评估。这道检查在首次引入时就逼出了 13 个此前未评估的变量。

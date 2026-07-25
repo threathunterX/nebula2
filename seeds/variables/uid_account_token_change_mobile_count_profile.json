@@ -46,6 +46,7 @@
     "value": ""
   },
   "remark": "账号修改手机号次数",
+  "sensitivity": "internal",
   "source": [
     {
       "app": "nebula",

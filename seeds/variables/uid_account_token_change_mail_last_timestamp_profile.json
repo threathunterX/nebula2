@@ -46,6 +46,7 @@
     "value": ""
   },
   "remark": "账号最近修改邮箱时间",
+  "sensitivity": "internal",
   "source": [
     {
       "app": "nebula",

@@ -142,16 +142,17 @@ docker compose up -d
 
 | | |
 |---|---|
-| [核心概念](docs/concepts/) | 风控数据模型:事件 → 变量 → 策略 → 名单 |
-| [快速开始](docs/guide/quickstart.md) | 5 分钟跑通第一条告警 |
-| [接入指南](docs/guide/integration.md) | 旁路流量、Nginx 日志、Kafka、SDK 埋点、同步查询 |
-| [策略开发](docs/guide/strategy.md) | 内置模板详解、自定义策略、CEL 表达式参考 |
-| [变量参考](docs/reference/variables.md) | 253 个内置变量全表(自动生成) |
-| [API 参考](docs/reference/api.md) | OpenAPI(自动生成) |
-| [部署运维](docs/operations/) | 单机/K8s、容量规划、监控告警、备份恢复 |
-| [安全与隐私](docs/security/) | 威胁模型、加固清单、隐私设计、数据保留 |
-| [1.x → 2.0 迁移](docs/migration/from-1x.md) | 资产迁移与**语义差异**说明 |
-| [架构决策记录](docs/adr/) | 每个关键选型背后的推理 |
+| [风控数据模型](docs/concepts/data-model.md) | **建议第一篇**。事件 → 变量 → 策略 → 名单 |
+| [系统架构](docs/concepts/architecture.md) | 组件职责、数据流、两种部署形态 |
+| [算子语义规格](docs/reference/operators.md) | **规范性文档**。每个算子的精确定义与 1.x 差异对照 |
+| [类型推导规则](docs/reference/type-inference.md) | 窗口 × 类型 × 算子的合法组合 |
+| [变量参考](docs/reference/variables.md) | 253 个内置变量 + 画像变量详解(自动生成) |
+| [策略模板参考](docs/reference/strategies.md) | 170 条内置策略逐条说明(自动生成) |
+| [隐私设计与合规](docs/security/privacy.md) | 数据分级、脱敏、保留期、主体权利、法规对齐 |
+| [1.x → 2.0 迁移](docs/migration/from-1x.md) | 资产迁移与 **6 处语义差异** |
+| [架构决策记录](docs/adr/) | 每个关键选型背后的推理与代价 |
+| [Golden 回归测试](tests/golden/) | 如何证明语义继承是正确的 |
+| [全部文档](docs/) | 文档索引(含尚未编写文档的提纲) |
 
 ---
 

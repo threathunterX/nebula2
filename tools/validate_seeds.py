@@ -87,6 +87,27 @@ def main():
                 dangling += 1
     print(f"  引用完整性    {dangling} 处悬空引用")
 
+    # 隐私标注强制:长期保留(profile)且值为可读类型的变量,必须显式声明敏感级别。
+    # 这类变量的值最可能承载个人信息,不允许依赖默认值蒙混过关。
+    READABLE = {"string", "list", "mlist", "map", "mmap"}
+    unannotated = []
+    for p in sorted((SEEDS / "variables").glob("*.json")):
+        if p.name == "index.json":
+            continue
+        try:
+            doc = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if doc.get("module") == "profile" and doc.get("value_type") in READABLE:
+            if "sensitivity" not in doc:
+                unannotated.append(doc.get("name", p.name))
+    if unannotated:
+        for n in unannotated:
+            failures.append(
+                f"{n}:profile 变量且值为可读类型,必须显式声明 sensitivity"
+                f"(见 docs/security/privacy.md)")
+    print(f"  隐私标注      {len(unannotated)} 个 profile 变量缺少敏感级别声明")
+
     if failures:
         print("\n校验失败:")
         for f in failures[:50]:

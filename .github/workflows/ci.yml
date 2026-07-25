@@ -55,3 +55,18 @@ jobs:
       - uses: actions/checkout@v4
       - name: 检查是否混入真实个人信息或客户标识
         run: python tools/check_no_pii.py
+
+  docs:
+    name: 文档与资产一致性
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 校验自动生成的参考文档与 seeds 一致
+        run: |
+          python tools/gen_variable_reference.py --check
+          python tools/gen_strategy_reference.py --check
+      - name: 校验文档内部链接可达
+        run: python tools/check_doc_links.py

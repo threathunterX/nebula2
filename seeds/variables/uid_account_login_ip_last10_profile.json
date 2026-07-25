@@ -22,6 +22,7 @@
     "value": ""
   },
   "remark": "账号最近10条登录IP",
+  "sensitivity": "pii",
   "source": [
     {
       "app": "nebula",
@@ -31,6 +32,7 @@
   "status": "enable",
   "type": "aggregate",
   "value_category": "ip",
+  "value_masking": "hash",
   "value_subtype": "string",
   "value_type": "list",
   "visible_name": "账号最近10条登录IP"

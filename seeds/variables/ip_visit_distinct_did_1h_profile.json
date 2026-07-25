@@ -22,6 +22,7 @@
     "value": "1"
   },
   "remark": "ip每小时关联did数量",
+  "sensitivity": "pii",
   "source": [
     {
       "app": "nebula",
@@ -31,6 +32,7 @@
   "status": "enable",
   "type": "aggregate",
   "value_category": "",
+  "value_masking": "hash",
   "value_subtype": "long",
   "value_type": "map",
   "visible_name": ""

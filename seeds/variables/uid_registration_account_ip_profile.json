@@ -36,6 +36,7 @@
     "value": ""
   },
   "remark": "用户注册时的ip",
+  "sensitivity": "pii",
   "source": [
     {
       "app": "nebula",
@@ -45,6 +46,7 @@
   "status": "enable",
   "type": "aggregate",
   "value_category": "ip",
+  "value_masking": "hash",
   "value_subtype": "",
   "value_type": "string",
   "visible_name": ""
