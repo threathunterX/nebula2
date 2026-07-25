@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 安全漏洞报告
+    url: https://github.com/threathunterX/nebula2/blob/main/SECURITY.md
+    about: 请勿提交公开 issue。发邮件至 security@threathunter.cn 私下报告。
+  - name: 💬 使用问题与开放讨论
+    url: https://github.com/threathunterX/nebula2/discussions
+    about: 不确定是不是缺陷、想问怎么用、想聊风控对抗思路,请到讨论区。
+  - name: 📖 先读文档
+    url: https://github.com/threathunterX/nebula2/blob/main/docs/README.md
+    about: 数据模型、算子语义规格、1.x 迁移差异、隐私设计都在这里。
+  - name: ⚠️ Nebula 1.x 的问题
+    url: https://github.com/threathunterX/nebula
+    about: 1.x 已于 2019 年停止维护,不再接受修复。本仓库只处理 2.0 的问题。

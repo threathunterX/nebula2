@@ -1,0 +1,3 @@
+# tools/ 下校验脚本的依赖。
+# 其余脚本(check_no_pii.py、check_doc_links.py、gen_*.py)仅用 Python 标准库。
+jsonschema>=4.20,<5

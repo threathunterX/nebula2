@@ -1,0 +1,62 @@
+星云 Nebula 2.0
+Copyright 2026 ThreatHunter (threathunterX)
+
+本产品包含由 ThreatHunter 开发的软件。
+
+================================================================================
+派生自 Nebula 1.x
+================================================================================
+
+本项目的**风控领域资产**派生自 Nebula 1.x:
+
+    https://github.com/threathunterX/nebula
+    Copyright (c) ThreatHunter
+    Licensed under the Apache License, Version 2.0
+
+具体包括(位于 seeds/ 目录):
+
+  - 17 个事件模型及字段定义
+  - 253 个统计变量定义
+  - 170 条策略模板
+  - 15 个风险标签
+  - 变量命名规范与 /checkRisk 对外契约
+
+这些资产在迁移过程中经过结构转换、数据审计与缺陷修正,详见
+seeds/INVENTORY.md。
+
+1.x 与本项目均采用 Apache License 2.0,许可证兼容。
+
+**本项目不包含 1.x 的任何实现代码。** 全部代码为重新编写,理由见
+docs/adr/0001-rewrite-instead-of-upgrade.md。
+
+================================================================================
+第三方算法
+================================================================================
+
+MurmurHash3 (x86 32-bit)
+    packages/reference-engine/src/hll.js
+
+    算法由 Austin Appleby 设计并置于公有领域(public domain):
+    https://github.com/aappleby/smhasher
+
+    本仓库中的实现为按该算法规范重新编写,非移植自任何特定实现。
+
+HyperLogLog
+    packages/reference-engine/src/hll.js
+
+    算法出自 Flajolet 等人的论文《HyperLogLog: the analysis of a
+    near-optimal cardinality estimation algorithm》(2007),属学术公开算法。
+    本仓库中的实现为按论文重新编写。
+
+================================================================================
+运行时依赖
+================================================================================
+
+本项目刻意保持极小的依赖面:
+
+  - apps/collector        仅 Go 标准库,无第三方依赖
+  - packages/reference-engine  仅 Node.js 内置模块,无第三方依赖
+  - tools/                Python 标准库 + jsonschema(仅用于校验)
+
+规划中的组件(Flink、Kafka、ClickHouse、PostgreSQL、Redis 等)尚未引入,
+其许可证声明将在实际引入时补入本文件。

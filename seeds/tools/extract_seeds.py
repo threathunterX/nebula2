@@ -20,7 +20,7 @@ All JSON is UTF-8, 2-space indented, ensure_ascii=False, sort_keys=True so the
 output is stable and diffable.
 
 Run:
-    python3 tools/extract_seeds.py --sql <path to nebula.init.data.sql> --out <dir>
+    python3 seeds/tools/extract_seeds.py --sql <path to nebula.init.data.sql> --out <dir>
 """
 
 from __future__ import annotations

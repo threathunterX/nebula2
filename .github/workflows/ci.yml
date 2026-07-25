@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: 安装校验依赖
-        run: pip install jsonschema
+        run: pip install -r tools/requirements.txt
       - name: 校验 schema 自身合法
         run: |
           python - <<'PY'
@@ -53,6 +53,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: 检查是否混入真实个人信息或客户标识
         run: python tools/check_no_pii.py
 

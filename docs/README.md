@@ -7,7 +7,7 @@
 | | |
 |---|---|
 | [核心概念:风控数据模型](concepts/data-model.md) | **建议第一篇阅读**。事件 → 变量 → 策略 → 名单四层模型 |
-| [快速开始](guide/quickstart.md) 🚧 | 5 分钟跑通第一条告警 |
+| [快速开始](guide/quickstart.md) | **2 分钟看到风控实际工作**,零依赖可实跑 |
 | [系统架构](concepts/architecture.md) | 组件构成与数据流 |
 
 ## 使用
@@ -50,6 +50,16 @@
 |---|---|
 | [从 1.x 迁移](migration/from-1x.md) | 资产迁移与 **6 处语义差异** |
 | [架构决策记录](adr/) | 每个关键选型的推理与代价 |
+
+## 开发与发布
+
+| | |
+|---|---|
+| [贡献指南](../CONTRIBUTING.md) | 参与方式、提交要求、本地检查 |
+| [行为准则](../CODE_OF_CONDUCT.md) | Contributor Covenant 2.1 |
+| [更新日志](../CHANGELOG.md) | 按 Keep a Changelog 维护 |
+| [发布流程](development/release-process.md) | 版本号规则、发布前检查清单、打 tag |
+| [发布就绪度审查](development/release-readiness.md) | **诚实列出当前的不足**,含待处理项清单 |
 
 ---
 

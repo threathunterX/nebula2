@@ -1,0 +1,173 @@
+name: 策略模板贡献
+description: 提交一条在实际对抗中验证过的风控策略,提议纳入内置资产
+title: "[Strategy] "
+labels: ["strategy", "seeds", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 这是本项目最欢迎的贡献类型
+
+        内置的 170 条策略模板全部继承自 1.x 的出厂配置,覆盖访客/账号/订单三类场景。
+        **这套资产的价值来自实战沉淀,不来自代码。** 如果你在实际对抗中总结出了有效的
+        策略模式,它的价值高于任何一次代码提交。
+
+        先开这个 issue 讨论策略是否成立、阈值是否合理,**确认后再提 PR**。
+        直接提 PR 也可以,但请在 PR 里回答下面同样的问题。
+
+  - type: markdown
+    attributes:
+      value: |
+        ## ⚠️ 数据合规
+
+        **不要粘贴真实的攻击流量、日志片段或任何个人信息。** 描述攻击手法用文字,
+        举例用合成数据(`example.com`、`198.51.100.0/24`、`13800138000`)。
+
+        尤其注意:真实攻击样本里往往同时含有攻击者和受害用户的标识,两类都不能贴。
+
+  - type: checkboxes
+    id: privacy-ack
+    attributes:
+      label: 数据合规确认
+      options:
+        - label: 我确认本 issue 不含真实流量样例、真实 IP / 设备号 / 账号或任何个人信息
+          required: true
+
+  - type: input
+    id: name
+    attributes:
+      label: 策略名称
+      description: |
+        请遵循内置资产的命名惯例:`<主体维度><行为描述>`,
+        例如 `IP多次登录失败`、`设备多用户请求下单`、`用户关联多个IP地域`。
+      placeholder: IP短时间内更换多个User-Agent
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 场景分类(category)
+      description: 对应 packages/domain-schema/enums.json 的 scene 枚举
+      options:
+        - VISITOR(访客)
+        - ACCOUNT(帐号)
+        - TRANSACTION(支付)
+        - ORDER(订单)
+        - MARKETING(营销)
+        - OTHER(其他)
+    validations:
+      required: true
+
+  - type: textarea
+    id: threat
+    attributes:
+      label: 它防的是什么攻击
+      description: |
+        请描述攻击者的具体做法和动机,以及为什么现有的 170 条策略挡不住。
+        如果现有策略部分覆盖,请说明差在哪里。
+    validations:
+      required: true
+
+  - type: textarea
+    id: logic
+    attributes:
+      label: 判定逻辑
+      description: |
+        请说明:触发事件(trigger.event)、统计主体(groupby)、统计算子与窗口、
+        阈值与比较方式、过滤条件。用自然语言描述即可,不必写 JSON。
+      placeholder: |
+        触发事件:HTTP_DYNAMIC
+        统计主体:c_ip
+        算子与窗口:distinct_count(user_agent),滑动窗口 300 秒
+        阈值:> 10
+        过滤:排除 page 为空的请求
+    validations:
+      required: true
+
+  - type: textarea
+    id: variables
+    attributes:
+      label: 依赖的变量
+      description: |
+        列出策略引用的统计变量。**优先复用 [已有的 253 个变量](https://github.com/threathunterX/nebula2/blob/main/docs/reference/variables.md)**
+        —— 新增变量会同时增加引擎的计算开销和状态占用,需要单独论证。
+        如必须新增,请说明变量名、事件、算子、窗口、groupby 与敏感度级别(sensitivity)。
+    validations:
+      required: true
+
+  - type: textarea
+    id: action
+    attributes:
+      label: 命中后的处置
+      description: |
+        对应策略的 action 字段:名单主体类型(check_type:IP / USER / DeviceID / OrderID)、
+        取值字段(check_value)、决策(decision:accept / review / reject)、名单有效期(ttl,秒)。
+
+        请注意保持 check_type 与策略名的主体一致 —— 内置资产里有几条不一致的,
+        是从 1.x 继承的已知缺陷(见 seeds/INVENTORY.md),不要复制这个错误。
+      placeholder: |
+        check_type: IP
+        check_value: c_ip
+        decision: review
+        ttl: 300
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 效果验证
+      description: |
+        **这一项决定策略能否被接受。** 请说明这条策略在什么规模的流量上跑过多久、
+        召回情况、误报情况,以及阈值是怎么定下来的(拍脑袋还是有分布依据)。
+
+        不要求给出具体业务数据,量级和方法足够 —— 例如「日均千万级请求,
+        跑了 3 个月,命中的 IP 人工抽检 50 个,确认 47 个是爬虫」。
+
+        如果没有实际运行数据,请如实说明,策略仍可能作为可选模板收录,
+        但会标注为未经生产验证。
+    validations:
+      required: true
+
+  - type: textarea
+    id: false-positive
+    attributes:
+      label: 已知的误报场景
+      description: |
+        什么样的正常用户会被这条策略打中?企业出口 NAT、CDN 回源、
+        运营商大出口、内部压测、爬虫友好的开放接口等。
+        **没有误报场景的策略通常意味着还没在真实流量上跑过。**
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: 是否需要使用方配置后才能生效
+      description: |
+        例如需要填入自家的支付页面路径、活动接口地址等。若需要,
+        请说明需要配置什么,并使用 `<YOUR_XXX_PATH>` 形式的占位符
+        (惯例见 [seeds/PLACEHOLDERS.md](https://github.com/threathunterX/nebula2/blob/main/seeds/PLACEHOLDERS.md))。
+
+        注意:占位符未替换时策略**不得恒真** —— 内置资产里有 10 条策略
+        踩过这个坑,占位页面不存在导致「访问次数 == 0」恒成立,把正常用户全打中了。
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提 PR 前的准备
+      description: 讨论确认后提 PR 时需要满足这些;现在不必全部勾选。
+      options:
+        - label: 策略 JSON 符合 packages/domain-schema/strategy.schema.json
+          required: false
+        - label: 本地 `make validate` 通过(含 schema 校验与生成文档一致性)
+          required: false
+        - label: 已运行 `make docs` 重新生成 docs/reference/strategies.md 与 index.json
+          required: false
+        - label: 已用参考引擎验证策略可完成求值(`node run.js --strategy "<名称>"`)
+          required: false
+        - label: 我确认拥有这条策略的处置权,且同意以 Apache-2.0 授权贡献
+          required: false

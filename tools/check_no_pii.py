@@ -11,7 +11,10 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
-SKIP_DIRS = {".git", "node_modules", "target", "build", "dist", ".venv", "assets"}
+# 注意:不要把 docs/assets 加进来。那里是规定存放图片的地方,也是最可能混入
+# 真实控制台截图与配套说明文件的地方 —— 恰恰最需要扫描。二进制图片会因
+# 解码失败被自然跳过,文本文件必须扫。
+SKIP_DIRS = {".git", "node_modules", "target", "build", "dist", ".venv", "venv", "__pycache__"}
 SKIP_SUFFIX = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".pdf", ".zip", ".gz", ".jar", ".woff", ".woff2"}
 
 # 允许的示例值 —— 出现这些不算违规

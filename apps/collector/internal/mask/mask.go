@@ -80,9 +80,9 @@ func DefaultBySensitivity() map[event.Sensitivity]Rule {
 func DefaultFieldRules() map[string]Rule {
 	sensitiveQuery := `(?i)(password|passwd|pwd|token|secret|id_card|idcard|mobile|phone|card_no|cardno|cvv)=([^&]*)`
 	return map[string]Rule{
-		"cookie": {Action: event.MaskDrop},
-		"c_body": {Action: event.MaskRegex, Pattern: sensitiveQuery, Replace: "$1=" + Redacted},
-		"s_body": {Action: event.MaskDrop},
+		"cookie":    {Action: event.MaskDrop},
+		"c_body":    {Action: event.MaskRegex, Pattern: sensitiveQuery, Replace: "$1=" + Redacted},
+		"s_body":    {Action: event.MaskDrop},
 		"uri_query": {Action: event.MaskRegex, Pattern: sensitiveQuery, Replace: "$1=" + Redacted},
 		"password":  {Action: event.MaskDrop},
 	}

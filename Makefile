@@ -11,7 +11,7 @@ help: ## 显示本帮助
 # ---------- 校验 ----------
 
 .PHONY: validate
-validate: validate-schema validate-seeds docs-check links test-reference ## 跑全部校验(等同 CI 的检查项)
+validate: validate-schema validate-seeds docs-check links privacy-check test-reference lint ## 跑全部校验(等同 CI 的检查项)
 
 .PHONY: validate-schema
 validate-schema: ## 校验 JSON Schema 自身合法
@@ -67,7 +67,9 @@ gen-ts: ## 🚧 由 schema 生成 TypeScript 类型
 
 .PHONY: lint
 lint: ## 代码风格与静态检查
-	@cd apps/collector && gofmt -l . | tee /dev/stderr | (! read) && go vet ./...
+	@cd apps/collector && out=$$(gofmt -l .); \
+		if [ -n "$$out" ]; then echo "以下文件未格式化:"; echo "$$out"; exit 1; fi; \
+		go vet ./...
 	@echo "collector: 格式与静态检查通过"
 
 .PHONY: test

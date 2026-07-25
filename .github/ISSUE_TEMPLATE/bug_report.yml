@@ -1,0 +1,129 @@
+name: 缺陷报告
+description: 报告一个不符合预期的行为(参考引擎、校验工具、seeds 资产、文档)
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ⚠️ 提交前请务必阅读
+
+        **不要在 issue 中粘贴真实流量、真实日志或任何个人信息。**
+
+        本项目处理的是业务风控数据,issue 是公开可见且会被搜索引擎索引的。请不要贴入:
+
+        - 真实的用户 ID、手机号、身份证号、银行卡号、邮箱
+        - 真实的终端用户 IP、设备指纹、Cookie、Token
+        - 真实的企业名称、内部域名、内网地址、员工姓名
+        - 未经脱敏的生产流量样例或访问日志
+
+        复现用的数据请改写成合成样例:域名用 `example.com` 系,IP 用 RFC 5737
+        文档专用段(`198.51.100.0/24`、`203.0.113.0/24`),手机号用 `13800138000`,
+        邮箱用 `user@example.com`。写法可参考 [`seeds/PLACEHOLDERS.md`](https://github.com/threathunterX/nebula2/blob/main/seeds/PLACEHOLDERS.md)。
+
+        **如果这是一个安全漏洞,请不要提交公开 issue**,按 [SECURITY.md](https://github.com/threathunterX/nebula2/blob/main/SECURITY.md)
+        发邮件至 security@threathunter.cn 私下报告。
+
+  - type: checkboxes
+    id: privacy-ack
+    attributes:
+      label: 数据合规确认
+      options:
+        - label: 我确认本 issue 中的所有数据均为合成/脱敏数据,不含真实流量与个人信息
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## 项目当前状态提示
+
+        生产引擎(Flink)、采集器、控制面 API 与管理界面**尚未开始实现**,
+        `docker compose` 部署也不可用。针对这些组件的「跑不起来」不算缺陷,
+        请改用「功能建议」或直接在讨论区提出。
+
+        当前**可以**报告缺陷的范围:参考引擎(`packages/reference-engine`)、
+        校验与生成工具(`tools/`)、领域模型 schema(`packages/domain-schema`)、
+        内置资产(`seeds/`)、文档。
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: 涉及组件
+      options:
+        - 参考引擎 packages/reference-engine
+        - 领域模型 schema packages/domain-schema
+        - 内置资产 seeds(事件/变量/策略/标签)
+        - 校验与生成工具 tools/
+        - 算子语义规格 docs/reference/operators.md
+        - 文档(其他)
+        - CI / Makefile
+        - 其他 / 不确定
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 实际发生了什么
+      description: 简述观察到的错误行为。如有报错信息,请完整粘贴(注意先脱敏)。
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望的行为是什么
+      description: |
+        如果这涉及算子语义或策略判定,请说明你依据的是哪份规格的哪一条。
+        例如「按 docs/reference/operators.md §2.3,空窗口的 count 应返回 0 而非 null」。
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: 复现步骤
+      description: 请给出可以直接复制执行的命令。数据必须是合成的。
+      placeholder: |
+        1. cd packages/reference-engine
+        2. node run.js --strategy "IP多次登录失败" --json
+        3. 观察输出中 ...
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 运行环境
+      description: |
+        请提供 `node --version`、`python3 --version` 与操作系统。
+        参考引擎需要 Node.js 18+,校验工具需要 Python 3.12 + jsonschema。
+      placeholder: |
+        Node.js: v22.11.0
+        Python: 3.12.4
+        OS: macOS 15.2 / Ubuntu 24.04
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: validate-passed
+    attributes:
+      label: 本地 `make validate` 的结果
+      options:
+        - 通过
+        - 失败(失败输出已附在上面)
+        - 没跑
+        - 不适用(纯文档问题)
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充信息
+      description: 你对成因的猜测、相关的 1.x 行为对照、或你已经排除的可能性。
+    validations:
+      required: false

@@ -5,6 +5,9 @@
  * 参数按 docs/reference/operators.md:log2m = 14,即 16384 个 register,
  * 标准误差约 1.04/sqrt(16384) ≈ 0.8%。
  *
+ * HyperLogLog 算法出自 Flajolet 等人 2007 年的论文,属学术公开算法;
+ * 本实现按论文编写。出处声明见仓库根目录的 NOTICE。
+ *
  * 注意:1.x 用的是 log2m = 9(512 register,误差约 4.6%)且与「前 20 个精确」
  * 的哈希集合混用,两者哈希函数还不同。2.0 不兼容该行为,这是已知的语义变更。
  */
@@ -25,7 +28,12 @@ class HyperLogLog {
     return 0.7213 / (1 + 1.079 / m);
   }
 
-  /** MurmurHash3 x86 32-bit —— 与规格中约定的哈希族一致 */
+  /**
+   * MurmurHash3 x86 32-bit —— 与规格中约定的哈希族一致。
+   *
+   * 算法由 Austin Appleby 设计并置于公有领域(https://github.com/aappleby/smhasher)。
+   * 本实现按算法规范编写,出处声明见仓库根目录的 NOTICE。
+   */
   static hash(key) {
     const data = Buffer.from(String(key), 'utf8');
     let h1 = 0;

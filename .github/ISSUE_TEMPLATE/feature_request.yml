@@ -1,0 +1,82 @@
+name: 功能建议 / 设计讨论
+description: 提出新能力,或对已有的架构决策提出不同意见
+title: "[Feature] "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        项目处于早期阶段,架构与接口仍可能有较大调整。**此阶段最有价值的贡献是对设计的意见**
+        —— 尤其是来自有实际风控运营经验的反馈。
+
+        如果你是对某条 [ADR](https://github.com/threathunterX/nebula2/blob/main/docs/adr/) 有不同看法,这里就是合适的地方。
+        每条 ADR 都写明了该决策付出的代价,如果你认为某个代价被低估了,请直接指出。
+
+        提交前请先搜索已有 issue,避免重复。
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 建议类型
+      options:
+        - 新增能力(引擎/算子/接入方式等)
+        - 对已有架构决策(ADR)提出异议
+        - 领域模型 / schema 的调整
+        - 文档改进
+        - 工程机制(CI、校验工具、开发体验)
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你要解决的问题是什么
+      description: |
+        请描述实际场景而不是直接描述方案。风控是强场景依赖的领域,
+        「我们遇到过什么样的攻击 / 运营中什么环节卡住了」比「请加一个 X 功能」有用得多。
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 你建议怎么做
+      description: 如涉及算子或变量,请说明输入类型、输出类型、空窗口与 null 的行为。
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 考虑过哪些替代方案,为什么排除
+      description: 包括「用现有能力绕过去」这个选项 —— 如果能绕过去,请说明绕法为什么不够。
+    validations:
+      required: false
+
+  - type: textarea
+    id: cost
+    attributes:
+      label: 这个方案的代价是什么
+      description: |
+        本项目的 ADR 惯例是把每个决策的代价明确写出来。请照此评估你的建议:
+        性能开销、语义复杂度、与 1.x 契约的兼容性、运维负担、实现成本。
+        诚实评估代价的建议更容易被接受。
+    validations:
+      required: true
+
+  - type: textarea
+    id: prior-art
+    attributes:
+      label: 1.x 中的相关行为 / 其他系统的做法
+      description: 如果 1.x 有对应实现,请说明它怎么做的、有什么问题。
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: 参与意愿
+      options:
+        - label: 我愿意提交 PR 实现这个建议(方案确认后)
+          required: false

@@ -25,9 +25,13 @@ CI 会运行 secret scanning 拦截明显的凭据,但**它无法识别所有形
 
 ### 领域模型的改动
 
-领域模型只在 `packages/domain-schema/` 中定义。**不要手工修改生成的类型文件**,CI 会检出。
+领域模型只在 `packages/domain-schema/` 中定义。**不要手工修改生成的类型文件**。
 
-新增一个算子需要同时提供:schema 声明、引擎实现、单元测试、以及文档。缺少任何一项 CI 都会失败——这是为了防止重现 1.x 中"声明了但没实现"的问题。
+> 🚧 代码生成尚未实现(`make gen-java` / `make gen-ts` 目前是占位),因此暂无生成产物,也暂无对应的一致性检查。当前已生效的是资产层校验:`make validate-seeds` 会校验 seeds 符合 schema、引用无悬空、隐私标注齐全。
+
+新增一个算子需要同时提供:schema 声明、实现、单元测试、以及文档。这是为了防止重现 1.x 中"声明了但没实现"的问题。
+
+> 🚧 「缺少任何一项即构建失败」的覆盖率门禁尚未实现。当前靠评审把关,算子的规格符合性测试见 [`packages/reference-engine/test/`](packages/reference-engine/test/)。
 
 ### 提交信息
 
@@ -40,6 +44,16 @@ docs(migration): 补充标准差语义差异说明
 ```
 
 ## 本地检查
+
+前置依赖:
+
+| 用途 | 要求 |
+|---|---|
+| 资产 schema 校验 | Python 3.10+,`pip install -r tools/requirements.txt` |
+| 参考引擎测试 | Node.js 18+ |
+| 采集器 | Go 1.22+ |
+
+其余脚本只用标准库,无需额外安装。
 
 ```bash
 make lint          # 代码风格
@@ -56,4 +70,13 @@ make install-hooks
 
 ## 行为准则
 
-请保持专业与尊重。技术讨论对事不对人。
+本项目采用 [Contributor Covenant 2.1](CODE_OF_CONDUCT.md) 作为行为准则,参与即表示同意遵守。
+
+一句话概括:请保持专业与尊重,技术讨论对事不对人。需要报告不当行为时,
+发邮件至 opensource@threathunter.cn(**软件安全漏洞走另一条通道**,见 [SECURITY.md](SECURITY.md))。
+
+## 更新日志
+
+引入了使用方或评估者会察觉到的变化时,请在 [`CHANGELOG.md`](CHANGELOG.md) 的
+`[Unreleased]` 段落追加一条 —— **在 PR 里写,不要留到发布时补**。
+纯内部重构、typo 修正、CI 微调不必记录。写法与分类见[发布流程](docs/development/release-process.md)。
