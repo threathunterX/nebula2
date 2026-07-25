@@ -84,3 +84,25 @@ jobs:
         run: cd packages/reference-engine && node --test 'test/*.test.js'
       - name: 场景冒烟(全部策略可完成求值)
         run: cd packages/reference-engine && node run.js
+
+  collector:
+    name: 采集器(Go)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/collector
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: 编译
+        run: go build ./...
+      - name: 静态检查
+        run: go vet ./...
+      - name: 格式检查
+        run: |
+          out=$(gofmt -l .)
+          if [ -n "$out" ]; then echo "以下文件未格式化:"; echo "$out"; exit 1; fi
+      - name: 测试
+        run: go test -cover ./...

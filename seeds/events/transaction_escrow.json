@@ -3,86 +3,104 @@
   "name": "TRANSACTION_ESCROW",
   "properties": [
     {
+      "masking": "none",
       "name": "uid",
       "remark": "用户账户",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "用户账户"
     },
     {
+      "masking": "none",
       "name": "transaction_id",
       "remark": "第三方支付流水号",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "第三方支付流水号"
     },
     {
+      "masking": "none",
       "name": "order_id",
       "remark": "订单id",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "订单id"
     },
     {
       "name": "merchant",
       "remark": "商户号",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "商户号"
     },
     {
       "name": "merchant_name",
       "remark": "商户名称",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "商户名称"
     },
     {
       "name": "order_original_amount",
       "remark": "未使用优惠券前的订单原价",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "未使用优惠券前的订单原价"
     },
     {
       "name": "order_money_amount",
       "remark": "订单现金金额",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "订单现金金额"
     },
     {
       "name": "order_coupon_amount",
       "remark": "订单优惠券金额",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "订单优惠券金额"
     },
     {
       "name": "order_point_amount",
       "remark": "订单积分数",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "订单积分数"
     },
     {
       "name": "order_use_balance_amount",
       "remark": "订单使用储值余额数",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "订单使用储值余额数"
     },
     {
       "name": "escrow_type",
       "remark": "第三方支付平台类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "第三方支付平台类型"
     },
     {
+      "masking": "drop",
       "name": "escrow_account",
       "remark": "第三方支付账号",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "第三方支付账号"
     },
     {
       "name": "result",
       "remark": "支付结果",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "支付结果"
     },
     {
       "name": "uid_level",
       "remark": "用户等级",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "用户等级"
     }

@@ -35,3 +35,4 @@ Thumbs.db
 logs/
 *.log
 tmp/
+collector/nebula-collector

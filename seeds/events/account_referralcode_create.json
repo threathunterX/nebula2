@@ -3,20 +3,25 @@
   "name": "ACCOUNT_REFERRALCODE_CREATE",
   "properties": [
     {
+      "masking": "none",
       "name": "uid",
       "remark": "用户名",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "用户名"
     },
     {
+      "masking": "none",
       "name": "referralcode",
       "remark": "生成ID",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "生成ID"
     },
     {
       "name": "code_type",
       "remark": "生成ID的类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "生成ID的类型"
     }

@@ -3,38 +3,48 @@
   "name": "ACCOUNT_TOKEN_CHANGE",
   "properties": [
     {
+      "masking": "none",
       "name": "uid",
       "remark": "修改凭证账号",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "修改凭证账号"
     },
     {
+      "masking": "drop",
       "name": "old_token",
       "remark": "原凭证",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "原凭证"
     },
     {
+      "masking": "drop",
       "name": "new_token",
       "remark": "新凭证",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "新凭证"
     },
     {
       "name": "token_type",
       "remark": "凭证类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "凭证类型"
     },
     {
+      "masking": "drop",
       "name": "captcha",
       "remark": "图片验证码",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "图片验证码"
     },
     {
       "name": "result",
       "remark": "修改结果",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "修改结果"
     }

@@ -322,3 +322,21 @@ page contains "^\s*$"
 `seeds/strategies/index.json` 此前是手工维护的,策略转为 2.0 结构后它仍带着 1.x 的 `status: online` 与 `term_count` 字段,与实际文件脱节而无人发现——因为 `validate_seeds.py` 只校验策略文件本身。
 
 现由 `tools/gen_seeds_index.py` 从策略文件派生,并纳入 CI 的 `--check` 门禁,不会再漂移。重新生成后,需要配置才能生效的策略从 7 条修正为 **10 条**(补上了 3 条把页面路径写成字面量 `A`/`B` 的骨架策略)。
+
+---
+
+## 事件字段的敏感级别分级
+
+隐私文档从一开始就规定了事件字段要做四级分类,但 1.x 的事件模型里**没有任何敏感级别信息**——184 个字段全部未标注。这个缺口是在实现采集器、端到端跑通脱敏时才暴露的:跑出来发现 `uid` 和 `c_ip` 原样输出,查下来是数据里根本没标。
+
+现已完成全部 17 个事件模型、184 个字段的分级:
+
+| 级别 | 字段数 | 处理位置 | 举例 |
+|---|---:|---|---|
+| `sensitive` | 39 | 采集端脱敏 | `password`、`card_number`、`person_id`、`card_realname`、`receiver_mobile`、`captcha`、`cookie`、`s_body` |
+| `pii` | 47 | 存储层保护 | `c_ip`、`uid`、`did`、`sid`、`useragent`、`geo_*`、`order_id` |
+| `internal` | 98 | 访问需授权 | `host`、`method`、`status`、各类金额与业务枚举 |
+
+`c_body` 与 `uri_query` 标注为 `sensitive` 但用**正则脱敏**而非整体丢弃,保留非敏感参数便于排查。
+
+**机制保障**:`apps/collector` 的测试中有两条隐私不变式——`TestSeedFieldsAreClassified`(全部字段必须标注)与 `TestSensitiveFieldsDeclareMasking`(sensitive 必须声明脱敏方式),新增事件字段时无法跳过评估。

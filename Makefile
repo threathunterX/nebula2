@@ -66,11 +66,21 @@ gen-ts: ## 🚧 由 schema 生成 TypeScript 类型
 # ---------- 构建与测试 ----------
 
 .PHONY: lint
-lint: ## 🚧 代码风格检查
-	@echo "🚧 尚未实现(各 app 尚无代码)"
+lint: ## 代码风格与静态检查
+	@cd apps/collector && gofmt -l . | tee /dev/stderr | (! read) && go vet ./...
+	@echo "collector: 格式与静态检查通过"
 
 .PHONY: test
-test: test-reference ## 单元测试
+test: test-reference test-collector ## 单元测试
+
+.PHONY: test-collector
+test-collector: ## 采集器测试
+	@cd apps/collector && go test -cover ./...
+
+.PHONY: build-collector
+build-collector: ## 构建采集器二进制
+	@cd apps/collector && go build -o nebula-collector ./cmd/nebula-collector \
+		&& echo "已构建 apps/collector/nebula-collector"
 
 .PHONY: test-reference
 test-reference: ## 参考引擎的规格符合性测试

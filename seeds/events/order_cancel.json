@@ -3,38 +3,47 @@
   "name": "ORDER_CANCEL",
   "properties": [
     {
+      "masking": "none",
       "name": "order_id",
       "remark": "订单ID",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "订单ID"
     },
     {
+      "masking": "none",
       "name": "uid",
       "remark": "取消订单账号",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "取消订单账号"
     },
     {
       "name": "merchant",
       "remark": "订单对应商户",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "订单对应商户"
     },
     {
       "name": "cancel_reason",
       "remark": "取消原因",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "取消原因"
     },
     {
+      "masking": "none",
       "name": "transaction_id",
       "remark": "订单对应交易流水ID",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "订单对应交易流水ID"
     },
     {
       "name": "result",
       "remark": "下单结果",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "下单结果"
     }

@@ -3,182 +3,226 @@
   "name": "HTTP_DYNAMIC",
   "properties": [
     {
+      "masking": "none",
       "name": "c_ip",
       "remark": "客户端IP(默认取xforward最后一个)",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "客户端ip"
     },
     {
+      "masking": "none",
       "name": "sid",
       "remark": "session会话ID",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "session会话ID"
     },
     {
+      "masking": "none",
       "name": "uid",
       "remark": "用户ID",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "用户ID"
     },
     {
+      "masking": "none",
       "name": "did",
       "remark": "设备ID",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "设备ID"
     },
     {
       "name": "platform",
       "remark": "客户端类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "客户端类型"
     },
     {
       "name": "page",
       "remark": "伪静态页面加工后地址(全部小写，去端口)",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "伪静态页面加工后地址"
     },
     {
       "name": "c_port",
       "remark": "客户端端口",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "客户端端口"
     },
     {
       "name": "c_bytes",
       "remark": "请求内容大小",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "请求内容大小"
     },
     {
+      "masking": "regex",
+      "masking_pattern": "(?i)(password|passwd|pwd|token|secret|id_card|idcard|mobile|phone|card_no|cardno|cvv)=([^&]*)",
       "name": "c_body",
       "remark": "请求内容(json和form表单脱敏)",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "请求内容"
     },
     {
       "name": "c_type",
       "remark": "请求内容类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "请求内容类型"
     },
     {
       "name": "s_ip",
       "remark": "服务端IP",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "服务端IP"
     },
     {
       "name": "s_port",
       "remark": "服务端端口",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "服务端端口"
     },
     {
       "name": "s_bytes",
       "remark": "响应内容大小",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "响应内容大小"
     },
     {
+      "masking": "drop",
       "name": "s_body",
       "remark": "响应内容(json和form表单脱敏)",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "响应内容"
     },
     {
       "name": "s_type",
       "remark": "响应内容类型(全部小写)",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "响应内容类型"
     },
     {
       "name": "host",
       "remark": "主机地址(全部小写，去端口)",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "主机地址"
     },
     {
       "name": "uri_stem",
       "remark": "请求路径(全部小写)",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "请求路径"
     },
     {
+      "masking": "regex",
+      "masking_pattern": "(?i)(password|passwd|pwd|token|secret|id_card|idcard|mobile|phone|card_no|cardno|cvv)=([^&]*)",
       "name": "uri_query",
       "remark": "请求参数(全部小写,脱敏)",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "请求参数"
     },
     {
       "name": "referer",
       "remark": "引用页面(全部小写，去端口)",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "引用页面"
     },
     {
       "name": "method",
       "remark": "请求方法(全部大写)",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "请求方法"
     },
     {
       "name": "status",
       "remark": "响应状态码",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "响应状态码"
     },
     {
+      "masking": "drop",
       "name": "cookie",
       "remark": "用户身份存储",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "用户身份存储"
     },
     {
+      "masking": "none",
       "name": "useragent",
       "remark": "用户代理信息(浏览器类型)",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "用户代理信息"
     },
     {
+      "masking": "none",
       "name": "xforward",
       "remark": "用户的xff header，具体header名可配",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "用户的xff header"
     },
     {
       "name": "request_time",
       "remark": "请求消耗时间(毫秒精度)",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "请求消耗时间"
     },
     {
       "name": "request_type",
       "remark": "请求类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "请求类型"
     },
     {
       "name": "referer_hit",
       "remark": "referer是否命中",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "referer是否命中"
     },
     {
       "name": "notices",
       "remark": "风险名单",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "风险名单"
     },
     {
+      "masking": "none",
       "name": "geo_city",
       "remark": "地理位置",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "地理位置"
     },
     {
+      "masking": "none",
       "name": "geo_province",
       "remark": "地理位置",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "地理位置"
     }

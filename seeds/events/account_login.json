@@ -3,44 +3,54 @@
   "name": "ACCOUNT_LOGIN",
   "properties": [
     {
+      "masking": "none",
       "name": "uid",
       "remark": "登陆用户名",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "登陆用户名"
     },
     {
       "name": "login_verification_type",
       "remark": "登陆验证类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "登陆验证类型"
     },
     {
+      "masking": "drop",
       "name": "password",
       "remark": "登陆验证密码(脱敏)",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "登陆验证密码"
     },
     {
+      "masking": "drop",
       "name": "captcha",
       "remark": "图片验证码",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "图片验证码"
     },
     {
       "name": "result",
       "remark": "登陆结果",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "登陆结果"
     },
     {
       "name": "remember_me",
       "remark": "下次自动登陆",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "下次自动登陆"
     },
     {
       "name": "login_channel",
       "remark": "登陆渠道",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "登陆渠道"
     }

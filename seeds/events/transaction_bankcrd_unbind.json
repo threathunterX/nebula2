@@ -3,38 +3,47 @@
   "name": "TRANSACTION_BANKCRD_UNBIND",
   "properties": [
     {
+      "masking": "none",
       "name": "uid",
       "remark": "用户账号",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "用户账号"
     },
     {
+      "masking": "drop",
       "name": "card_number",
       "remark": "银行卡号",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "银行卡号"
     },
     {
       "name": "card_type",
       "remark": "银行卡类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "银行卡类型"
     },
     {
       "name": "bank_type",
       "remark": "银行类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "银行类型"
     },
     {
       "name": "result",
       "remark": "解绑结果",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "解绑结果"
     },
     {
+      "masking": "drop",
       "name": "captcha",
       "remark": "图片验证码",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "图片验证码"
     }

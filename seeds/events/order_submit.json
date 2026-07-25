@@ -3,182 +3,226 @@
   "name": "ORDER_SUBMIT",
   "properties": [
     {
+      "masking": "none",
       "name": "order_id",
       "remark": "订单ID",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "订单ID"
     },
     {
+      "masking": "none",
       "name": "uid",
       "remark": "下单账号",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "下单账号"
     },
     {
       "name": "merchant_type",
       "remark": "业务类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "业务类型"
     },
     {
       "name": "merchant",
       "remark": "商户号",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "商户号"
     },
     {
       "name": "merchant_name",
       "remark": "商户名称",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "商户名称"
     },
     {
       "name": "product_id",
       "remark": "敏感或主要购买产品ID",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "敏感或主要购买产品ID"
     },
     {
       "name": "product_types",
       "remark": "商品品类",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "商品品类"
     },
     {
       "name": "product_count",
       "remark": "商品个数",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "商品个数"
     },
     {
       "name": "product_total_count",
       "remark": "订单商品总个数",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "订单商品总个数"
     },
     {
       "name": "order_original_amount",
       "remark": "未使用优惠券前的订单原价",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "未使用优惠券前的订单原价"
     },
     {
       "name": "order_money_amount",
       "remark": "订单现金金额",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "订单现金金额"
     },
     {
       "name": "order_coupon_amount",
       "remark": "订单优惠券金额",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "订单优惠券金额"
     },
     {
       "name": "order_point_amount",
       "remark": "订单积分数",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "订单积分数"
     },
     {
       "name": "order_use_balance_amount",
       "remark": "订单使用储值余额数",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "订单使用储值余额数"
     },
     {
+      "masking": "none",
       "name": "transaction_id",
       "remark": "订单对应交易流水ID",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "订单对应交易流水ID"
     },
     {
+      "masking": "drop",
       "name": "receiver_mobile",
       "remark": "收货人手机",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "收货人手机"
     },
     {
+      "masking": "none",
       "name": "receiver_address_country",
       "remark": "收货人收货地国家",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "收货人收货地国家"
     },
     {
+      "masking": "none",
       "name": "receiver_address_province",
       "remark": "收货人收货地省份",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "收货人收货地省份"
     },
     {
+      "masking": "none",
       "name": "receiver_address_city",
       "remark": "收货人收货地城市",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "收货人收货地城市"
     },
     {
+      "masking": "drop",
       "name": "receiver_address_detail",
       "remark": "收货人收货地具体地址",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "收货人收货地具体地址"
     },
     {
+      "masking": "drop",
       "name": "user_name",
       "remark": "收货人姓名",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "收货人姓名"
     },
     {
+      "masking": "drop",
       "name": "receiver_email",
       "remark": "收货人邮箱",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "收货人邮箱"
     },
     {
+      "masking": "none",
       "name": "receiver_email_domain",
       "remark": "收货人邮箱后缀",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "收货人邮箱后缀"
     },
     {
       "name": "result",
       "remark": "下单结果",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "下单结果"
     },
     {
       "name": "start_time",
       "remark": "入住日期",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "入住日期"
     },
     {
       "name": "end_time",
       "remark": "退房日期",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "退房日期"
     },
     {
+      "masking": "none",
       "name": "departure_city",
       "remark": "出发城市",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "出发城市"
     },
     {
+      "masking": "none",
       "name": "arrival_city",
       "remark": "到达城市",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "到达城市"
     },
     {
+      "masking": "none",
       "name": "product_location",
       "remark": "商品所在城市",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "商品所在城市"
     },
     {
       "name": "uid_level",
       "remark": "用户等级",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "用户等级"
     }

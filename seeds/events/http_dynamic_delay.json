@@ -5,6 +5,7 @@
     {
       "name": "delay_strategy",
       "remark": "延迟策略",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "延迟策略"
     }

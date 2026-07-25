@@ -3,44 +3,55 @@
   "name": "TRANSACTION_DEPOSIT",
   "properties": [
     {
+      "masking": "none",
       "name": "uid",
       "remark": "用户账户",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "用户账户"
     },
     {
+      "masking": "none",
       "name": "transaction_id",
       "remark": "充值流水号",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "充值流水号"
     },
     {
       "name": "deposit_amount",
       "remark": "充值金额",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "充值金额"
     },
     {
+      "masking": "drop",
       "name": "card_number",
       "remark": "充值卡号",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "充值卡号"
     },
     {
+      "masking": "drop",
       "name": "user_name",
       "remark": "交易相关用户(授予人)",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "交易相关用户"
     },
     {
       "name": "account_balance_before",
       "remark": "充值前账户余额",
+      "sensitivity": "internal",
       "type": "double",
       "visible_name": "充值前账户余额"
     },
     {
       "name": "result",
       "remark": "充值结果",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "充值结果"
     }

@@ -3,50 +3,62 @@
   "name": "TRANSACTION_WITHDRAW",
   "properties": [
     {
+      "masking": "none",
       "name": "uid",
       "remark": "用户账户",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "用户账户"
     },
     {
+      "masking": "none",
       "name": "transaction_id",
       "remark": "取现或消费流水号",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "取现或消费流水号"
     },
     {
       "name": "withdraw_amount",
       "remark": "取出或消费金额",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "取出或消费金额"
     },
     {
       "name": "withdraw_type",
       "remark": "取出类型，消费／提现",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "取出类型，消费／提现"
     },
     {
+      "masking": "drop",
       "name": "card_number",
       "remark": "被充值卡号",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "被充值卡号"
     },
     {
+      "masking": "drop",
       "name": "user_name",
       "remark": "交易相关用户",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "交易相关用户"
     },
     {
       "name": "account_balance_before",
       "remark": "账户取现／消费前余额",
+      "sensitivity": "internal",
       "type": "long",
       "visible_name": "账户取现／消费前余额"
     },
     {
       "name": "result",
       "remark": "取现结果",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "取现结果"
     }

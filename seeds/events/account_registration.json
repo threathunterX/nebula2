@@ -3,56 +3,71 @@
   "name": "ACCOUNT_REGISTRATION",
   "properties": [
     {
+      "masking": "none",
       "name": "uid",
       "remark": "注册名",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "注册名"
     },
     {
+      "masking": "drop",
       "name": "password",
       "remark": "注册密码(脱敏)",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "注册密码"
     },
     {
+      "masking": "drop",
       "name": "register_verification_token",
       "remark": "注册验证凭证",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "注册验证凭证"
     },
     {
       "name": "register_verification_token_type",
       "remark": "注册验证凭证类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "注册验证凭证类型"
     },
     {
+      "masking": "drop",
       "name": "captcha",
       "remark": "图片验证码",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "图片验证码"
     },
     {
       "name": "result",
       "remark": "注册结果",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "注册结果"
     },
     {
+      "masking": "drop",
       "name": "user_name",
       "remark": "注册真实姓名",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "注册真实姓名"
     },
     {
       "name": "register_channel",
       "remark": "注册渠道",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "注册渠道"
     },
     {
+      "masking": "none",
       "name": "invite_code",
       "remark": "注册邀请码",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "注册邀请码"
     }

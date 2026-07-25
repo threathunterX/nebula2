@@ -3,26 +3,33 @@
   "name": "ACCOUNT_CERTIFICATION",
   "properties": [
     {
+      "masking": "none",
       "name": "uid",
       "remark": "实名验证账号",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "实名验证账号"
     },
     {
+      "masking": "drop",
       "name": "person_id",
       "remark": "实名身份证ID",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "实名身份证ID"
     },
     {
+      "masking": "drop",
       "name": "user_name",
       "remark": "真实姓名",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "真实姓名"
     },
     {
       "name": "result",
       "remark": "实名验证结果",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "实名验证结果"
     }

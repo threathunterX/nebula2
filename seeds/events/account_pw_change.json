@@ -3,44 +3,56 @@
   "name": "ACCOUNT_PW_CHANGE",
   "properties": [
     {
+      "masking": "none",
       "name": "uid",
       "remark": "修改密码账号",
+      "sensitivity": "pii",
       "type": "string",
       "visible_name": "修改密码账号"
     },
     {
+      "masking": "drop",
       "name": "old_password",
       "remark": "原密码(脱敏)",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "原密码"
     },
     {
+      "masking": "drop",
       "name": "new_password",
       "remark": "修改后密码(脱敏)",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "修改后密码"
     },
     {
+      "masking": "drop",
       "name": "verification_token",
       "remark": "验证凭证",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "验证凭证"
     },
     {
       "name": "verification_token_type",
       "remark": "验证凭证类型",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "验证凭证类型"
     },
     {
+      "masking": "drop",
       "name": "captcha",
       "remark": "图片验证码",
+      "sensitivity": "sensitive",
       "type": "string",
       "visible_name": "图片验证码"
     },
     {
       "name": "result",
       "remark": "修改结果",
+      "sensitivity": "internal",
       "type": "string",
       "visible_name": "修改结果"
     }
