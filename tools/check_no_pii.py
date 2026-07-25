@@ -32,11 +32,26 @@ CHECKS = [
 
     ("公网 IP 字面量", re.compile(r"(?<![\d.])((?!10\.|127\.|0\.|169\.254\.|192\.168\.|198\.51\.100\.|203\.0\.113\.|224\.|255\.)"
                                  r"(?:\d{1,3}\.){3}\d{1,3})(?![\d.])"),
-     lambda m, line: _is_public_ip(m.group(0))),
+     lambda m, line: _is_public_ip(m.group(0)) and not _looks_like_version(m, line)),
 
     ("非示例域名邮箱", re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
      lambda m, line: not ALLOWED_DOMAINS.search(m.group(0))),
 ]
+
+
+
+def _looks_like_version(m, line):
+    """排除版本号误报。
+
+    User-Agent 里的 Chrome/120.0.0.0、Safari/537.36 这类版本号形态上与 IP
+    无法区分,但它们前面必然紧跟斜杠;另外四段版本号常以 .0.0 结尾。
+    """
+    start = m.start()
+    if start > 0 and line[start - 1] in "/-":
+        return True
+    if m.group(0).endswith(".0.0"):
+        return True
+    return False
 
 
 def _is_public_ip(s):
