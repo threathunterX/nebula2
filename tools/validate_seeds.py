@@ -21,6 +21,7 @@ SEEDS = ROOT / "seeds"
 TARGETS = [
     ("events", "event-model.schema.json", 17),
     ("variables", "variable-model.schema.json", 253),
+    ("strategies", "strategy.schema.json", 170),
 ]
 
 

@@ -1,139 +1,94 @@
 {
+  "action": {
+    "check_type": "DeviceID",
+    "check_value": "did",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "page",
+          "kind": "event_field"
+        },
+        "op": "!regex",
+        "right": {
+          "kind": "constant",
+          "value": "^\\s*$"
+        }
+      },
+      {
+        "left": {
+          "field": "result",
+          "kind": "event_field"
+        },
+        "op": "==",
+        "right": {
+          "kind": "constant",
+          "value": "T"
+        }
+      },
+      {
+        "left": {
+          "counter": {
+            "algorithm": "count",
+            "event": "ACCOUNT_LOGIN",
+            "filter": {
+              "condition": [
+                {
+                  "object": "result",
+                  "operation": "==",
+                  "type": "simple",
+                  "value": "T"
+                },
+                {
+                  "object": "page",
+                  "operation": "!regex",
+                  "type": "simple",
+                  "value": "^\\s*$"
+                }
+              ],
+              "type": "and"
+            },
+            "groupby": [
+              "did"
+            ],
+            "operand": [
+              "c_ip"
+            ],
+            "window": 600
+          },
+          "kind": "counter"
+        },
+        "op": ">",
+        "right": {
+          "kind": "constant",
+          "value": "5"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1484040852259,
+  "effective_to": null,
+  "explain": true,
   "name": "设备多次登录成功",
   "remark": ">5 in 10min T",
   "score": 0,
-  "start_effect": 1484040852259,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "高频登录"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ACCOUNT_LOGIN"
-          ],
-          "field": "page"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "!regex",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "^\\s*$"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ACCOUNT_LOGIN"
-          ],
-          "field": "result"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "==",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "T"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "algorithm": "count",
-          "condition": [
-            {
-              "left": "did",
-              "op": "=",
-              "right": "did"
-            },
-            {
-              "left": "result",
-              "op": "==",
-              "right": "T"
-            },
-            {
-              "left": "page",
-              "op": "!regex",
-              "right": "^\\s*$"
-            }
-          ],
-          "groupby": [
-            "did"
-          ],
-          "interval": 600,
-          "operand": [
-            "c_ip"
-          ],
-          "sourceevent": [
-            "nebula",
-            "ACCOUNT_LOGIN"
-          ],
-          "trigger": {
-            "event": [
-              "nebula",
-              "ACCOUNT_LOGIN"
-            ],
-            "keys": [
-              "did"
-            ]
-          }
-        },
-        "subtype": "count",
-        "type": "func"
-      },
-      "op": ">",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "5"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "DeviceID",
-          "checkvalue": "did",
-          "decision": "review",
-          "name": "ACCOUNT",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "ACCOUNT_LOGIN"
+  },
+  "version": "2.0",
+  "visible_name": "设备多次登录成功"
 }

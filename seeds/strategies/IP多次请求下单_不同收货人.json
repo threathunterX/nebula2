@@ -1,134 +1,83 @@
 {
+  "action": {
+    "check_type": "IP",
+    "check_value": "c_ip",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "ORDER",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "uid",
+          "kind": "event_field"
+        },
+        "op": "!regex",
+        "right": {
+          "kind": "constant",
+          "value": "^\\s*$"
+        }
+      },
+      {
+        "left": {
+          "field": "page",
+          "kind": "event_field"
+        },
+        "op": "!regex",
+        "right": {
+          "kind": "constant",
+          "value": "^\\s*$"
+        }
+      },
+      {
+        "left": {
+          "counter": {
+            "algorithm": "distinct_count",
+            "event": "ORDER_SUBMIT",
+            "filter": {
+              "object": "page",
+              "operation": "!regex",
+              "type": "simple",
+              "value": "^\\s*$"
+            },
+            "groupby": [
+              "c_ip"
+            ],
+            "operand": [
+              "user_name"
+            ],
+            "window": 3600
+          },
+          "kind": "counter"
+        },
+        "op": ">",
+        "right": {
+          "kind": "constant",
+          "value": "2"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1482826795423,
+  "effective_to": null,
+  "explain": true,
   "name": "IP多次请求下单__不同收货人",
   "remark": ">2 in 1h, user_name",
   "score": 0,
-  "start_effect": 1482826795423,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "不同下单"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ORDER_SUBMIT"
-          ],
-          "field": "uid"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "!regex",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "^\\s*$"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ORDER_SUBMIT"
-          ],
-          "field": "page"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "!regex",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "^\\s*$"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "algorithm": "distinct_count",
-          "condition": [
-            {
-              "left": "c_ip",
-              "op": "=",
-              "right": "c_ip"
-            },
-            {
-              "left": "page",
-              "op": "!regex",
-              "right": "^\\s*$"
-            }
-          ],
-          "groupby": [
-            "c_ip"
-          ],
-          "interval": 3600,
-          "operand": [
-            "user_name"
-          ],
-          "sourceevent": [
-            "nebula",
-            "ORDER_SUBMIT"
-          ],
-          "trigger": {
-            "event": [
-              "nebula",
-              "ORDER_SUBMIT"
-            ],
-            "keys": [
-              "c_ip"
-            ]
-          }
-        },
-        "subtype": "count",
-        "type": "func"
-      },
-      "op": ">",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "2"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "IP",
-          "checkvalue": "c_ip",
-          "decision": "review",
-          "name": "ORDER",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "ORDER_SUBMIT"
+  },
+  "version": "2.0",
+  "visible_name": "IP多次请求下单__不同收货人"
 }

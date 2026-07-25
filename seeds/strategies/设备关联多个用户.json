@@ -1,91 +1,59 @@
 {
+  "action": {
+    "check_type": "DeviceID",
+    "check_value": "did",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "did",
+          "kind": "event_field"
+        },
+        "op": "!regex",
+        "right": {
+          "kind": "constant",
+          "value": "^\\s*$"
+        }
+      },
+      {
+        "left": {
+          "keys": [
+            "did"
+          ],
+          "kind": "variable",
+          "variable": "did__account_dynamic_distinct_count_uid__5m__rt"
+        },
+        "op": ">",
+        "right": {
+          "kind": "constant",
+          "value": "2"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1484044375482,
+  "effective_to": null,
+  "explain": true,
   "name": "设备关联多个用户",
   "remark": ">2 in 5m",
   "score": 0,
-  "start_effect": 1484044375482,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "高频关联"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "did"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "!regex",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "^\\s*$"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "trigger": {
-            "event": [
-              "nebula",
-              "HTTP_DYNAMIC"
-            ],
-            "keys": [
-              "did"
-            ]
-          },
-          "variable": [
-            "nebula",
-            "did__account_dynamic_distinct_count_uid__5m__rt"
-          ]
-        },
-        "subtype": "getvariable",
-        "type": "func"
-      },
-      "op": ">",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "2"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "DeviceID",
-          "checkvalue": "did",
-          "decision": "review",
-          "name": "ACCOUNT",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "HTTP_DYNAMIC"
+  },
+  "version": "2.0",
+  "visible_name": "设备关联多个用户"
 }

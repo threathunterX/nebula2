@@ -1,111 +1,72 @@
 {
+  "action": {
+    "check_type": "IP",
+    "check_value": "c_ip",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "uri_stem",
+          "kind": "event_field"
+        },
+        "op": "regex",
+        "right": {
+          "kind": "constant",
+          "value": ".*(vhost|bbs|host|wwwroot|www|site|root|hytop|flashfxp|backup|data).*\\.(rar|zip|gz|tar).*"
+        }
+      },
+      {
+        "left": {
+          "counter": {
+            "algorithm": "count",
+            "event": "HTTP_DYNAMIC",
+            "filter": {
+              "object": "uri_stem",
+              "operation": "regex",
+              "type": "simple",
+              "value": ".*(vhost|bbs|host|wwwroot|www|site|root|hytop|flashfxp|backup|data).*\\\\.(rar|zip|gz|tar).*"
+            },
+            "groupby": [
+              "c_ip"
+            ],
+            "operand": [
+              "c_ip"
+            ],
+            "window": 300
+          },
+          "kind": "counter"
+        },
+        "op": ">",
+        "right": {
+          "kind": "constant",
+          "value": "10"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1472800501994,
+  "effective_to": null,
+  "explain": true,
   "name": "IP请求可疑文件地址",
   "remark": "> 10 in 5m",
   "score": 0,
-  "start_effect": 1472800501994,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "恶意扫描"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "uri_stem"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "regex",
-      "remark": "请求可疑文件的特征",
-      "right": {
-        "config": {
-          "value": ".*(vhost|bbs|host|wwwroot|www|site|root|hytop|flashfxp|backup|data).*\\.(rar|zip|gz|tar).*"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "algorithm": "count",
-          "condition": [
-            {
-              "left": "c_ip",
-              "op": "=",
-              "right": "c_ip"
-            },
-            {
-              "left": "uri_stem",
-              "op": "regex",
-              "right": ".*(vhost|bbs|host|wwwroot|www|site|root|hytop|flashfxp|backup|data).*\\\\.(rar|zip|gz|tar).*"
-            }
-          ],
-          "groupby": [
-            "c_ip"
-          ],
-          "interval": 300,
-          "operand": [
-            "c_ip"
-          ],
-          "sourceevent": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "trigger": {
-            "event": [
-              "nebula",
-              "HTTP_DYNAMIC"
-            ],
-            "keys": [
-              "c_ip"
-            ]
-          }
-        },
-        "subtype": "count",
-        "type": "func"
-      },
-      "op": ">",
-      "remark": "5分钟内所有满足条件一的访问次数大于10",
-      "right": {
-        "config": {
-          "value": "10"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "IP",
-          "checkvalue": "c_ip",
-          "decision": "review",
-          "name": "VISITOR",
-          "remark": "IP请求可疑文件地址",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "HTTP_DYNAMIC"
+  },
+  "version": "2.0",
+  "visible_name": "IP请求可疑文件地址"
 }

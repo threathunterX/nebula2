@@ -1,60 +1,40 @@
 {
+  "action": {
+    "check_type": "IP",
+    "check_value": "c_ip",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "left": {
+      "field": "uri_query",
+      "kind": "event_field"
+    },
+    "op": "regex",
+    "right": {
+      "kind": "constant",
+      "value": ".*script.*script.*"
+    }
+  },
+  "effective_from": 1472797039443,
+  "effective_to": null,
+  "explain": true,
   "name": "visit_xss_request_ip",
   "remark": "请求疑似xss",
   "score": 0,
-  "start_effect": 1472797039443,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "XSS"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "uri_query"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "regex",
-      "remark": "IP访问URL参数包含xss攻击特征（攻击字符串包含<script>…..</script>，encode后为%3cscript%3e和%3c%2fscript%3e，即url参数包含正则.*script\\%.*script\\%.*）",
-      "right": {
-        "config": {
-          "value": ".*script.*script.*"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "IP",
-          "checkvalue": "c_ip",
-          "decision": "review",
-          "name": "VISITOR",
-          "remark": "请求疑似xss",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "HTTP_DYNAMIC"
+  },
+  "version": "2.0",
+  "visible_name": "visit_xss_request_ip"
 }

@@ -10,8 +10,8 @@
     "app": { "type": "string", "const": "nebula" },
     "name": {
       "type": "string",
-      "pattern": "^[a-zA-Z0-9_\\u4e00-\\u9fa5-]+$",
-      "description": "策略唯一标识。"
+      "pattern": "^[\\w.\\u4e00-\\u9fa5-](?:[\\w. \\u4e00-\\u9fa5-]*[\\w.\\u4e00-\\u9fa5-])?$",
+      "description": "策略唯一标识。允许中英文、数字、下划线、连字符、点号与内部空格(1.x 存量策略中存在 `IP访问.asp文件`、`Java 用户代理` 这类命名),但不允许首尾空格。"
     },
     "visible_name": { "type": "string" },
     "remark": { "type": "string", "default": "", "description": "策略含义说明,会展示在告警详情中。" },
@@ -60,6 +60,17 @@
     "condition": {
       "$ref": "#/$defs/condition",
       "description": "判定条件。2.0 相比 1.x 的关键增强:支持任意嵌套的 and/or/not。1.x 策略迁移后表现为单层 and,语义完全等价。"
+    },
+
+    "delay": {
+      "type": "object",
+      "required": ["duration_seconds", "condition"],
+      "additionalProperties": false,
+      "description": "延迟求值。用于检测「做了 A 之后一段时间内没有做 B」这类模式:condition 满足后并不立即命中,而是等待 duration_seconds,再对 delay.condition 求值,两者都成立才产出告警。对应 1.x 的 sleep 条款(内置资产中有 3 条策略使用)。",
+      "properties": {
+        "duration_seconds": { "type": "integer", "minimum": 1 },
+        "condition": { "$ref": "#/$defs/condition" }
+      }
     },
 
     "action": {
@@ -115,6 +126,17 @@
       "description": "同一主体同一策略的告警去重窗口(秒)。1.x 硬编码为 300 且与 ttl 无关,2.0 改为可配置。"
     },
 
+    "source_1x": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "从 1.x 迁移时保留的溯源信息(原始字段值、转换过程中的备注)。仅供审计与回溯,引擎不读取。",
+      "properties": {
+        "group_id": { "type": "integer" },
+        "is_locked": { "type": "boolean" },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
     "explain": {
       "type": "boolean",
       "default": true,
@@ -152,7 +174,7 @@
       "description": "二元比较。left 可以是事件字段、变量引用或内联计数器。",
       "properties": {
         "left": { "$ref": "#/$defs/operand" },
-        "op": { "type": "string", "enum": ["==", "!=", ">", "<", ">=", "<=", "contains", "!contains", "regex", "!regex", "in", "!in"] },
+        "op": { "type": "string", "enum": ["==", "!=", ">", "<", ">=", "<=", "contains", "!contains", "startwith", "!startwith", "endwith", "!endwith", "regex", "!regex", "in", "!in"] },
         "right": { "$ref": "#/$defs/operand" }
       }
     },

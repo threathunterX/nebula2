@@ -49,7 +49,7 @@ Nebula 1.x 有一个贯穿始终的缺陷:同一套领域模型在 Python(`nebul
 | 校验 | 由谁执行 | 违反时 |
 |---|---|---|
 | schema 自身合法 | CI | 构建失败 |
-| seeds 资产符合 schema | `tools/validate_seeds.py` | 构建失败 |
+| seeds 资产符合 schema(事件 17 / 变量 253 / 策略 170) | `tools/validate_seeds.py` | 构建失败 |
 | 变量引用无悬空、无环 | `tools/validate_seeds.py` | 构建失败 |
 | profile 层可读类型变量必须声明敏感级别 | `tools/validate_seeds.py` | 构建失败 |
 | `pii` / `sensitive` 变量必须声明存储保护方式 | schema 条件约束 | 构建失败 |

@@ -1,60 +1,40 @@
 {
+  "action": {
+    "check_type": "IP",
+    "check_value": "c_ip",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "left": {
+      "field": "useragent",
+      "kind": "event_field"
+    },
+    "op": "contains",
+    "right": {
+      "kind": "constant",
+      "value": "python"
+    }
+  },
+  "effective_from": 1473058630310,
+  "effective_to": null,
+  "explain": true,
   "name": "Python 用户代理",
   "remark": "python",
   "score": 0,
-  "start_effect": 1473058630310,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "特殊UA"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "useragent"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "contain",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "python"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "IP",
-          "checkvalue": "c_ip",
-          "decision": "review",
-          "name": "VISITOR",
-          "remark": "请求Useragent中包含服务器信息",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "HTTP_DYNAMIC"
+  },
+  "version": "2.0",
+  "visible_name": "Python 用户代理"
 }

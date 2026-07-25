@@ -1,122 +1,73 @@
 {
+  "action": {
+    "check_type": "DeviceID",
+    "check_value": "did",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "page",
+          "kind": "event_field"
+        },
+        "op": "!regex",
+        "right": {
+          "kind": "constant",
+          "value": "^\\s*$"
+        }
+      },
+      {
+        "left": {
+          "keys": [
+            "did"
+          ],
+          "kind": "variable",
+          "variable": "did__account_login_distinct_count_uid__5m__rt"
+        },
+        "op": "==",
+        "right": {
+          "kind": "constant",
+          "value": "1"
+        }
+      },
+      {
+        "left": {
+          "keys": [
+            "did"
+          ],
+          "kind": "variable",
+          "variable": "did__account_login_distinct_count_password__5m__rt"
+        },
+        "op": ">",
+        "right": {
+          "kind": "constant",
+          "value": "5"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1484040852259,
+  "effective_to": null,
+  "explain": true,
   "name": "设备换密码请求登录单账号",
   "remark": ">5 in 5min",
   "score": 0,
-  "start_effect": 1484040852259,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "高频登录"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ACCOUNT_LOGIN"
-          ],
-          "field": "page"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "!regex",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "^\\s*$"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "trigger": {
-            "event": [
-              "nebula",
-              "ACCOUNT_LOGIN"
-            ],
-            "keys": [
-              "did"
-            ]
-          },
-          "variable": [
-            "nebula",
-            "did__account_login_distinct_count_uid__5m__rt"
-          ]
-        },
-        "subtype": "getvariable",
-        "type": "func"
-      },
-      "op": "==",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "1"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "trigger": {
-            "event": [
-              "nebula",
-              "ACCOUNT_LOGIN"
-            ],
-            "keys": [
-              "did"
-            ]
-          },
-          "variable": [
-            "nebula",
-            "did__account_login_distinct_count_password__5m__rt"
-          ]
-        },
-        "subtype": "getvariable",
-        "type": "func"
-      },
-      "op": ">",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "5"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "DeviceID",
-          "checkvalue": "did",
-          "decision": "review",
-          "name": "ACCOUNT",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "ACCOUNT_LOGIN"
+  },
+  "version": "2.0",
+  "visible_name": "设备换密码请求登录单账号"
 }

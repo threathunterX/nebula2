@@ -1,162 +1,99 @@
 {
+  "action": {
+    "check_type": "USER",
+    "check_value": "uid",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "page",
+          "kind": "event_field"
+        },
+        "op": "!regex",
+        "right": {
+          "kind": "constant",
+          "value": "^\\s*$"
+        }
+      },
+      {
+        "left": {
+          "counter": {
+            "algorithm": "count",
+            "event": "ACCOUNT_LOGIN",
+            "filter": {
+              "object": "page",
+              "operation": "!regex",
+              "type": "simple",
+              "value": "^\\s*$"
+            },
+            "groupby": [
+              "uid"
+            ],
+            "operand": [
+              "c_ip"
+            ],
+            "window": 600
+          },
+          "kind": "counter"
+        },
+        "op": ">",
+        "right": {
+          "kind": "constant",
+          "value": "2"
+        }
+      },
+      {
+        "left": {
+          "counter": {
+            "algorithm": "distinct_count",
+            "event": "ACCOUNT_LOGIN",
+            "filter": {
+              "object": "page",
+              "operation": "!regex",
+              "type": "simple",
+              "value": "^\\s*$"
+            },
+            "groupby": [
+              "uid"
+            ],
+            "operand": [
+              "password"
+            ],
+            "window": 600
+          },
+          "kind": "counter"
+        },
+        "op": "==",
+        "right": {
+          "kind": "constant",
+          "value": "1"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1484040852259,
+  "effective_to": null,
+  "explain": true,
   "name": "用户相同密码请求登录",
   "remark": ">2, 1密码 in 10min",
   "score": 0,
-  "start_effect": 1484040852259,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "高频登录"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ACCOUNT_LOGIN"
-          ],
-          "field": "page"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "!regex",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "^\\s*$"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "algorithm": "count",
-          "condition": [
-            {
-              "left": "uid",
-              "op": "=",
-              "right": "uid"
-            },
-            {
-              "left": "page",
-              "op": "!regex",
-              "right": "^\\s*$"
-            }
-          ],
-          "groupby": [
-            "uid"
-          ],
-          "interval": 600,
-          "operand": [
-            "c_ip"
-          ],
-          "sourceevent": [
-            "nebula",
-            "ACCOUNT_LOGIN"
-          ],
-          "trigger": {
-            "event": [
-              "nebula",
-              "ACCOUNT_LOGIN"
-            ],
-            "keys": [
-              "uid"
-            ]
-          }
-        },
-        "subtype": "count",
-        "type": "func"
-      },
-      "op": ">",
-      "remark": "登录次数",
-      "right": {
-        "config": {
-          "value": "2"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "algorithm": "distinct_count",
-          "condition": [
-            {
-              "left": "uid",
-              "op": "=",
-              "right": "uid"
-            },
-            {
-              "left": "page",
-              "op": "!regex",
-              "right": "^\\s*$"
-            }
-          ],
-          "groupby": [
-            "uid"
-          ],
-          "interval": 600,
-          "operand": [
-            "password"
-          ],
-          "sourceevent": [
-            "nebula",
-            "ACCOUNT_LOGIN"
-          ],
-          "trigger": {
-            "event": [
-              "nebula",
-              "ACCOUNT_LOGIN"
-            ],
-            "keys": [
-              "uid"
-            ]
-          }
-        },
-        "subtype": "count",
-        "type": "func"
-      },
-      "op": "==",
-      "remark": "相同密码",
-      "right": {
-        "config": {
-          "value": "1"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "USER",
-          "checkvalue": "uid",
-          "decision": "review",
-          "name": "ACCOUNT",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "ACCOUNT_LOGIN"
+  },
+  "version": "2.0",
+  "visible_name": "用户相同密码请求登录"
 }

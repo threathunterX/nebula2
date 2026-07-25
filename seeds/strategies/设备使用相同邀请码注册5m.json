@@ -1,142 +1,86 @@
 {
+  "action": {
+    "check_type": "DeviceID",
+    "check_value": "did",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "did",
+          "kind": "event_field"
+        },
+        "op": "!regex",
+        "right": {
+          "kind": "constant",
+          "value": "^\\s*$"
+        }
+      },
+      {
+        "left": {
+          "keys": [
+            "did"
+          ],
+          "kind": "variable",
+          "variable": "did__account_regist_count__5m__rt"
+        },
+        "op": ">",
+        "right": {
+          "kind": "constant",
+          "value": "2"
+        }
+      },
+      {
+        "left": {
+          "counter": {
+            "algorithm": "distinct_count",
+            "event": "ACCOUNT_REGISTRATION",
+            "filter": {
+              "object": "register_channel",
+              "operation": "!regex",
+              "type": "simple",
+              "value": "^\\s*$"
+            },
+            "groupby": [
+              "did"
+            ],
+            "operand": [
+              "register_channel"
+            ],
+            "window": 300
+          },
+          "kind": "counter"
+        },
+        "op": "==",
+        "right": {
+          "kind": "constant",
+          "value": "1"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1484042007770,
+  "effective_to": null,
+  "explain": true,
   "name": "设备使用相同邀请码注册5m",
   "remark": ">2 register_count, same register_channel in 5m",
   "score": 0,
-  "start_effect": 1484042007770,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "邀请注册"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ACCOUNT_REGISTRATION"
-          ],
-          "field": "did"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "!regex",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "^\\s*$"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "trigger": {
-            "event": [
-              "nebula",
-              "ACCOUNT_REGISTRATION"
-            ],
-            "keys": [
-              "did"
-            ]
-          },
-          "variable": [
-            "nebula",
-            "did__account_regist_count__5m__rt"
-          ]
-        },
-        "subtype": "getvariable",
-        "type": "func"
-      },
-      "op": ">",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "2"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "algorithm": "distinct_count",
-          "condition": [
-            {
-              "left": "register_channel",
-              "op": "!regex",
-              "right": "^\\s*$"
-            },
-            {
-              "left": "did",
-              "op": "=",
-              "right": "did"
-            }
-          ],
-          "groupby": [
-            "did"
-          ],
-          "interval": 300,
-          "operand": [
-            "register_channel"
-          ],
-          "sourceevent": [
-            "nebula",
-            "ACCOUNT_REGISTRATION"
-          ],
-          "trigger": {
-            "event": [
-              "nebula",
-              "ACCOUNT_REGISTRATION"
-            ],
-            "keys": [
-              "did"
-            ]
-          }
-        },
-        "subtype": "count",
-        "type": "func"
-      },
-      "op": "==",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "1"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "DeviceID",
-          "checkvalue": "did",
-          "decision": "review",
-          "name": "ACCOUNT",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "ACCOUNT_REGISTRATION"
+  },
+  "version": "2.0",
+  "visible_name": "设备使用相同邀请码注册5m"
 }

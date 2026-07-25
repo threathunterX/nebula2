@@ -1,137 +1,81 @@
 {
+  "action": {
+    "check_type": "IP",
+    "check_value": "c_ip",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "c_ip",
+          "kind": "event_field"
+        },
+        "op": "contains",
+        "right": {
+          "kind": "constant",
+          "value": "."
+        }
+      },
+      {
+        "left": {
+          "field": "uri_stem",
+          "kind": "event_field"
+        },
+        "op": "endwith",
+        "right": {
+          "kind": "constant",
+          "value": ".asp"
+        }
+      },
+      {
+        "left": {
+          "field": "status",
+          "kind": "event_field"
+        },
+        "op": "==",
+        "right": {
+          "kind": "constant",
+          "value": "404"
+        }
+      },
+      {
+        "left": {
+          "keys": [
+            "c_ip"
+          ],
+          "kind": "variable",
+          "variable": "ip__visit_count__5m__rt"
+        },
+        "op": ">=",
+        "right": {
+          "kind": "constant",
+          "value": "5"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1479709588319,
+  "effective_to": null,
+  "explain": true,
   "name": "IP访问.asp文件",
   "remark": "> 5 动态+静态 ,404 .asp",
   "score": 0,
-  "start_effect": 1479709588319,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "恶意扫描"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "c_ip"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "contain",
-      "remark": "访问ip包含.",
-      "right": {
-        "config": {
-          "value": "."
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "uri_stem"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "endwith",
-      "remark": "访问url以.asp结尾",
-      "right": {
-        "config": {
-          "value": ".asp"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "status"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "==",
-      "remark": "状态码为404",
-      "right": {
-        "config": {
-          "value": "404"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "trigger": {
-            "event": [
-              "nebula",
-              "HTTP_DYNAMIC"
-            ],
-            "keys": [
-              "c_ip"
-            ]
-          },
-          "variable": [
-            "nebula",
-            "ip__visit_count__5m__rt"
-          ]
-        },
-        "subtype": "getvariable",
-        "type": "func"
-      },
-      "op": ">=",
-      "remark": "单IP5分钟内访问次数大于5",
-      "right": {
-        "config": {
-          "value": "5"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "IP",
-          "checkvalue": "c_ip",
-          "decision": "review",
-          "name": "VISITOR",
-          "remark": "访问.asp文件",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "HTTP_DYNAMIC"
+  },
+  "version": "2.0",
+  "visible_name": "IP访问.asp文件"
 }

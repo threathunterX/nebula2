@@ -1,83 +1,56 @@
 {
+  "action": {
+    "check_type": "IP",
+    "check_value": "c_ip",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "uri_query",
+          "kind": "event_field"
+        },
+        "op": "regex",
+        "right": {
+          "kind": "constant",
+          "value": "\\.\\./|\\:\\$|\\$\\{|select.+(from|limit)|(?:(union(.*?)select))|having|rongjitest|sleep\\((\\s*)(\\d*)(\\s*)\\)|benchmark\\((.*)\\,(.*)\\)|base64_decode\\(|(?:from\\W+information_schema\\W)|(?:(?:current_)user|database|schema|connection_id)\\s*\\(|(?:etc\\/\\W*passwd)|into(\\s+)+(?:dump|out)file\\s*|group\\s+by.+\\(|xwork.MethodAccessor|(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\\(|xwork\\.MethodAccessor|(gopher|doc|php|glob|file|phar|zlib|ftp|ldap|dict|ogg|data)\\:\\/|java\\.lang|\\$_(GET|post|cookie|files|session|env|phplib|GLOBALS|SERVER)\\[|\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)|(onmouseover|onerror|onload)\\="
+        }
+      },
+      {
+        "left": {
+          "field": "method",
+          "kind": "event_field"
+        },
+        "op": "==",
+        "right": {
+          "kind": "constant",
+          "value": "GET"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1477991442997,
+  "effective_to": null,
+  "explain": true,
   "name": "visit_ngx_lua_waf_get_ip",
   "remark": "GET参数中ngx_lua_waf策略补充",
   "score": 0,
-  "start_effect": 1477991442997,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "ngx_lua_waf"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "uri_query"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "regex",
-      "remark": "ngx_lua_waf策略补充",
-      "right": {
-        "config": {
-          "value": "\\.\\./|\\:\\$|\\$\\{|select.+(from|limit)|(?:(union(.*?)select))|having|rongjitest|sleep\\((\\s*)(\\d*)(\\s*)\\)|benchmark\\((.*)\\,(.*)\\)|base64_decode\\(|(?:from\\W+information_schema\\W)|(?:(?:current_)user|database|schema|connection_id)\\s*\\(|(?:etc\\/\\W*passwd)|into(\\s+)+(?:dump|out)file\\s*|group\\s+by.+\\(|xwork.MethodAccessor|(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\\(|xwork\\.MethodAccessor|(gopher|doc|php|glob|file|phar|zlib|ftp|ldap|dict|ogg|data)\\:\\/|java\\.lang|\\$_(GET|post|cookie|files|session|env|phplib|GLOBALS|SERVER)\\[|\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)|(onmouseover|onerror|onload)\\="
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "method"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "==",
-      "remark": "GET请求",
-      "right": {
-        "config": {
-          "value": "GET"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "IP",
-          "checkvalue": "c_ip",
-          "decision": "review",
-          "name": "VISITOR",
-          "remark": "ngx_lua_waf策略补充",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "HTTP_DYNAMIC"
+  },
+  "version": "2.0",
+  "visible_name": "visit_ngx_lua_waf_get_ip"
 }

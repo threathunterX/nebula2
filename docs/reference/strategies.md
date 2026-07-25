@@ -5,7 +5,7 @@
 > ⚠️ **本文由 `tools/gen_strategy_reference.py` 从 `seeds/strategies/` 自动生成,请勿手工编辑。**
 > 修改策略模板本身请改 `seeds/`,随后重新运行生成器;CI 会用 `--check` 校验本文与 seeds 一致。
 
-本文覆盖从 Nebula 1.x 继承的全部 **170 条内置策略模板**(`seeds/strategies/`,源表 `nebula.strategy_cust`)。
+本文覆盖从 Nebula 1.x 继承的全部 **170 条内置策略模板**(`seeds/strategies/`,源表 `nebula.strategy_cust`)。它们已按 2.0 的 [`strategy.schema.json`](../../packages/domain-schema/strategy.schema.json) 结构重写:条件是一棵可嵌套的布尔树(`condition`),处置动作独立成 `action`。
 它们是**模板**而不是开箱即用的生产策略:阈值来自 1.x 当年的业务流量,处置动作全部是「待人工审核」,启用前请先读[重要提示](#重要提示启用前必读)。
 
 ## 目录
@@ -14,6 +14,7 @@
 - [如何读懂一条策略](#如何读懂一条策略)
 - [按场景分组的策略全表](#按场景分组的策略全表)
 - [三维度镜像设计](#三维度镜像设计)
+- [延迟求值(delay)策略](#延迟求值delay策略)
 - [需要配置才能生效的策略](#需要配置才能生效的策略)
 - [重要提示(启用前必读)](#重要提示启用前必读)
 
@@ -52,7 +53,7 @@
 
 另有 **1** 条策略没有任何标签。
 
-### 按名单主体类型(checktype)
+### 按名单主体类型(action.check_type)
 
 命中后写入哪一类风险名单,决定了业务侧该拦谁。
 
@@ -63,9 +64,21 @@
 | `USER` | 账号 | 42 | 25% | 5 分钟×36、1 小时×6 |
 | **合计** | | **170** | | |
 
+### 按触发事件(trigger.event)
+
+策略在该事件到达时求值。它可以与计数器统计的源事件不同 —— 「下单不支付」正是靠这一点实现的。
+
+| 触发事件 | 事件名 | 策略数 |
+|---|---|---:|
+| `ORDER_SUBMIT` | 订单-提交 | 66 |
+| `HTTP_DYNAMIC` | 动态资源请求 | 51 |
+| `ACCOUNT_LOGIN` | 账号-登录 | 26 |
+| `ACCOUNT_REGISTRATION` | 账号-注册 | 23 |
+| `ORDER_CANCEL` | 订单-取消 | 4 |
+
 ### 统计窗口分布
 
-内联计数器(`count`)所用的窗口长度,反映 1.x 的口径偏好。
+内联计数器(`left.kind = counter`)所用的窗口长度,反映 1.x 的口径偏好。
 
 | 窗口 | 计数器数量 |
 |---|---:|
@@ -86,222 +99,182 @@
 {
   "app": "nebula",
   "name": "IP多次登录失败",
+  "visible_name": "IP多次登录失败",
   "category": "ACCOUNT",
   "tags": [
     "高频登录"
   ],
   "remark": ">5 in 10min F",
   "score": 0,
-  "status": "test"
+  "status": "test",
+  "trigger": {
+    "event": "ACCOUNT_LOGIN"
+  }
 }
 ```
 
 | 字段 | 本例取值 | 含义 |
 |---|---|---|
 | `app` | nebula | 应用命名空间,内置资产统一为 `nebula`,不是客户名 |
-| `name` | IP多次登录失败 | 策略名,全局唯一,也是名单来源的标识 |
-| `category` | ACCOUNT | 场景大类,决定写入哪个名单集合 |
-| `tags` | 高频登录 | 风险标签,用于报表聚合 |
+| `name` | IP多次登录失败 | 策略名,全局唯一,也是告警与名单的来源标识 |
+| `visible_name` | IP多次登录失败 | 展示名,可以改成运营看得懂的说法 |
+| `category` | ACCOUNT | 风险场景大类 |
+| `tags` | 高频登录 | 风险标签,用于告警聚合与报表下钻 |
 | `remark` | >5 in 10min F | 1.x 作者留下的速记备注,通常是「阈值 + 窗口」 |
-| `score` | 0 | 风险分权重(1.x 未落地,见文末提示) |
-| `status` | test | `online` 生效 / `test` 只观察不产出 / `offline` 停用 |
-| `group_id` | 2 | 1.x 的策略分组编号,2.0 未使用 |
-| `is_locked` | false | 是否被编辑锁定 |
-| `start_effect / end_effect` | 2017-01-10 / — | 生效起止时间(毫秒时间戳),继承自 1.x 的历史值 |
-| `version` | 1542255171782 | 模板版本号 |
+| `score` | 0 | 风险分权重,参与风险分计算(1.x 未落地,见文末提示) |
+| `status` | test | `online` 生效 / `test` 只观察 / `inedit` 编辑中 / `outline` 停用 |
+| `trigger.event` | ACCOUNT_LOGIN | 触发事件 —— 该事件到达时才对本策略求值 |
+| `effective_from / effective_to` | 2017-01-10 / — | 生效时间窗(毫秒时间戳),`null` 表示立即生效 / 长期有效 |
+| `version` | 2.0 | 策略结构版本号,2.0 结构固定为 `2.0` |
+| `explain` | true | 命中时是否记录变量值快照(1.x 恒为空导致告警不可解释,2.0 默认开启) |
+| `source_1x.group_id` | 2 | 1.x 的策略分组编号,仅供溯源,引擎不读取 |
+| `source_1x.is_locked` | false | 1.x 里是否被编辑锁定 |
 
-### 2. terms:条件与动作的列表
+### 2. condition:一棵条件树
 
-`terms` 是策略的主体,是一个**扁平列表**。1.x 的语义是:
+`condition` 是策略的主体。相比 1.x 的扁平 `terms` 数组,2.0 的条件是一棵**可嵌套的布尔树**,节点有三种(权威定义见 [`strategy.schema.json`](../../packages/domain-schema/strategy.schema.json)):
 
-- 所有 term **之间只有 AND 关系**,不支持 OR 和嵌套(2.0 支持嵌套布尔,见[从 1.x 迁移](../migration/from-1x.md));
-- 每条 term 形如 `left` `op` `right`,`op` 为空表示这条 term 不是比较、而是一个**动作或修饰**(例如写名单、延时、限定时段);
-- `scope` 取 `realtime`(实时窗口)或 `profile`(离线画像);
-- `remark` 是作者对该条件的注释。
+- `logical` —— `{"op": "and|or|not", "conditions": [...]}`,可以任意嵌套;
+- `comparison` —— `{"left": …, "op": …, "right": …}`,`left` 的 `kind` 决定取值来源:`event_field`(事件字段)、`counter`(内联计数器)、`variable`(已定义变量)、`constant`(常量);
+- `expression` —— `{"cel": "…"}`,一段返回 bool 的 CEL 表达式。
 
-`left` 的 `type`/`subtype` 决定了这条 term 是什么。全部 170 条策略中出现过的类型:
+从 1.x 迁移过来的策略全部表现为**单层 `and`**(1.x 的条款之间只有 AND 关系),语义与原策略完全等价;自己写新策略时可以放心用嵌套的 `or` / `not`(见[从 1.x 迁移](../migration/from-1x.md))。
 
-| type | subtype | 出现次数 | 含义 |
+全部 170 条策略中出现过的节点(含 `delay` 里的条件):
+
+| 节点类型 | 形态 | 出现次数 | 含义 |
 |---|---|---:|---|
-| `event` | — | 227 | 取当前事件的某个字段做比较,是最基础的过滤条件。 |
-| `func` | `setblacklist` | 170 | 命中后的处置动作:把某个主体(IP / 账号 / 设备)写入风险名单,并附带决策与有效期。 |
-| `func` | `count` | 147 | 在策略里就地定义一个窗口计数器(等价于临时变量):指定源事件、分组键、统计对象、窗口长度与过滤条件。 |
-| `func` | `getvariable` | 57 | 引用 `seeds/variables/` 中已定义的统计变量,复用其计算结果。 |
-| `func` | `sleep` | 3 | 延迟一段时间后再判定,用于「做了 A 却始终没做 B」这类否定式风险。 |
-| `func` | `time` | 2 | 限定事件发生的时钟区间,用于「深夜下单」这类与时段相关的风险。 |
-| `func` | `getlocation` | 1 | 由 IP 求归属地并与给定地域比较。 |
+| `comparison` | `left.kind = event_field` | 227 | 取触发事件的某个字段做比较,是最基础的过滤条件。 |
+| `logical` | `op = and` | 161 | 布尔组合:全部子条件成立时成立。1.x 迁移过来的策略都是单层 `and`。 |
+| `comparison` | `left.kind = counter` | 147 | 内联计数器:在策略里就地定义一个窗口统计(等价于临时变量),指定源事件、分组键、统计对象、窗口长度与过滤条件。 |
+| `comparison` | `left.kind = variable` | 57 | 引用 `seeds/variables/` 中已定义的统计变量,复用其计算结果。 |
+| `expression` | — | 3 | CEL 表达式,在沙箱中求值并返回 bool。取代 1.x 的 `time`/`getlocation` 等专用条款,可用函数见 [CEL 参考](../guide/cel-reference.md)。 |
 
-(`right` 侧共出现 431 次 `constant` 常量,不再单列。)
+(`right` 侧共出现 431 次 `constant` 常量,不再单列。1.x 的常量一律是字符串,转换时保持原样 —— 引擎按左值类型做转换。)
 
-### 3. 逐条翻译本例的 terms
+### 3. 逐条翻译本例的 condition
 
-**term 1 —— 事件条件 event**
+本例的顶层是 `and`,下挂 3 个子条件:
+
+**子条件 1 —— comparison,`left.kind = event_field`**
 
 ```json
 {
   "left": {
-    "config": {
-      "event": [
-        "nebula",
-        "ACCOUNT_LOGIN"
-      ],
-      "field": "page"
-    },
-    "subtype": "",
-    "type": "event"
+    "field": "page",
+    "kind": "event_field"
   },
   "op": "!regex",
-  "remark": "",
   "right": {
-    "config": {
-      "value": "^\\s*$"
-    },
-    "subtype": "",
-    "type": "constant"
-  },
-  "scope": "realtime"
+    "kind": "constant",
+    "value": "^\\s*$"
+  }
 }
 ```
 
 → 「账号-登录」事件的伪静态页面加工后地址(page) 非空
 
-**term 2 —— 事件条件 event**
+**子条件 2 —— comparison,`left.kind = event_field`**
 
 ```json
 {
   "left": {
-    "config": {
-      "event": [
-        "nebula",
-        "ACCOUNT_LOGIN"
-      ],
-      "field": "result"
-    },
-    "subtype": "",
-    "type": "event"
+    "field": "result",
+    "kind": "event_field"
   },
   "op": "==",
-  "remark": "",
   "right": {
-    "config": {
-      "value": "F"
-    },
-    "subtype": "",
-    "type": "constant"
-  },
-  "scope": "realtime"
+    "kind": "constant",
+    "value": "F"
+  }
 }
 ```
 
 → 「账号-登录」事件的登陆结果(result) = `F`
 
-**term 3 —— 内联计数器 count**
+**子条件 3 —— comparison,`left.kind = counter`**
 
 ```json
 {
   "left": {
-    "config": {
+    "counter": {
       "algorithm": "count",
-      "condition": [
-        {
-          "left": "c_ip",
-          "op": "=",
-          "right": "c_ip"
-        },
-        {
-          "left": "result",
-          "op": "==",
-          "right": "F"
-        },
-        {
-          "left": "page",
-          "op": "!regex",
-          "right": "^\\s*$"
-        }
-      ],
+      "event": "ACCOUNT_LOGIN",
+      "filter": {
+        "condition": [
+          {
+            "object": "result",
+            "operation": "==",
+            "type": "simple",
+            "value": "F"
+          },
+          {
+            "object": "page",
+            "operation": "!regex",
+            "type": "simple",
+            "value": "^\\s*$"
+          }
+        ],
+        "type": "and"
+      },
       "groupby": [
         "c_ip"
       ],
-      "interval": 600,
       "operand": [
         "c_ip"
       ],
-      "sourceevent": [
-        "nebula",
-        "ACCOUNT_LOGIN"
-      ],
-      "trigger": {
-        "event": [
-          "nebula",
-          "ACCOUNT_LOGIN"
-        ],
-        "keys": [
-          "c_ip"
-        ]
-      }
+      "window": 600
     },
-    "subtype": "count",
-    "type": "func"
+    "kind": "counter"
   },
   "op": ">",
-  "remark": "",
   "right": {
-    "config": {
-      "value": "5"
-    },
-    "subtype": "",
-    "type": "constant"
-  },
-  "scope": "realtime"
+    "kind": "constant",
+    "value": "5"
+  }
 }
 ```
 
 → 最近 10 分钟内、按 客户端ip(c_ip) 分组的「账号-登录」事件(满足 登陆结果(result) = `F`、伪静态页面加工后地址(page) 非空)累计事件次数 > `5`
 
-**term 4 —— 名单处置 setblacklist**
+### 4. action:命中后的处置动作
+
+1.x 把处置写成 `terms` 里的一条 `setblacklist` 条款,和判定条件混在一个数组里;2.0 把它提到策略级的 `action`,条件与动作彻底分开。
 
 ```json
 {
-  "left": {
-    "config": {
-      "checkpoints": "",
-      "checktype": "IP",
-      "checkvalue": "c_ip",
-      "decision": "review",
-      "name": "ACCOUNT",
-      "remark": "",
-      "ttl": 300
-    },
-    "subtype": "setblacklist",
-    "type": "func"
-  },
-  "op": "",
-  "remark": "",
-  "right": null,
-  "scope": "realtime"
+  "action": {
+    "check_type": "IP",
+    "check_value": "c_ip",
+    "decision": "review",
+    "ttl": 300
+  }
 }
 ```
 
-→ 把本次事件的 c_ip 作为IP写入 ACCOUNT 名单,决策 `review`,有效期 5 分钟
+→ 把本次事件的 `c_ip` 作为IP写入风险名单,决策 `review`,有效期 5 分钟。
+
+`action` 还有两个 2.0 新增字段,内置模板里都没有用到:`checkpoints`(限定生效检查点,为空表示全局生效)、`handlers`(命中后的额外动作 —— 阻断、二次验证、限流、降级、通知、webhook)。要让策略真的「做点什么」,就是在 `handlers` 里加。
 
 合起来,这条策略的意思是:
 
 > 同一 IP:10 分钟内「账号-登录」事件(登陆结果(result) = `F`)的次数 > `5`
 
-> 命中后:review · IP名单(c_ip) · ACCOUNT · 5 分钟。
+> 命中后:review · IP名单(c_ip) · 5 分钟。
 
 几个容易踩的点:
 
 - `page` 是**伪静态化之后的页面标识**,不是原始 URI;`page 不匹配正则 ^\s*$` 这类条件在多数策略里都有,含义是「只统计能解析出页面的请求」,属于噪声过滤;
-- 内联计数器的 `condition` 里那条 `c_ip = c_ip` 是把分组键绑定到自身的样板写法,不是真实过滤条件;
-- `trigger` 指定**哪个事件触发本次判定**,它可以与 `sourceevent`(被统计的事件)不同 —— 「下单不支付」正是靠这一点实现的:下单事件触发,却去数支付页面的访问量;
-- `algorithm` 为 `distinct_count` 时统计的是 `operand` 的**去重个数**,为 `count` 时统计**事件条数**。
+- 计数器的 `groupby` 才是**统计口径**(按谁分组),它未必等于 `action.check_value`(拉黑谁)—— 少数 1.x 策略这两处对不上,见[名称与名单主体不一致](#-名称与名单主体不一致的策略);
+- `trigger.event` 指定**哪个事件触发本次判定**,它可以与计数器的 `event`(被统计的事件)不同 —— 「下单不支付」正是靠这一点实现的:下单事件触发,却去数支付页面的访问量;
+- 计数器的 `algorithm` 为 `distinct_count` 时统计的是 `operand` 的**去重个数**,为 `count` 时统计**事件条数**,为 `sum` 时对 `operand` 求和;
+- 1.x 计数器里那条 `c_ip = c_ip` 的样板条件(把分组键绑定到自身)在转换时已被丢弃 —— 它表达的是「按 c_ip 分组」,已经由 `groupby` 表达。
 
 ---
 
 ## 按场景分组的策略全表
 
-「检测什么」由 `remark` 与 `terms` 归纳而来;「命中后处置」的四段依次是 **决策 · 名单主体(取值字段) · 名单集合 · 有效期**。
+「检测什么」由 `remark` 与 `condition` 归纳而来;「命中后处置」的三段依次是 **决策 · 名单主体(取值字段) · 有效期**。
 
 ### 账号 · 登录与撞库(23 条)
 
@@ -309,29 +282,29 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **IP关联多用户请求登录** | 同一 IP:变量 `ip__account_login_distinct_count_uid__5m__rt`(IP登录不同UID数[5m]) > `5`(原始备注:`>5用户 in 5min`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 关联登录 |
-| **IP关联多设备请求登录** | 同一 IP:5 分钟内「账号-登录」事件的设备ID(did)去重数 > `5`(原始备注:`>5设备 in 5min`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 关联登录 |
-| **IP多次登录失败** | 同一 IP:10 分钟内「账号-登录」事件(登陆结果(result) = `F`)的次数 > `5`(原始备注:`>5 in 10min F`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频登录 |
-| **IP多次登录成功** | 同一 IP:10 分钟内「账号-登录」事件(登陆结果(result) = `T`)的次数 > `5`(原始备注:`>5 in 10min T`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频登录 |
-| **IP多次请求登录** | 同一 IP:变量 `ip__account_login_count__5m__rt`(IP登录请求总数[5m]) > `5`(原始备注:`>5 in 5min`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频登录 |
-| **IP换密码请求登录单账号** | 同一 IP:变量 `ip__account_login_distinct_count_uid__5m__rt`(IP登录不同UID数[5m]) = `1`;变量 `ip__account_login_distinct_count_password__5m__rt`(IP不同登录密码数[5m]) > `5`(原始备注:`>5 in 5min`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频登录 |
-| **IP相同密码请求登录不同账号** | 同一 IP:变量 `ip__account_login_distinct_count_uid__5m__rt`(IP登录不同UID数[5m]) = `3`;变量 `ip__account_login_distinct_count_password__5m__rt`(IP不同登录密码数[5m]) = `1`(原始备注:`>3 in 5min`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频登录 |
-| **IP集中请求登录** | 同一设备:30 分钟内「账号-登录」事件的次数 > `5`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>5 ，页面<=4 in 30min`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频登录 |
-| **用户在多个IP请求登录** | 同一账号:10 分钟内「账号-登录」事件的客户端ip(c_ip)去重数 > `2`(原始备注:`>2 ip in 10min`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 关联登录 |
-| **用户在多个设备请求登录** | 同一账号:10 分钟内「账号-登录」事件的设备ID(did)去重数 > `2`(原始备注:`>2 did in 10min`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 关联登录 |
-| **用户多次登录失败** | 同一账号:10 分钟内「账号-登录」事件(登陆结果(result) = `F`)的次数 > `3`(原始备注:`>3 in 10min T`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 高频登录 |
-| **用户多次登录成功** | 同一账号:10 分钟内「账号-登录」事件(登陆结果(result) = `T`)的次数 > `3`(原始备注:`>3 in 10min T`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 高频登录 |
-| **用户多次请求登录** | 同一账号:5 分钟内「账号-登录」事件的次数 > `3`(原始备注:`>3 in 5min`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 高频登录 |
-| **用户换密码登录** | 同一账号:10 分钟内「账号-登录」事件的登陆验证密码(password)去重数 > `2`(原始备注:`>2 密码 in 10min`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 高频登录 |
-| **用户相同密码请求登录** | 同一账号:10 分钟内「账号-登录」事件的次数 > `2`;10 分钟内「账号-登录」事件的登陆验证密码(password)去重数 = `1`(原始备注:`>2, 1密码 in 10min`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 高频登录 |
-| **设备在多个IP请求登录** | 同一设备:5 分钟内「账号-登录」事件的客户端ip(c_ip)去重数 > `5`(原始备注:`>5设备 in 5min`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 关联登录 |
-| **设备多次登录失败** | 同一设备:10 分钟内「账号-登录」事件(登陆结果(result) = `F`)的次数 > `5`(原始备注:`>5 in 10min F`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频登录 |
-| **设备多次登录成功** | 同一设备:10 分钟内「账号-登录」事件(登陆结果(result) = `T`)的次数 > `5`(原始备注:`>5 in 10min T`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频登录 |
-| **设备多次请求登录** | 同一设备:变量 `did__account_login_count__5m__rt`(DID登录请求总数[5m]) > `5`(原始备注:`>5 in 5min`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频登录 |
-| **设备多用户请求登录** | 同一设备:5 分钟内「账号-登录」事件的登陆用户名(uid)去重数 > `5`(原始备注:`>5用户 in 5min`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 关联登录 |
-| **设备换密码请求登录单账号** | 同一设备:变量 `did__account_login_distinct_count_uid__5m__rt`(DID登录不同UID数[5m]) = `1`;变量 `did__account_login_distinct_count_password__5m__rt`(DID不同登录密码数[5m]) > `5`(原始备注:`>5 in 5min`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频登录 |
-| **设备相同密码请求登录不同账号** | 同一设备:变量 `did__account_login_distinct_count_uid__5m__rt`(DID登录不同UID数[5m]) > `3`;变量 `did__account_login_distinct_count_password__5m__rt`(DID不同登录密码数[5m]) = `1`(原始备注:`>3 in 5min`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频登录 |
-| **设备集中请求登录** | 同一 IP:30 分钟内「账号-登录」事件的次数 > `5`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>5 ，页面<=4 in 30min`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频登录 |
+| **IP关联多用户请求登录** | 同一 IP:变量 `ip__account_login_distinct_count_uid__5m__rt`(IP登录不同UID数[5m]) > `5`(原始备注:`>5用户 in 5min`) | `review` · IP名单(c_ip) · 5 分钟 | 关联登录 |
+| **IP关联多设备请求登录** | 同一 IP:5 分钟内「账号-登录」事件的设备ID(did)去重数 > `5`(原始备注:`>5设备 in 5min`) | `review` · IP名单(c_ip) · 5 分钟 | 关联登录 |
+| **IP多次登录失败** | 同一 IP:10 分钟内「账号-登录」事件(登陆结果(result) = `F`)的次数 > `5`(原始备注:`>5 in 10min F`) | `review` · IP名单(c_ip) · 5 分钟 | 高频登录 |
+| **IP多次登录成功** | 同一 IP:10 分钟内「账号-登录」事件(登陆结果(result) = `T`)的次数 > `5`(原始备注:`>5 in 10min T`) | `review` · IP名单(c_ip) · 5 分钟 | 高频登录 |
+| **IP多次请求登录** | 同一 IP:变量 `ip__account_login_count__5m__rt`(IP登录请求总数[5m]) > `5`(原始备注:`>5 in 5min`) | `review` · IP名单(c_ip) · 5 分钟 | 高频登录 |
+| **IP换密码请求登录单账号** | 同一 IP:变量 `ip__account_login_distinct_count_uid__5m__rt`(IP登录不同UID数[5m]) = `1`;变量 `ip__account_login_distinct_count_password__5m__rt`(IP不同登录密码数[5m]) > `5`(原始备注:`>5 in 5min`) | `review` · IP名单(c_ip) · 5 分钟 | 高频登录 |
+| **IP相同密码请求登录不同账号** | 同一 IP:变量 `ip__account_login_distinct_count_uid__5m__rt`(IP登录不同UID数[5m]) = `3`;变量 `ip__account_login_distinct_count_password__5m__rt`(IP不同登录密码数[5m]) = `1`(原始备注:`>3 in 5min`) | `review` · IP名单(c_ip) · 5 分钟 | 高频登录 |
+| **IP集中请求登录** | 同一设备:30 分钟内「账号-登录」事件的次数 > `5`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>5 ，页面<=4 in 30min`) | `review` · 设备名单(did) · 5 分钟 | 高频登录 |
+| **用户在多个IP请求登录** | 同一账号:10 分钟内「账号-登录」事件的客户端ip(c_ip)去重数 > `2`(原始备注:`>2 ip in 10min`) | `review` · 账号名单(uid) · 5 分钟 | 关联登录 |
+| **用户在多个设备请求登录** | 同一账号:10 分钟内「账号-登录」事件的设备ID(did)去重数 > `2`(原始备注:`>2 did in 10min`) | `review` · 账号名单(uid) · 5 分钟 | 关联登录 |
+| **用户多次登录失败** | 同一账号:10 分钟内「账号-登录」事件(登陆结果(result) = `F`)的次数 > `3`(原始备注:`>3 in 10min T`) | `review` · 账号名单(uid) · 5 分钟 | 高频登录 |
+| **用户多次登录成功** | 同一账号:10 分钟内「账号-登录」事件(登陆结果(result) = `T`)的次数 > `3`(原始备注:`>3 in 10min T`) | `review` · 账号名单(uid) · 5 分钟 | 高频登录 |
+| **用户多次请求登录** | 同一账号:5 分钟内「账号-登录」事件的次数 > `3`(原始备注:`>3 in 5min`) | `review` · 账号名单(uid) · 5 分钟 | 高频登录 |
+| **用户换密码登录** | 同一账号:10 分钟内「账号-登录」事件的登陆验证密码(password)去重数 > `2`(原始备注:`>2 密码 in 10min`) | `review` · 账号名单(uid) · 5 分钟 | 高频登录 |
+| **用户相同密码请求登录** | 同一账号:10 分钟内「账号-登录」事件的次数 > `2`;10 分钟内「账号-登录」事件的登陆验证密码(password)去重数 = `1`(原始备注:`>2, 1密码 in 10min`) | `review` · 账号名单(uid) · 5 分钟 | 高频登录 |
+| **设备在多个IP请求登录** | 同一设备:5 分钟内「账号-登录」事件的客户端ip(c_ip)去重数 > `5`(原始备注:`>5设备 in 5min`) | `review` · 设备名单(did) · 5 分钟 | 关联登录 |
+| **设备多次登录失败** | 同一设备:10 分钟内「账号-登录」事件(登陆结果(result) = `F`)的次数 > `5`(原始备注:`>5 in 10min F`) | `review` · 设备名单(did) · 5 分钟 | 高频登录 |
+| **设备多次登录成功** | 同一设备:10 分钟内「账号-登录」事件(登陆结果(result) = `T`)的次数 > `5`(原始备注:`>5 in 10min T`) | `review` · 设备名单(did) · 5 分钟 | 高频登录 |
+| **设备多次请求登录** | 同一设备:变量 `did__account_login_count__5m__rt`(DID登录请求总数[5m]) > `5`(原始备注:`>5 in 5min`) | `review` · 设备名单(did) · 5 分钟 | 高频登录 |
+| **设备多用户请求登录** | 同一设备:5 分钟内「账号-登录」事件的登陆用户名(uid)去重数 > `5`(原始备注:`>5用户 in 5min`) | `review` · 设备名单(did) · 5 分钟 | 关联登录 |
+| **设备换密码请求登录单账号** | 同一设备:变量 `did__account_login_distinct_count_uid__5m__rt`(DID登录不同UID数[5m]) = `1`;变量 `did__account_login_distinct_count_password__5m__rt`(DID不同登录密码数[5m]) > `5`(原始备注:`>5 in 5min`) | `review` · 设备名单(did) · 5 分钟 | 高频登录 |
+| **设备相同密码请求登录不同账号** | 同一设备:变量 `did__account_login_distinct_count_uid__5m__rt`(DID登录不同UID数[5m]) > `3`;变量 `did__account_login_distinct_count_password__5m__rt`(DID不同登录密码数[5m]) = `1`(原始备注:`>3 in 5min`) | `review` · 设备名单(did) · 5 分钟 | 高频登录 |
+| **设备集中请求登录** | 同一 IP:30 分钟内「账号-登录」事件的次数 > `5`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>5 ，页面<=4 in 30min`) | `review` · IP名单(c_ip) · 5 分钟 | 高频登录 |
 
 ### 账号 · 注册与批量开号(21 条)
 
@@ -339,27 +312,27 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **IP使用相同邀请码注册** | 同一 IP:1 小时内「账号-注册」事件的次数 > `3`;1 小时内「账号-注册」事件的注册渠道(register_channel)去重数 = `1`(原始备注:`>3 register_count, 1 register_channel in 1h`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 邀请注册 |
-| **IP使用相同邀请码注册5m** | 同一 IP:变量 `ip__account_regist_count__5m__rt`(IP注册请求总数[5m]) > `2`;5 分钟内「账号-注册」事件的注册渠道(register_channel)去重数 = `1`(原始备注:`>2 register_count, same register_channel in 5m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 邀请注册 |
-| **IP多个用户请求注册** | 同一 IP:10 分钟内「账号-注册」事件的注册名(uid)去重数 > `2`(原始备注:`>2 uid in 10m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 关联注册 |
-| **IP多个设备请求注册** | 同一 IP:10 分钟内「账号-注册」事件的设备ID(did)去重数 > `2`(原始备注:`>2 did in 10m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 关联注册 |
-| **IP多次使用相同密码注册** | 同一 IP:变量 `ip__account_regist_distinct_count_password__5m__rt`(IP不同注册密码数[5m]) = `1`;变量 `ip__account_regist_count__5m__rt`(IP注册请求总数[5m]) > `3`(原始备注:`>3, 1密码 in 5m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频注册 |
-| **IP多次注册失败** | 同一 IP:5 分钟内「账号-注册」事件(注册结果(result) = `F`)的次数 > `5`(原始备注:`>5 in 5m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频注册 |
-| **IP多次注册成功** | 同一 IP:5 分钟内「账号-注册」事件(注册结果(result) = `T`)的次数 > `5`(原始备注:`>5 in 5m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频注册 |
-| **IP多次请求注册** | 同一 IP:5 分钟内「账号-注册」事件的次数 > `10`(原始备注:`>10 in 5m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频注册 |
-| **IP集中请求注册接口** | 同一 IP:30 分钟内「账号-注册」事件的次数 > `5`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>5 in 30m, 动态<=4`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频注册 |
-| **用户在多个IP请求注册** | 同一账号:10 分钟内「账号-注册」事件的客户端ip(c_ip)去重数 > `2`(原始备注:`>2 ip in 10m`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 关联注册 |
-| **用户在多个设备请求注册** | 同一账号:10 分钟内「账号-注册」事件的设备ID(did)去重数 > `2`(原始备注:`>2 ip in 10m`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 关联注册 |
-| **用户多次请求注册** | 同一账号:5 分钟内「账号-注册」事件的次数 > `2`(原始备注:`>2 in 5m`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 高频注册 |
-| **设备使用相同邀请码注册** | 同一设备:1 小时内「账号-注册」事件的次数 > `3`;1 小时内「账号-注册」事件的注册渠道(register_channel)去重数 = `1`(原始备注:`>3 register_count, 1 register_channel in 1h`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 邀请注册 |
-| **设备使用相同邀请码注册5m** | 同一设备:变量 `did__account_regist_count__5m__rt`(DID注册请求总数[5m]) > `2`;5 分钟内「账号-注册」事件的注册渠道(register_channel)去重数 = `1`(原始备注:`>2 register_count, same register_channel in 5m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 邀请注册 |
-| **设备在多个IP请求注册** | 同一设备:10 分钟内「账号-注册」事件的客户端ip(c_ip)去重数 > `2`(原始备注:`>2 ip in 10m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 关联注册 |
-| **设备多个用户请求注册** | 同一设备:10 分钟内「账号-注册」事件的注册名(uid)去重数 > `2`(原始备注:`>2 uid in 10m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 关联注册 |
-| **设备多次使用相同密码注册** | 同一设备:变量 `did__account_regist_distinct_count_password__5m__rt`(DID不同注册密码数[5m]) = `1`;变量 `did__account_regist_distinct_count_uid__5m__rt`(DID注册不同UID数[5m]) = `3`(原始备注:`>3, 1密码 in 5m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频注册 |
-| **设备多次注册失败** | 同一设备:5 分钟内「账号-注册」事件(注册结果(result) = `F`)的次数 > `10`(原始备注:`>10 in 5m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频注册 |
-| **设备多次注册成功** | 同一设备:5 分钟内「账号-注册」事件(注册结果(result) = `T`)的次数 > `10`(原始备注:`>10 in 5m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频注册 |
-| **设备多次请求注册** | 同一设备:5 分钟内「账号-注册」事件的次数 > `10`(原始备注:`>10 in 5m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频注册 |
-| **设备集中请求注册接口** | 同一设备:30 分钟内「账号-注册」事件的次数 > `5`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>5 in 30m, 动态<=4`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频注册 |
+| **IP使用相同邀请码注册** | 同一 IP:1 小时内「账号-注册」事件的次数 > `3`;1 小时内「账号-注册」事件的注册渠道(register_channel)去重数 = `1`(原始备注:`>3 register_count, 1 register_channel in 1h`) | `review` · 设备名单(did) · 5 分钟 | 邀请注册 |
+| **IP使用相同邀请码注册5m** | 同一 IP:变量 `ip__account_regist_count__5m__rt`(IP注册请求总数[5m]) > `2`;5 分钟内「账号-注册」事件的注册渠道(register_channel)去重数 = `1`(原始备注:`>2 register_count, same register_channel in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 邀请注册 |
+| **IP多个用户请求注册** | 同一 IP:10 分钟内「账号-注册」事件的注册名(uid)去重数 > `2`(原始备注:`>2 uid in 10m`) | `review` · IP名单(c_ip) · 5 分钟 | 关联注册 |
+| **IP多个设备请求注册** | 同一 IP:10 分钟内「账号-注册」事件的设备ID(did)去重数 > `2`(原始备注:`>2 did in 10m`) | `review` · IP名单(c_ip) · 5 分钟 | 关联注册 |
+| **IP多次使用相同密码注册** | 同一 IP:变量 `ip__account_regist_distinct_count_password__5m__rt`(IP不同注册密码数[5m]) = `1`;变量 `ip__account_regist_count__5m__rt`(IP注册请求总数[5m]) > `3`(原始备注:`>3, 1密码 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 高频注册 |
+| **IP多次注册失败** | 同一 IP:5 分钟内「账号-注册」事件(注册结果(result) = `F`)的次数 > `5`(原始备注:`>5 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 高频注册 |
+| **IP多次注册成功** | 同一 IP:5 分钟内「账号-注册」事件(注册结果(result) = `T`)的次数 > `5`(原始备注:`>5 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 高频注册 |
+| **IP多次请求注册** | 同一 IP:5 分钟内「账号-注册」事件的次数 > `10`(原始备注:`>10 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 高频注册 |
+| **IP集中请求注册接口** | 同一 IP:30 分钟内「账号-注册」事件的次数 > `5`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>5 in 30m, 动态<=4`) | `review` · IP名单(c_ip) · 5 分钟 | 高频注册 |
+| **用户在多个IP请求注册** | 同一账号:10 分钟内「账号-注册」事件的客户端ip(c_ip)去重数 > `2`(原始备注:`>2 ip in 10m`) | `review` · 账号名单(uid) · 5 分钟 | 关联注册 |
+| **用户在多个设备请求注册** | 同一账号:10 分钟内「账号-注册」事件的设备ID(did)去重数 > `2`(原始备注:`>2 ip in 10m`) | `review` · 账号名单(uid) · 5 分钟 | 关联注册 |
+| **用户多次请求注册** | 同一账号:5 分钟内「账号-注册」事件的次数 > `2`(原始备注:`>2 in 5m`) | `review` · 账号名单(uid) · 5 分钟 | 高频注册 |
+| **设备使用相同邀请码注册** | 同一设备:1 小时内「账号-注册」事件的次数 > `3`;1 小时内「账号-注册」事件的注册渠道(register_channel)去重数 = `1`(原始备注:`>3 register_count, 1 register_channel in 1h`) | `review` · 设备名单(did) · 5 分钟 | 邀请注册 |
+| **设备使用相同邀请码注册5m** | 同一设备:变量 `did__account_regist_count__5m__rt`(DID注册请求总数[5m]) > `2`;5 分钟内「账号-注册」事件的注册渠道(register_channel)去重数 = `1`(原始备注:`>2 register_count, same register_channel in 5m`) | `review` · 设备名单(did) · 5 分钟 | 邀请注册 |
+| **设备在多个IP请求注册** | 同一设备:10 分钟内「账号-注册」事件的客户端ip(c_ip)去重数 > `2`(原始备注:`>2 ip in 10m`) | `review` · 设备名单(did) · 5 分钟 | 关联注册 |
+| **设备多个用户请求注册** | 同一设备:10 分钟内「账号-注册」事件的注册名(uid)去重数 > `2`(原始备注:`>2 uid in 10m`) | `review` · 设备名单(did) · 5 分钟 | 关联注册 |
+| **设备多次使用相同密码注册** | 同一设备:变量 `did__account_regist_distinct_count_password__5m__rt`(DID不同注册密码数[5m]) = `1`;变量 `did__account_regist_distinct_count_uid__5m__rt`(DID注册不同UID数[5m]) = `3`(原始备注:`>3, 1密码 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 高频注册 |
+| **设备多次注册失败** | 同一设备:5 分钟内「账号-注册」事件(注册结果(result) = `F`)的次数 > `10`(原始备注:`>10 in 5m`) | `review` · 设备名单(did) · 5 分钟 | 高频注册 |
+| **设备多次注册成功** | 同一设备:5 分钟内「账号-注册」事件(注册结果(result) = `T`)的次数 > `10`(原始备注:`>10 in 5m`) | `review` · 设备名单(did) · 5 分钟 | 高频注册 |
+| **设备多次请求注册** | 同一设备:5 分钟内「账号-注册」事件的次数 > `10`(原始备注:`>10 in 5m`) | `review` · 设备名单(did) · 5 分钟 | 高频注册 |
+| **设备集中请求注册接口** | 同一设备:30 分钟内「账号-注册」事件的次数 > `5`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>5 in 30m, 动态<=4`) | `review` · 设备名单(did) · 5 分钟 | 高频注册 |
 
 ### 账号 · 身份关联异常(9 条)
 
@@ -367,15 +340,15 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **IP关联多个用户** | 同一 IP:变量 `ip__visit_dynamic_distinct_count_uid__5m__rt`(IP关联UID数[5m]) > `5`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>5 in 5m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频关联 |
-| **IP关联多个设备** | 同一 IP:变量 `ip__visit_dynamic_distinct_count_did__5m__rt`(IP关联DID数[5m]) > `5`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>5 in 5m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 高频关联 |
-| **IP当天关联多个用户** | 同一 IP:变量 `ip__visit_distinct_uid__1h__profile` > `20`,前置 登陆结果(result) = `T`(原始备注:`>20, in 1d`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 一天关联 |
-| **用户关联多个IP** | 同一账号:变量 `uid__account_dynamic_distinct_count_ip__5m__rt`(UID关联IP数[5m]) > `3`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>5 in 5m`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 高频关联 |
-| **用户关联多个IP地域** | 同一账号:变量 `uid__account_dynamic_distinct_count_geo_city__5m__rt`(UID关联不同城市数[5m]) > `2`(原始备注:`>2 in 5m`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 高频关联 |
-| **用户关联多个设备** | 同一账号:变量 `uid__account_dynamic_distinct_count_did__5m__rt`(UID关联DID数[5m]) > `2`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>2 in 5m`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 高频关联 |
-| **设备关联多个IP** | 同一设备:变量 `did__account_dynamic_distinct_count_ip__5m__rt`(DID关联IP数[5m]) > `5`(原始备注:`>5 in 5m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频关联 |
-| **设备关联多个IP地域** | 同一设备:变量 `did__account_dynamic_distinct_count_geo_city__5m__rt`(DID关联不同城市数[5m]) > `2`(原始备注:`>2 in 5m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频关联 |
-| **设备关联多个用户** | 同一设备:变量 `did__account_dynamic_distinct_count_uid__5m__rt`(DID关联UID数[5m]) > `2`(原始备注:`>2 in 5m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 高频关联 |
+| **IP关联多个用户** | 同一 IP:变量 `ip__visit_dynamic_distinct_count_uid__5m__rt`(IP关联UID数[5m]) > `5`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>5 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 高频关联 |
+| **IP关联多个设备** | 同一 IP:变量 `ip__visit_dynamic_distinct_count_did__5m__rt`(IP关联DID数[5m]) > `5`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>5 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 高频关联 |
+| **IP当天关联多个用户** | 同一 IP:变量 `ip__visit_distinct_uid__1h__profile` > `20`,前置 登陆结果(result) = `T`(原始备注:`>20, in 1d`) | `review` · IP名单(c_ip) · 5 分钟 | 一天关联 |
+| **用户关联多个IP** | 同一账号:变量 `uid__account_dynamic_distinct_count_ip__5m__rt`(UID关联IP数[5m]) > `3`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>5 in 5m`) | `review` · 账号名单(uid) · 5 分钟 | 高频关联 |
+| **用户关联多个IP地域** | 同一账号:变量 `uid__account_dynamic_distinct_count_geo_city__5m__rt`(UID关联不同城市数[5m]) > `2`(原始备注:`>2 in 5m`) | `review` · 账号名单(uid) · 5 分钟 | 高频关联 |
+| **用户关联多个设备** | 同一账号:变量 `uid__account_dynamic_distinct_count_did__5m__rt`(UID关联DID数[5m]) > `2`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>2 in 5m`) | `review` · 账号名单(uid) · 5 分钟 | 高频关联 |
+| **设备关联多个IP** | 同一设备:变量 `did__account_dynamic_distinct_count_ip__5m__rt`(DID关联IP数[5m]) > `5`(原始备注:`>5 in 5m`) | `review` · 设备名单(did) · 5 分钟 | 高频关联 |
+| **设备关联多个IP地域** | 同一设备:变量 `did__account_dynamic_distinct_count_geo_city__5m__rt`(DID关联不同城市数[5m]) > `2`(原始备注:`>2 in 5m`) | `review` · 设备名单(did) · 5 分钟 | 高频关联 |
+| **设备关联多个用户** | 同一设备:变量 `did__account_dynamic_distinct_count_uid__5m__rt`(DID关联UID数[5m]) > `2`(原始备注:`>2 in 5m`) | `review` · 设备名单(did) · 5 分钟 | 高频关联 |
 
 ### 账号 · 访问路径异常(7 条)
 
@@ -383,13 +356,13 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **IP请求A一段时间内没有请求B** 🔧 | 同一 IP:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) = `B`)的次数 = `0`,前置 伪静态页面加工后地址(page) = `A`,另需 等待 5 分钟后再判定后续条件(原始备注:`延迟判断 5m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 跳跃访问 |
-| **IP请求注册前未访问必要资源** 🔧 | 同一 IP:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`register, no xxx in 5m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 跳跃访问 |
-| **IP请求登录前未访问必要资源** 🔧 | 同一 IP:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`login, no xxx in 5m`) | `review` · IP名单(c_ip) · ACCOUNT · 5 分钟 | 跳跃访问 |
-| **用户请求A一段时间内没有请求B** 🔧 | 同一账号:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) = `B`)的次数 = `0`,前置 伪静态页面加工后地址(page) = `A`,另需 等待 5 分钟后再判定后续条件(原始备注:`延迟判断 5m`) | `review` · 账号名单(uid) · ACCOUNT · 5 分钟 | 跳跃访问 |
-| **设备请求A一段时间内没有请求B** 🔧 | 同一设备:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) = `B`)的次数 = `0`,前置 伪静态页面加工后地址(page) = `A`,另需 等待 5 分钟后再判定后续条件(原始备注:`延迟判断 5m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 跳跃访问 |
-| **设备请求注册前未访问必要资源** 🔧 | 同一设备:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`register, no xxx in 5m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 跳跃访问 |
-| **设备请求登录前未访问必要资源** 🔧 | 同一设备:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`login, no xxx in 5m`) | `review` · 设备名单(did) · ACCOUNT · 5 分钟 | 跳跃访问 |
+| **IP请求A一段时间内没有请求B** 🔧 ⏱ | 同一 IP:单条事件即命中 伪静态页面加工后地址(page) = `A`,延迟 5 分钟后再判定:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) = `B`)的次数 = `0`(原始备注:`延迟判断 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 跳跃访问 |
+| **IP请求注册前未访问必要资源** 🔧 | 同一 IP:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`register, no xxx in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 跳跃访问 |
+| **IP请求登录前未访问必要资源** 🔧 | 同一 IP:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`login, no xxx in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 跳跃访问 |
+| **用户请求A一段时间内没有请求B** 🔧 ⏱ | 同一账号:单条事件即命中 伪静态页面加工后地址(page) = `A`,延迟 5 分钟后再判定:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) = `B`)的次数 = `0`(原始备注:`延迟判断 5m`) | `review` · 账号名单(uid) · 5 分钟 | 跳跃访问 |
+| **设备请求A一段时间内没有请求B** 🔧 ⏱ | 同一设备:单条事件即命中 伪静态页面加工后地址(page) = `A`,延迟 5 分钟后再判定:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) = `B`)的次数 = `0`(原始备注:`延迟判断 5m`) | `review` · 设备名单(did) · 5 分钟 | 跳跃访问 |
+| **设备请求注册前未访问必要资源** 🔧 | 同一设备:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`register, no xxx in 5m`) | `review` · 设备名单(did) · 5 分钟 | 跳跃访问 |
+| **设备请求登录前未访问必要资源** 🔧 | 同一设备:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`login, no xxx in 5m`) | `review` · 设备名单(did) · 5 分钟 | 跳跃访问 |
 
 ### 订单 · 高频下单(6 条)
 
@@ -397,12 +370,12 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **IP多次请求下单** | 同一 IP:30 分钟内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 30min`) | `review` · IP名单(c_ip) · ORDER · 1 小时 | 高频下单 |
-| **IP请求下单行为单一** | 同一 IP:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `3`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>3, <=4页面  in 30min`) | `review` · IP名单(c_ip) · ORDER · 1 小时 | 高频下单 |
-| **用户多次请求下单** | 同一账号:30 分钟内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 30min`) | `review` · 账号名单(uid) · ORDER · 1 小时 | 高频下单 |
-| **用户请求下单行为单一** | 同一账号:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `3`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>3, <=4页面  in 30min`) | `review` · 账号名单(uid) · ORDER · 1 小时 | 高频下单 |
-| **设备多次请求下单** | 同一设备:30 分钟内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 30min`) | `review` · 设备名单(did) · ORDER · 1 小时 | 高频下单 |
-| **设备请求下单行为单一** | 同一设备:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `3`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>3, <=4页面  in 30min`) | `review` · 设备名单(did) · ORDER · 1 小时 | 高频下单 |
+| **IP多次请求下单** | 同一 IP:30 分钟内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 30min`) | `review` · IP名单(c_ip) · 1 小时 | 高频下单 |
+| **IP请求下单行为单一** | 同一 IP:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `3`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>3, <=4页面  in 30min`) | `review` · IP名单(c_ip) · 1 小时 | 高频下单 |
+| **用户多次请求下单** | 同一账号:30 分钟内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 30min`) | `review` · 账号名单(uid) · 1 小时 | 高频下单 |
+| **用户请求下单行为单一** | 同一账号:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `3`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>3, <=4页面  in 30min`) | `review` · 账号名单(uid) · 1 小时 | 高频下单 |
+| **设备多次请求下单** | 同一设备:30 分钟内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 30min`) | `review` · 设备名单(did) · 1 小时 | 高频下单 |
+| **设备请求下单行为单一** | 同一设备:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `3`;30 分钟内「动态资源请求」事件的伪静态页面加工后地址(page)去重数 ≤ `4`(原始备注:`>3, <=4页面  in 30min`) | `review` · 设备名单(did) · 1 小时 | 高频下单 |
 
 ### 订单 · 下单要素高度集中(24 条)
 
@@ -410,30 +383,30 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **IP多次请求下单__同一商品** | 同一 IP:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, product_id`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 单一下单 |
-| **IP多次请求下单__同一商户** | 同一 IP:1 小时内「订单-提交」事件的商户号(merchant)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, merchant`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 单一下单 |
-| **IP多次请求下单__同一地址** | 同一 IP:1 小时内「订单-提交」事件的收货人收货地具体地址(receiver_address_detail)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_address_detail`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 单一下单 |
-| **IP多次请求下单__同一城市** | 同一 IP:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_address_city`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 单一下单 |
-| **IP多次请求下单__同手机号** | 同一 IP:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_mobile`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 单一下单 |
-| **IP多次请求下单__同收货人** | 同一 IP:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, user_name`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 单一下单 |
-| **IP多次请求下单__金额较低** | 同一 IP:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) ≤ `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount<= 100`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 单一下单 |
-| **IP多次请求下单__金额较高** | 同一 IP:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) > `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount > 100`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 单一下单 |
-| **用户多次请求下单__同一商品** | 同一账号:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, product_id`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 单一下单 |
-| **用户多次请求下单__同一商户** | 同一账号:1 小时内「订单-提交」事件的商户号(merchant)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, merchant`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 单一下单 |
-| **用户多次请求下单__同一地址** | 同一账号:1 小时内「订单-提交」事件的收货人收货地具体地址(receiver_address_detail)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_address_detail`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 单一下单 |
-| **用户多次请求下单__同一城市** | 同一账号:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_address_city`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 单一下单 |
-| **用户多次请求下单__同手机号** | 同一账号:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_mobile`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 单一下单 |
-| **用户多次请求下单__同收货人** | 同一账号:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, user_name`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 单一下单 |
-| **用户多次请求下单__金额较低** | 同一账号:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) ≤ `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount<= 100`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 单一下单 |
-| **用户多次请求下单__金额较高** | 同一账号:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) > `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount > 100`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 单一下单 |
-| **设备多次请求下单__同一商品** | 同一设备:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, product_id`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 单一下单 |
-| **设备多次请求下单__同一商户** | 同一设备:1 小时内「订单-提交」事件的商户号(merchant)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, merchant`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 单一下单 |
-| **设备多次请求下单__同一地址** | 同一设备:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, user_name`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 单一下单 |
-| **设备多次请求下单__同一城市** | 同一设备:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_address_city`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 单一下单 |
-| **设备多次请求下单__同手机号** | 同一设备:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_mobile`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 单一下单 |
-| **设备多次请求下单__同收货人** | 同一设备:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, user_name`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 单一下单 |
-| **设备多次请求下单__金额较低** | 同一设备:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) ≤ `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount<= 100`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 单一下单 |
-| **设备多次请求下单__金额较高** | 同一设备:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) > `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount > 100`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 单一下单 |
+| **IP多次请求下单__同一商品** | 同一 IP:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, product_id`) | `review` · IP名单(c_ip) · 5 分钟 | 单一下单 |
+| **IP多次请求下单__同一商户** | 同一 IP:1 小时内「订单-提交」事件的商户号(merchant)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, merchant`) | `review` · IP名单(c_ip) · 5 分钟 | 单一下单 |
+| **IP多次请求下单__同一地址** | 同一 IP:1 小时内「订单-提交」事件的收货人收货地具体地址(receiver_address_detail)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_address_detail`) | `review` · IP名单(c_ip) · 5 分钟 | 单一下单 |
+| **IP多次请求下单__同一城市** | 同一 IP:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_address_city`) | `review` · IP名单(c_ip) · 5 分钟 | 单一下单 |
+| **IP多次请求下单__同手机号** | 同一 IP:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_mobile`) | `review` · IP名单(c_ip) · 5 分钟 | 单一下单 |
+| **IP多次请求下单__同收货人** | 同一 IP:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, user_name`) | `review` · IP名单(c_ip) · 5 分钟 | 单一下单 |
+| **IP多次请求下单__金额较低** | 同一 IP:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) ≤ `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount<= 100`) | `review` · IP名单(c_ip) · 5 分钟 | 单一下单 |
+| **IP多次请求下单__金额较高** | 同一 IP:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) > `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount > 100`) | `review` · IP名单(c_ip) · 5 分钟 | 单一下单 |
+| **用户多次请求下单__同一商品** | 同一账号:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, product_id`) | `review` · 账号名单(uid) · 5 分钟 | 单一下单 |
+| **用户多次请求下单__同一商户** | 同一账号:1 小时内「订单-提交」事件的商户号(merchant)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, merchant`) | `review` · 账号名单(uid) · 5 分钟 | 单一下单 |
+| **用户多次请求下单__同一地址** | 同一账号:1 小时内「订单-提交」事件的收货人收货地具体地址(receiver_address_detail)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_address_detail`) | `review` · 账号名单(uid) · 5 分钟 | 单一下单 |
+| **用户多次请求下单__同一城市** | 同一账号:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_address_city`) | `review` · 账号名单(uid) · 5 分钟 | 单一下单 |
+| **用户多次请求下单__同手机号** | 同一账号:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_mobile`) | `review` · 账号名单(uid) · 5 分钟 | 单一下单 |
+| **用户多次请求下单__同收货人** | 同一账号:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, user_name`) | `review` · 账号名单(uid) · 5 分钟 | 单一下单 |
+| **用户多次请求下单__金额较低** | 同一账号:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) ≤ `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount<= 100`) | `review` · 账号名单(uid) · 5 分钟 | 单一下单 |
+| **用户多次请求下单__金额较高** | 同一账号:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) > `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount > 100`) | `review` · 账号名单(uid) · 5 分钟 | 单一下单 |
+| **设备多次请求下单__同一商品** | 同一设备:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, product_id`) | `review` · 设备名单(did) · 5 分钟 | 单一下单 |
+| **设备多次请求下单__同一商户** | 同一设备:1 小时内「订单-提交」事件的商户号(merchant)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, merchant`) | `review` · 设备名单(did) · 5 分钟 | 单一下单 |
+| **设备多次请求下单__同一地址** | 同一设备:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, user_name`) | `review` · 设备名单(did) · 5 分钟 | 单一下单 |
+| **设备多次请求下单__同一城市** | 同一设备:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_address_city`) | `review` · 设备名单(did) · 5 分钟 | 单一下单 |
+| **设备多次请求下单__同手机号** | 同一设备:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, receiver_mobile`) | `review` · 设备名单(did) · 5 分钟 | 单一下单 |
+| **设备多次请求下单__同收货人** | 同一设备:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 = `1`;1 小时内「订单-提交」事件的次数 > `5`(原始备注:`>5 in 1h, user_name`) | `review` · 设备名单(did) · 5 分钟 | 单一下单 |
+| **设备多次请求下单__金额较低** | 同一设备:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) ≤ `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount<= 100`) | `review` · 设备名单(did) · 5 分钟 | 单一下单 |
+| **设备多次请求下单__金额较高** | 同一设备:1 小时内「订单-提交」事件(订单现金金额(order_money_amount) > `100`)的次数 > `5`(原始备注:`>5 in 1h, order_money_amount > 100`) | `review` · 设备名单(did) · 5 分钟 | 单一下单 |
 
 ### 订单 · 下单要素异常分散(21 条)
 
@@ -441,27 +414,27 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **IP多次请求下单__不同商品** | 同一 IP:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 > `2`(原始备注:`>2 in 1h, product_id`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 不同下单 |
-| **IP多次请求下单__不同商户** | 同一 IP:1 小时内「订单-提交」事件的商户号(merchant)去重数 > `2`(原始备注:`>2 in 1h, merchant`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 不同下单 |
-| **IP多次请求下单__不同地址** | 同一 IP:1 小时内「订单-提交」事件的收货人收货地具体地址(receiver_address_detail)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_detail`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 不同下单 |
-| **IP多次请求下单__不同城市** | 同一 IP:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_city`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 不同下单 |
-| **IP多次请求下单__不同手机号** | 同一 IP:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 > `2`(原始备注:`>2 in 1h, receiver_mobile`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 不同下单 |
-| **IP多次请求下单__不同收货人** | 同一 IP:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 > `2`(原始备注:`>2 in 1h, user_name`) | `review` · IP名单(c_ip) · ORDER · 5 分钟 | 不同下单 |
-| **IP多次请求下单__不同金额** | 同一 IP:1 小时内「订单-提交」事件的订单现金金额(order_money_amount)去重数 > `2`(原始备注:`>2 in 1h, order_money_amount`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 不同下单 |
-| **用户多次请求下单__不同商品** | 同一账号:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 > `2`(原始备注:`>2 in 1h, product_id`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 不同下单 |
-| **用户多次请求下单__不同商户** | 同一账号:1 小时内「订单-提交」事件的商户号(merchant)去重数 > `2`(原始备注:`>2 in 1h, merchant`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 不同下单 |
-| **用户多次请求下单__不同地址** | 同一账号:1 小时内「订单-提交」事件的收货人收货地具体地址(receiver_address_detail)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_detail`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 不同下单 |
-| **用户多次请求下单__不同城市** | 同一账号:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_city`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 不同下单 |
-| **用户多次请求下单__不同手机号** | 同一账号:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 > `2`(原始备注:`>2 in 1h, receiver_mobile`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 不同下单 |
-| **用户多次请求下单__不同收货人** | 同一账号:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 > `2`(原始备注:`>2 in 1h, user_name`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 不同下单 |
-| **用户多次请求下单__不同金额** | 同一账号:1 小时内「订单-提交」事件的订单现金金额(order_money_amount)去重数 > `2`(原始备注:`>2 in 1h, order_money_amount`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 不同下单 |
-| **设备多次请求下单__不同商品** | 同一设备:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 > `2`(原始备注:`>2 in 1h, product_id`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 不同下单 |
-| **设备多次请求下单__不同商户** | 同一设备:1 小时内「订单-提交」事件的商户号(merchant)去重数 > `2`(原始备注:`>2 in 1h, merchant`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 不同下单 |
-| **设备多次请求下单__不同地址** | 同一设备:1 小时内「订单-提交」事件的收货人收货地具体地址(receiver_address_detail)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_detail`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 不同下单 |
-| **设备多次请求下单__不同城市** | 同一设备:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_city`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 不同下单 |
-| **设备多次请求下单__不同手机号** | 同一设备:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 > `2`(原始备注:`>2 in 1h, receiver_mobile`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 不同下单 |
-| **设备多次请求下单__不同收货人** | 同一设备:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 > `2`(原始备注:`>2 in 1h, user_name`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 不同下单 |
-| **设备多次请求下单__不同金额** | 同一设备:1 小时内「订单-提交」事件的订单现金金额(order_money_amount)去重数 > `2`(原始备注:`>2 in 1h, order_money_amount`) | `review` · 设备名单(did) · ORDER · 5 分钟 | 不同下单 |
+| **IP多次请求下单__不同商品** | 同一 IP:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 > `2`(原始备注:`>2 in 1h, product_id`) | `review` · IP名单(c_ip) · 5 分钟 | 不同下单 |
+| **IP多次请求下单__不同商户** | 同一 IP:1 小时内「订单-提交」事件的商户号(merchant)去重数 > `2`(原始备注:`>2 in 1h, merchant`) | `review` · IP名单(c_ip) · 5 分钟 | 不同下单 |
+| **IP多次请求下单__不同地址** | 同一 IP:1 小时内「订单-提交」事件的收货人收货地具体地址(receiver_address_detail)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_detail`) | `review` · IP名单(c_ip) · 5 分钟 | 不同下单 |
+| **IP多次请求下单__不同城市** | 同一 IP:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_city`) | `review` · IP名单(c_ip) · 5 分钟 | 不同下单 |
+| **IP多次请求下单__不同手机号** | 同一 IP:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 > `2`(原始备注:`>2 in 1h, receiver_mobile`) | `review` · IP名单(c_ip) · 5 分钟 | 不同下单 |
+| **IP多次请求下单__不同收货人** | 同一 IP:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 > `2`(原始备注:`>2 in 1h, user_name`) | `review` · IP名单(c_ip) · 5 分钟 | 不同下单 |
+| **IP多次请求下单__不同金额** | 同一 IP:1 小时内「订单-提交」事件的订单现金金额(order_money_amount)去重数 > `2`(原始备注:`>2 in 1h, order_money_amount`) | `review` · 设备名单(did) · 5 分钟 | 不同下单 |
+| **用户多次请求下单__不同商品** | 同一账号:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 > `2`(原始备注:`>2 in 1h, product_id`) | `review` · 账号名单(uid) · 5 分钟 | 不同下单 |
+| **用户多次请求下单__不同商户** | 同一账号:1 小时内「订单-提交」事件的商户号(merchant)去重数 > `2`(原始备注:`>2 in 1h, merchant`) | `review` · 账号名单(uid) · 5 分钟 | 不同下单 |
+| **用户多次请求下单__不同地址** | 同一账号:1 小时内「订单-提交」事件的收货人收货地具体地址(receiver_address_detail)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_detail`) | `review` · 账号名单(uid) · 5 分钟 | 不同下单 |
+| **用户多次请求下单__不同城市** | 同一账号:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_city`) | `review` · 账号名单(uid) · 5 分钟 | 不同下单 |
+| **用户多次请求下单__不同手机号** | 同一账号:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 > `2`(原始备注:`>2 in 1h, receiver_mobile`) | `review` · 账号名单(uid) · 5 分钟 | 不同下单 |
+| **用户多次请求下单__不同收货人** | 同一账号:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 > `2`(原始备注:`>2 in 1h, user_name`) | `review` · 账号名单(uid) · 5 分钟 | 不同下单 |
+| **用户多次请求下单__不同金额** | 同一账号:1 小时内「订单-提交」事件的订单现金金额(order_money_amount)去重数 > `2`(原始备注:`>2 in 1h, order_money_amount`) | `review` · 账号名单(uid) · 5 分钟 | 不同下单 |
+| **设备多次请求下单__不同商品** | 同一设备:1 小时内「订单-提交」事件的敏感或主要购买产品ID(product_id)去重数 > `2`(原始备注:`>2 in 1h, product_id`) | `review` · 设备名单(did) · 5 分钟 | 不同下单 |
+| **设备多次请求下单__不同商户** | 同一设备:1 小时内「订单-提交」事件的商户号(merchant)去重数 > `2`(原始备注:`>2 in 1h, merchant`) | `review` · 设备名单(did) · 5 分钟 | 不同下单 |
+| **设备多次请求下单__不同地址** | 同一设备:1 小时内「订单-提交」事件的收货人收货地具体地址(receiver_address_detail)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_detail`) | `review` · 设备名单(did) · 5 分钟 | 不同下单 |
+| **设备多次请求下单__不同城市** | 同一设备:1 小时内「订单-提交」事件的收货人收货地城市(receiver_address_city)去重数 > `2`(原始备注:`>2 in 1h, receiver_address_city`) | `review` · 设备名单(did) · 5 分钟 | 不同下单 |
+| **设备多次请求下单__不同手机号** | 同一设备:1 小时内「订单-提交」事件的收货人手机(receiver_mobile)去重数 > `2`(原始备注:`>2 in 1h, receiver_mobile`) | `review` · 设备名单(did) · 5 分钟 | 不同下单 |
+| **设备多次请求下单__不同收货人** | 同一设备:1 小时内「订单-提交」事件的收货人姓名(user_name)去重数 > `2`(原始备注:`>2 in 1h, user_name`) | `review` · 设备名单(did) · 5 分钟 | 不同下单 |
+| **设备多次请求下单__不同金额** | 同一设备:1 小时内「订单-提交」事件的订单现金金额(order_money_amount)去重数 > `2`(原始备注:`>2 in 1h, order_money_amount`) | `review` · 设备名单(did) · 5 分钟 | 不同下单 |
 
 ### 订单 · 跨主体关联下单(6 条)
 
@@ -469,12 +442,12 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **IP多用户请求下单** | 同一 IP:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的下单账号(uid)去重数 > `3`(原始备注:`>3 用户 in 30min`) | `review` · IP名单(c_ip) · ORDER · 1 小时 | 关联下单 |
-| **IP多设备请求下单** | 同一 IP:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的设备ID(did)去重数 > `3`(原始备注:`>3 设备 in 30min`) | `review` · IP名单(c_ip) · ORDER · 1 小时 | 关联下单 |
-| **用户多IP请求下单** | 同一账号:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的客户端ip(c_ip)去重数 > `1`(原始备注:`>1 ip in 30min`) | `review` · 账号名单(uid) · ORDER · 1 小时 | 关联下单 |
-| **用户多设备请求下单** | 同一账号:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的设备ID(did)去重数 > `1`(原始备注:`>1 ip in 30min`) | `review` · 账号名单(uid) · ORDER · 1 小时 | 关联下单 |
-| **设备多IP请求下单** | 同一设备:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的客户端ip(c_ip)去重数 > `1`(原始备注:`>1 ip in 30min`) | `review` · 设备名单(did) · ORDER · 1 小时 | 关联下单 |
-| **设备多用户请求下单** | 同一设备:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的下单账号(uid)去重数 > `1`(原始备注:`>1 用户 in 30min`) | `review` · 设备名单(did) · ORDER · 1 小时 | 关联下单 |
+| **IP多用户请求下单** | 同一 IP:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的下单账号(uid)去重数 > `3`(原始备注:`>3 用户 in 30min`) | `review` · IP名单(c_ip) · 1 小时 | 关联下单 |
+| **IP多设备请求下单** | 同一 IP:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的设备ID(did)去重数 > `3`(原始备注:`>3 设备 in 30min`) | `review` · IP名单(c_ip) · 1 小时 | 关联下单 |
+| **用户多IP请求下单** | 同一账号:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的客户端ip(c_ip)去重数 > `1`(原始备注:`>1 ip in 30min`) | `review` · 账号名单(uid) · 1 小时 | 关联下单 |
+| **用户多设备请求下单** | 同一账号:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的设备ID(did)去重数 > `1`(原始备注:`>1 ip in 30min`) | `review` · 账号名单(uid) · 1 小时 | 关联下单 |
+| **设备多IP请求下单** | 同一设备:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的客户端ip(c_ip)去重数 > `1`(原始备注:`>1 ip in 30min`) | `review` · 设备名单(did) · 1 小时 | 关联下单 |
+| **设备多用户请求下单** | 同一设备:30 分钟内「订单-提交」事件(伪静态页面加工后地址(page) 包含 `^\s*$`)的下单账号(uid)去重数 > `1`(原始备注:`>1 用户 in 30min`) | `review` · 设备名单(did) · 1 小时 | 关联下单 |
 
 ### 订单 · 下单不支付与取消(6 条)
 
@@ -482,12 +455,12 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **IP下单不支付** 🔧 | 同一 IP:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `4`;30 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`>4 in 30min no pay`) | `review` · IP名单(c_ip) · ORDER · 1 小时 | 下单不支付 |
-| **IP多次取消订单** | 同一 IP:30 分钟内「订单-取消」事件的订单ID(order_id)去重数 > `3`(原始备注:`>3 in 30min distinct orderid`) | `review` · IP名单(c_ip) · ORDER · 1 小时 | 取消订单 |
-| **用户下单不支付** 🔧 | 同一账号:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `4`;30 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`>4 in 30min no pay`) | `review` · 账号名单(uid) · ORDER · 1 小时 | 下单不支付 |
-| **用户多次取消订单** | 同一账号:30 分钟内「订单-取消」事件的订单ID(order_id)去重数 > `3`(原始备注:`>3 in 30min distinct orderid`) | `review` · 账号名单(uid) · ORDER · 1 小时 | 取消订单 |
-| **设备下单不支付** 🔧 | 同一设备:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `4`;30 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`>4 in 30min no pay`) | `review` · 设备名单(did) · ORDER · 1 小时 | 下单不支付 |
-| **设备多次取消订单** | 同一设备:30 分钟内「订单-取消」事件的订单ID(order_id)去重数 > `3`(原始备注:`>3 in 30min distinct orderid`) | `review` · 设备名单(did) · ORDER · 1 小时 | 取消订单 |
+| **IP下单不支付** 🔧 | 同一 IP:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `4`;30 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`>4 in 30min no pay`) | `review` · IP名单(c_ip) · 1 小时 | 下单不支付 |
+| **IP多次取消订单** | 同一 IP:30 分钟内「订单-取消」事件的订单ID(order_id)去重数 > `3`(原始备注:`>3 in 30min distinct orderid`) | `review` · IP名单(c_ip) · 1 小时 | 取消订单 |
+| **用户下单不支付** 🔧 | 同一账号:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `4`;30 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`>4 in 30min no pay`) | `review` · 账号名单(uid) · 1 小时 | 下单不支付 |
+| **用户多次取消订单** | 同一账号:30 分钟内「订单-取消」事件的订单ID(order_id)去重数 > `3`(原始备注:`>3 in 30min distinct orderid`) | `review` · 账号名单(uid) · 1 小时 | 取消订单 |
+| **设备下单不支付** 🔧 | 同一设备:30 分钟内「订单-提交」事件的订单ID(order_id)去重数 > `4`;30 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `<YOUR_PAYMENT_PAGE_PATH>`)的次数 = `0`(原始备注:`>4 in 30min no pay`) | `review` · 设备名单(did) · 1 小时 | 下单不支付 |
+| **设备多次取消订单** | 同一设备:30 分钟内「订单-取消」事件的订单ID(order_id)去重数 > `3`(原始备注:`>3 in 30min distinct orderid`) | `review` · 设备名单(did) · 1 小时 | 取消订单 |
 
 ### 订单 · 深夜与特殊下单(7 条)
 
@@ -495,13 +468,13 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **用户深夜多次请求下单** | 同一账号:1 小时内「订单-提交」事件的次数 > `5`,另需 事件发生时刻在 01:00–06:06 之间(原始备注:`>5 in 1h, 0~6`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 午夜下单 |
-| **用户深夜请求下单金额过大** | 同一账号:单条事件即命中 订单现金金额(order_money_amount) ≥ `2000`,另需 事件发生时刻在 00:00–06:00 之间(原始备注:`>2,000, 0~6`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 午夜下单 |
-| **用户请求下单__金额较大5m** | 同一账号:变量 `uid__order_submit_avg_order_money_amount__5m__rt`(UID平均下单成功金额[5m]) > `1000`,前置 下单账号(uid) 不匹配正则 `^\s*$ `(原始备注:`>1000 in 5m`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 特殊下单 |
-| **用户高频请求下单__不同城市5m** | 同一账号:变量 `uid__order_submit_count__5m__rt`(UID下单数[5m]) > `3`;变量 `uid__order_distinct_count_receiver_geo_city__5m__rt`(UID下单不同收货城市数[5m]) > `1`(原始备注:`>3 order, >1 receiver_geo`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 特殊下单 |
-| **用户高频请求下单__全部失败5m** | 同一账号:变量 `uid__order_submit_fail_ratio__5m__rt`(UID下单失败比例[5m]) = `1`;变量 `uid__order_submit_count__5m__rt`(UID下单数[5m]) > `3`(原始备注:`>3 order, F=1 in 5m`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 特殊下单 |
-| **用户高频请求下单__同一商户5m** | 同一账号:变量 `uid__order_submit_distinct_count_merchant__5m__rt`(UID下单不同商户数[5m]) = `1`;变量 `uid__order_submit_count__5m__rt`(UID下单数[5m]) > `2`,前置 下单账号(uid) 不匹配正则 `^\s*$ `(原始备注:`>2 in 5m, merchant`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 特殊下单 |
-| **用户高频请求取消订单5m** | 同一账号:变量 `uid__order_cancel_count__5m__rt`(UID取消订单请求数[5m]) > `3`(原始备注:`>3 cancel in 5m`) | `review` · 账号名单(uid) · ORDER · 5 分钟 | 特殊下单 |
+| **用户深夜多次请求下单** | 同一账号:1 小时内「订单-提交」事件的次数 > `5`,另需 CEL `inTimeWindow("01:00", "06:06")`(事件发生在每日 01:00 ~ 06:06 之间)(原始备注:`>5 in 1h, 0~6`) | `review` · 账号名单(uid) · 5 分钟 | 午夜下单 |
+| **用户深夜请求下单金额过大** | 同一账号:单条事件即命中 订单现金金额(order_money_amount) ≥ `2000`,另需 CEL `inTimeWindow("00:00", "06:00")`(事件发生在每日 00:00 ~ 06:00 之间)(原始备注:`>2,000, 0~6`) | `review` · 账号名单(uid) · 5 分钟 | 午夜下单 |
+| **用户请求下单__金额较大5m** | 同一账号:变量 `uid__order_submit_avg_order_money_amount__5m__rt`(UID平均下单成功金额[5m]) > `1000`,前置 下单账号(uid) 不匹配正则 `^\s*$ `(原始备注:`>1000 in 5m`) | `review` · 账号名单(uid) · 5 分钟 | 特殊下单 |
+| **用户高频请求下单__不同城市5m** | 同一账号:变量 `uid__order_submit_count__5m__rt`(UID下单数[5m]) > `3`;变量 `uid__order_distinct_count_receiver_geo_city__5m__rt`(UID下单不同收货城市数[5m]) > `1`(原始备注:`>3 order, >1 receiver_geo`) | `review` · 账号名单(uid) · 5 分钟 | 特殊下单 |
+| **用户高频请求下单__全部失败5m** | 同一账号:变量 `uid__order_submit_fail_ratio__5m__rt`(UID下单失败比例[5m]) = `1`;变量 `uid__order_submit_count__5m__rt`(UID下单数[5m]) > `3`(原始备注:`>3 order, F=1 in 5m`) | `review` · 账号名单(uid) · 5 分钟 | 特殊下单 |
+| **用户高频请求下单__同一商户5m** | 同一账号:变量 `uid__order_submit_distinct_count_merchant__5m__rt`(UID下单不同商户数[5m]) = `1`;变量 `uid__order_submit_count__5m__rt`(UID下单数[5m]) > `2`,前置 下单账号(uid) 不匹配正则 `^\s*$ `(原始备注:`>2 in 5m, merchant`) | `review` · 账号名单(uid) · 5 分钟 | 特殊下单 |
+| **用户高频请求取消订单5m** | 同一账号:变量 `uid__order_cancel_count__5m__rt`(UID取消订单请求数[5m]) > `3`(原始备注:`>3 cancel in 5m`) | `review` · 账号名单(uid) · 5 分钟 | 特殊下单 |
 
 ### 访客 · 高频与单一访问(16 条)
 
@@ -509,22 +482,22 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **IP大量动态请求** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `100`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>100 in 5m`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
-| **IP大量访问** | 同一 IP:变量 `ip__visit_count__5m__rt`(IP请求量[5m]) > `300`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>300 in 5m 静态+动态`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
-| **IP大量请求不加载静态资源** | 同一 IP:变量 `ip__visit_count__5m__rt`(IP请求量[5m]) > `50`;变量 `ip__visit_static_count__5m__rt`(IP静态资源请求量[5m]) = `0`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>50 动态+静态, 0静态 in 5m`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
-| **IP大量请求不带referrer** | 同一 IP:变量 `ip__visit_clicks_count_refererhit__5m__rt`(IP引用页面被请求数[5m]) = `0`;变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `20`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>20, 0 referrer in 5m`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 单一访问 |
-| **IP大量请求单个接口** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `10`;变量 `ip__visit_dynamic_distinct_count_page__5m__rt`(IP动态请求不同页面数[5m]) = `1`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>10 , 页面=1`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 单一访问 |
-| **IP大量请求注册接口** | 同一 IP:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `register`)的次数 > `5`(原始备注:`>5 in 5m 不需要解析 register`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
-| **IP大量请求登录接口** | 同一 IP:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `login`)的次数 > `5`(原始备注:`>5 in 5m 不需要解析 login`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
-| **IP大量请求相似接口** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `20`;变量 `ip__visit_dynamic_distinct_count_page__5m__rt`(IP动态请求不同页面数[5m]) < `4`;变量 `ip__visit_dynamic_cv_cbytes__5m__rt`(IP动态请求大小变异系数[5m]) ≤ `0.1`,前置 请求内容大小(c_bytes) > `0`(原始备注:`>20 ,<4 页面  cbytes_cv < 0.1 in 5m`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 单一访问 |
-| **IP大量请求签到接口** | 同一 IP:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `sign`)的次数 > `5`(原始备注:`>5 in 5m 不需要解析 sign`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
-| **IP大量连续GET请求** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `30`;变量 `ip__visit_dynamic_get_ratio__5m__rt`(IP动态请求GET占比[5m]) = `1`,前置 请求方法(method) = `GET`(原始备注:`>30 in 5m`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
-| **IP大量连续POST请求** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `30`;变量 `ip__visit_dynamic_post_ratio__5m__rt`(IP动态请求POST占比[5m]) = `1`,前置 请求方法(method) = `POST`(原始备注:`>30 in 5m`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
-| **IP大量连续其他类型请求** | 同一 IP:5 分钟内「动态资源请求」事件(请求方法(method) 不属于 `GET,POST`)的次数 > `20`(原始备注:`>20 in 5m 非GET非POST`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
-| **IP相同UA大量请求单个页面** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `50`;5 分钟内「动态资源请求」事件的用户代理信息(useragent)去重数 = `1`;5 分钟内「动态资源请求」事件的请求路径(uri_stem)去重数 = `1`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>50, 1 页面, 1UA`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
-| **IP集中请求部分接口** | 同一 IP:变量 `ip__visit_dynamic_distinct_count_page__5m__rt`(IP动态请求不同页面数[5m]) < `5`;变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `20`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>20 , < 5页面 in 5m`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 单一访问 |
-| **IP页面停留时间过短App** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `100`;变量 `ip__visit_clicks_avg_timediff__5m__rt`(IP页面点击间隔平均值[5m]) < `500`,前置 客户端ip(c_ip) 包含 `.`;用户代理信息(useragent) 匹配正则 `.*(iphone\|ipod\|android\|ios\|phone\|ipad).*`(原始备注:`>100, avg < 0.5, in 5m, web`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
-| **IP页面停留时间过短Web** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `100`;变量 `ip__visit_clicks_avg_timediff__5m__rt`(IP页面点击间隔平均值[5m]) < `800`,前置 客户端ip(c_ip) 包含 `.`;用户代理信息(useragent) 不匹配正则 `.*(iphone\|ipod\|android\|ios\|phone\|ipad).*`(原始备注:`>100, avg < 0.8, in 5m, web`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 高频访问 |
+| **IP大量动态请求** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `100`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>100 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
+| **IP大量访问** | 同一 IP:变量 `ip__visit_count__5m__rt`(IP请求量[5m]) > `300`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>300 in 5m 静态+动态`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
+| **IP大量请求不加载静态资源** | 同一 IP:变量 `ip__visit_count__5m__rt`(IP请求量[5m]) > `50`;变量 `ip__visit_static_count__5m__rt`(IP静态资源请求量[5m]) = `0`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>50 动态+静态, 0静态 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
+| **IP大量请求不带referrer** | 同一 IP:变量 `ip__visit_clicks_count_refererhit__5m__rt`(IP引用页面被请求数[5m]) = `0`;变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `20`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>20, 0 referrer in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 单一访问 |
+| **IP大量请求单个接口** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `10`;变量 `ip__visit_dynamic_distinct_count_page__5m__rt`(IP动态请求不同页面数[5m]) = `1`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>10 , 页面=1`) | `review` · IP名单(c_ip) · 5 分钟 | 单一访问 |
+| **IP大量请求注册接口** | 同一 IP:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `register`)的次数 > `5`(原始备注:`>5 in 5m 不需要解析 register`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
+| **IP大量请求登录接口** | 同一 IP:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `login`)的次数 > `5`(原始备注:`>5 in 5m 不需要解析 login`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
+| **IP大量请求相似接口** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `20`;变量 `ip__visit_dynamic_distinct_count_page__5m__rt`(IP动态请求不同页面数[5m]) < `4`;变量 `ip__visit_dynamic_cv_cbytes__5m__rt`(IP动态请求大小变异系数[5m]) ≤ `0.1`,前置 请求内容大小(c_bytes) > `0`(原始备注:`>20 ,<4 页面  cbytes_cv < 0.1 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 单一访问 |
+| **IP大量请求签到接口** | 同一 IP:5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) 包含 `sign`)的次数 > `5`(原始备注:`>5 in 5m 不需要解析 sign`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
+| **IP大量连续GET请求** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `30`;变量 `ip__visit_dynamic_get_ratio__5m__rt`(IP动态请求GET占比[5m]) = `1`,前置 请求方法(method) = `GET`(原始备注:`>30 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
+| **IP大量连续POST请求** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `30`;变量 `ip__visit_dynamic_post_ratio__5m__rt`(IP动态请求POST占比[5m]) = `1`,前置 请求方法(method) = `POST`(原始备注:`>30 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
+| **IP大量连续其他类型请求** | 同一 IP:5 分钟内「动态资源请求」事件(请求方法(method) 不属于 `GET,POST`)的次数 > `20`(原始备注:`>20 in 5m 非GET非POST`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
+| **IP相同UA大量请求单个页面** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `50`;5 分钟内「动态资源请求」事件的用户代理信息(useragent)去重数 = `1`;5 分钟内「动态资源请求」事件的请求路径(uri_stem)去重数 = `1`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>50, 1 页面, 1UA`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
+| **IP集中请求部分接口** | 同一 IP:变量 `ip__visit_dynamic_distinct_count_page__5m__rt`(IP动态请求不同页面数[5m]) < `5`;变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `20`,前置 客户端ip(c_ip) 包含 `.`(原始备注:`>20 , < 5页面 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 单一访问 |
+| **IP页面停留时间过短App** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `100`;变量 `ip__visit_clicks_avg_timediff__5m__rt`(IP页面点击间隔平均值[5m]) < `500`,前置 客户端ip(c_ip) 包含 `.`;用户代理信息(useragent) 匹配正则 `.*(iphone\|ipod\|android\|ios\|phone\|ipad).*`(原始备注:`>100, avg < 0.5, in 5m, web`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
+| **IP页面停留时间过短Web** | 同一 IP:变量 `ip__visit_dynamic_count__5m__rt`(IP动态资源请求量[5m]) > `100`;变量 `ip__visit_clicks_avg_timediff__5m__rt`(IP页面点击间隔平均值[5m]) < `800`,前置 客户端ip(c_ip) 包含 `.`;用户代理信息(useragent) 不匹配正则 `.*(iphone\|ipod\|android\|ios\|phone\|ipad).*`(原始备注:`>100, avg < 0.8, in 5m, web`) | `review` · IP名单(c_ip) · 5 分钟 | 高频访问 |
 
 ### 访客 · 爬虫与异常 UA(4 条)
 
@@ -532,10 +505,10 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **Java 用户代理** | 同一 IP:单条事件即命中 用户代理信息(useragent) 包含 `java`(原始备注:`java`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 特殊UA |
-| **Python 用户代理** | 同一 IP:单条事件即命中 用户代理信息(useragent) 包含 `python`(原始备注:`python`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 特殊UA |
-| **Spider 用户代理** | 同一 IP:单条事件即命中 用户代理信息(useragent) 包含 `spider`(原始备注:`spider`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 特殊UA |
-| **服务器用户代理** | 同一 IP:单条事件即命中 用户代理信息(useragent) 匹配正则 `.*(feeddemon\|indy library\|alexa toolbar\|asktbfx…`(原始备注:`apachebench\|pycurl, 不包括java\|python`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 特殊UA |
+| **Java 用户代理** | 同一 IP:单条事件即命中 用户代理信息(useragent) 包含 `java`(原始备注:`java`) | `review` · IP名单(c_ip) · 5 分钟 | 特殊UA |
+| **Python 用户代理** | 同一 IP:单条事件即命中 用户代理信息(useragent) 包含 `python`(原始备注:`python`) | `review` · IP名单(c_ip) · 5 分钟 | 特殊UA |
+| **Spider 用户代理** | 同一 IP:单条事件即命中 用户代理信息(useragent) 包含 `spider`(原始备注:`spider`) | `review` · IP名单(c_ip) · 5 分钟 | 特殊UA |
+| **服务器用户代理** | 同一 IP:单条事件即命中 用户代理信息(useragent) 匹配正则 `.*(feeddemon\|indy library\|alexa toolbar\|asktbfx…`(原始备注:`apachebench\|pycurl, 不包括java\|python`) | `review` · IP名单(c_ip) · 5 分钟 | 特殊UA |
 
 ### 访客 · 恶意扫描(6 条)
 
@@ -543,12 +516,12 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **IP响应字节过大** | 同一 IP:单条事件即命中 响应内容大小(s_bytes) > `5242880`(原始备注:`> 5M`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 恶意扫描 |
-| **IP大量404返回** | 同一 IP:5 分钟内「动态资源请求」事件(响应状态码(status) = `404`)的次数 > `10`(原始备注:`>10 in 5m`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 恶意扫描 |
-| **IP大量4XX返回** | 同一 IP:5 分钟内「动态资源请求」事件(响应状态码(status) > `399`、响应状态码(status) < `500`、响应状态码(status) ≠ `404`)的次数 > `10`(原始备注:`>10 in 5m, 不包含404`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 恶意扫描 |
-| **IP扫描管理后台** | 同一 IP:5 分钟内「动态资源请求」事件(请求路径(uri_stem) 匹配正则 `.*(attachments\|upimg\|images\|css\|uploadfiles\|htm…`)的次数 > `10`,前置 请求路径(uri_stem) 匹配正则 `.*(attachments\|upimg\|images\|css\|uploadfiles\|htm…`(原始备注:`> 10 in 5m`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 恶意扫描 |
-| **IP访问.asp文件** | 同一 IP:变量 `ip__visit_count__5m__rt`(IP请求量[5m]) ≥ `5`,前置 客户端ip(c_ip) 包含 `.`;请求路径(uri_stem) 以…结尾 `.asp`;响应状态码(status) = `404`(原始备注:`> 5 动态+静态 ,404 .asp`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 恶意扫描 |
-| **IP请求可疑文件地址** | 同一 IP:5 分钟内「动态资源请求」事件(请求路径(uri_stem) 匹配正则 `.*(vhost\|bbs\|host\|wwwroot\|www\|site\|root\|hytop\|f…`)的次数 > `10`,前置 请求路径(uri_stem) 匹配正则 `.*(vhost\|bbs\|host\|wwwroot\|www\|site\|root\|hytop\|f…`(原始备注:`> 10 in 5m`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 恶意扫描 |
+| **IP响应字节过大** | 同一 IP:单条事件即命中 响应内容大小(s_bytes) > `5242880`(原始备注:`> 5M`) | `review` · IP名单(c_ip) · 5 分钟 | 恶意扫描 |
+| **IP大量404返回** | 同一 IP:5 分钟内「动态资源请求」事件(响应状态码(status) = `404`)的次数 > `10`(原始备注:`>10 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 恶意扫描 |
+| **IP大量4XX返回** | 同一 IP:5 分钟内「动态资源请求」事件(响应状态码(status) > `399`、响应状态码(status) < `500`、响应状态码(status) ≠ `404`)的次数 > `10`(原始备注:`>10 in 5m, 不包含404`) | `review` · IP名单(c_ip) · 5 分钟 | 恶意扫描 |
+| **IP扫描管理后台** | 同一 IP:5 分钟内「动态资源请求」事件(请求路径(uri_stem) 匹配正则 `.*(attachments\|upimg\|images\|css\|uploadfiles\|htm…`)的次数 > `10`,前置 请求路径(uri_stem) 匹配正则 `.*(attachments\|upimg\|images\|css\|uploadfiles\|htm…`(原始备注:`> 10 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 恶意扫描 |
+| **IP访问.asp文件** | 同一 IP:变量 `ip__visit_count__5m__rt`(IP请求量[5m]) ≥ `5`,前置 客户端ip(c_ip) 包含 `.`;请求路径(uri_stem) 以…结尾 `.asp`;响应状态码(status) = `404`(原始备注:`> 5 动态+静态 ,404 .asp`) | `review` · IP名单(c_ip) · 5 分钟 | 恶意扫描 |
+| **IP请求可疑文件地址** | 同一 IP:5 分钟内「动态资源请求」事件(请求路径(uri_stem) 匹配正则 `.*(vhost\|bbs\|host\|wwwroot\|www\|site\|root\|hytop\|f…`)的次数 > `10`,前置 请求路径(uri_stem) 匹配正则 `.*(vhost\|bbs\|host\|wwwroot\|www\|site\|root\|hytop\|f…`(原始备注:`> 10 in 5m`) | `review` · IP名单(c_ip) · 5 分钟 | 恶意扫描 |
 
 ### 访客 · Web 攻击特征(13 条)
 
@@ -556,34 +529,34 @@
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **visit_directory_traversal_get_ip** | 同一 IP:单条事件即命中 客户端ip(c_ip) 包含 `.`;请求方法(method) = `GET`;请求参数(uri_query) 匹配正则 `\.\.\|/etc/passwd\|c:\\\\\|cmd\.exe\|\\\\\|/`(原始备注:`GET参数中包含目录遍历的特征`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 目录遍历 |
-| **visit_directory_traversal_post_ip** | 同一 IP:单条事件即命中 客户端ip(c_ip) 包含 `.`;请求方法(method) = `POST`;请求参数(uri_query) 匹配正则 `\.\.\|/etc/passwd\|c:\\\\\|cmd\.exe\|\\\\\|/`(原始备注:`POST参数中包含目录遍历的特征`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | 目录遍历 |
-| **visit_ngx_lua_waf_get_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 `\.\./\|\:\$\|\$\{\|select.+(from\|limit)\|(?:(union(…`;请求方法(method) = `GET`(原始备注:`GET参数中ngx_lua_waf策略补充`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | ngx_lua_waf |
-| **visit_ngx_lua_waf_post_ip** | 同一 IP:单条事件即命中 请求方法(method) = `POST`;请求内容(c_body) 匹配正则 `\.\./\|\:\$\|\$\{\|select.+(from\|limit)\|(?:(union(…`(原始备注:`POST参数中ngx_lua_waf策略补充`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | ngx_lua_waf |
-| **visit_rfi_get_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 `http://\|https://\|ftp://\|php://\|sftp://\|zlib://\|…`;请求方法(method) = `GET`(原始备注:`GET参数中包含rfi远程文件包含的特征`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | RFI |
-| **visit_rfi_post_ip** | 同一 IP:单条事件即命中 请求方法(method) = `POST`;请求内容(c_body) 匹配正则 `http://\|https://\|ftp://\|php://\|sftp://\|zlib://\|…`(原始备注:`POST参数中包含rfi远程文件包含的特征`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | RFI |
-| **visit_sql_injection_get_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 `.*(\bselect\b\|\bunion\b\|\bupdate\b\|\bdelete\b\|\…`;请求方法(method) = `GET`(原始备注:`GET参数中的包含SQL语句特征`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | SQL注入 |
-| **visit_sql_injection_hardcore_get_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 `\"\|/\*\|\*/\|\\|\|&&\|--\|;\|\(\|\)\|\'\|,\|#\|@@`;请求方法(method) = `GET`(原始备注:`GET请求中包含SQL的符号`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | SQL注入 |
-| **visit_sql_injection_post_hardcore_ip** | 同一 IP:单条事件即命中 请求方法(method) = `POST`;请求内容(c_body) 匹配正则 `\"\|/\*`(原始备注:`POST请求中包含SQL的符号`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | SQL注入 |
-| **visit_sql_injection_post_ip** | 同一 IP:单条事件即命中 请求内容(c_body) 匹配正则 `.*(\bselect\b\|\bunion\b\|\bupdate\b\|\bdelete\b\|\…`;请求方法(method) = `POST`(原始备注:`POST参数中包含SQL语句特征`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | SQL注入 |
-| **visit_xss_get_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 ``.*(%3c\|%3e\|<\|>\|[\|]\|~\|`).*``;请求方法(method) = `GET`(原始备注:`GET参数包含跨站脚本攻击特征`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | XSS |
-| **visit_xss_post_ip** | 同一 IP:单条事件即命中 请求方法(method) = `POST`;请求内容(c_body) 匹配正则 ``.*(%3c\|%3e\|<\|>\|[\|]\|`).*``(原始备注:`POST参数包含跨站脚本攻击特征`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | XSS |
-| **visit_xss_request_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 `.*script.*script.*`(原始备注:`请求疑似xss`) | `review` · IP名单(c_ip) · VISITOR · 5 分钟 | XSS |
+| **visit_directory_traversal_get_ip** | 同一 IP:单条事件即命中 客户端ip(c_ip) 包含 `.`;请求方法(method) = `GET`;请求参数(uri_query) 匹配正则 `\.\.\|/etc/passwd\|c:\\\\\|cmd\.exe\|\\\\\|/`(原始备注:`GET参数中包含目录遍历的特征`) | `review` · IP名单(c_ip) · 5 分钟 | 目录遍历 |
+| **visit_directory_traversal_post_ip** | 同一 IP:单条事件即命中 客户端ip(c_ip) 包含 `.`;请求方法(method) = `POST`;请求参数(uri_query) 匹配正则 `\.\.\|/etc/passwd\|c:\\\\\|cmd\.exe\|\\\\\|/`(原始备注:`POST参数中包含目录遍历的特征`) | `review` · IP名单(c_ip) · 5 分钟 | 目录遍历 |
+| **visit_ngx_lua_waf_get_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 `\.\./\|\:\$\|\$\{\|select.+(from\|limit)\|(?:(union(…`;请求方法(method) = `GET`(原始备注:`GET参数中ngx_lua_waf策略补充`) | `review` · IP名单(c_ip) · 5 分钟 | ngx_lua_waf |
+| **visit_ngx_lua_waf_post_ip** | 同一 IP:单条事件即命中 请求方法(method) = `POST`;请求内容(c_body) 匹配正则 `\.\./\|\:\$\|\$\{\|select.+(from\|limit)\|(?:(union(…`(原始备注:`POST参数中ngx_lua_waf策略补充`) | `review` · IP名单(c_ip) · 5 分钟 | ngx_lua_waf |
+| **visit_rfi_get_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 `http://\|https://\|ftp://\|php://\|sftp://\|zlib://\|…`;请求方法(method) = `GET`(原始备注:`GET参数中包含rfi远程文件包含的特征`) | `review` · IP名单(c_ip) · 5 分钟 | RFI |
+| **visit_rfi_post_ip** | 同一 IP:单条事件即命中 请求方法(method) = `POST`;请求内容(c_body) 匹配正则 `http://\|https://\|ftp://\|php://\|sftp://\|zlib://\|…`(原始备注:`POST参数中包含rfi远程文件包含的特征`) | `review` · IP名单(c_ip) · 5 分钟 | RFI |
+| **visit_sql_injection_get_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 `.*(\bselect\b\|\bunion\b\|\bupdate\b\|\bdelete\b\|\…`;请求方法(method) = `GET`(原始备注:`GET参数中的包含SQL语句特征`) | `review` · IP名单(c_ip) · 5 分钟 | SQL注入 |
+| **visit_sql_injection_hardcore_get_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 `\"\|/\*\|\*/\|\\|\|&&\|--\|;\|\(\|\)\|\'\|,\|#\|@@`;请求方法(method) = `GET`(原始备注:`GET请求中包含SQL的符号`) | `review` · IP名单(c_ip) · 5 分钟 | SQL注入 |
+| **visit_sql_injection_post_hardcore_ip** | 同一 IP:单条事件即命中 请求方法(method) = `POST`;请求内容(c_body) 匹配正则 `\"\|/\*`(原始备注:`POST请求中包含SQL的符号`) | `review` · IP名单(c_ip) · 5 分钟 | SQL注入 |
+| **visit_sql_injection_post_ip** | 同一 IP:单条事件即命中 请求内容(c_body) 匹配正则 `.*(\bselect\b\|\bunion\b\|\bupdate\b\|\bdelete\b\|\…`;请求方法(method) = `POST`(原始备注:`POST参数中包含SQL语句特征`) | `review` · IP名单(c_ip) · 5 分钟 | SQL注入 |
+| **visit_xss_get_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 ``.*(%3c\|%3e\|<\|>\|[\|]\|~\|`).*``;请求方法(method) = `GET`(原始备注:`GET参数包含跨站脚本攻击特征`) | `review` · IP名单(c_ip) · 5 分钟 | XSS |
+| **visit_xss_post_ip** | 同一 IP:单条事件即命中 请求方法(method) = `POST`;请求内容(c_body) 匹配正则 ``.*(%3c\|%3e\|<\|>\|[\|]\|`).*``(原始备注:`POST参数包含跨站脚本攻击特征`) | `review` · IP名单(c_ip) · 5 分钟 | XSS |
+| **visit_xss_request_ip** | 同一 IP:单条事件即命中 请求参数(uri_query) 匹配正则 `.*script.*script.*`(原始备注:`请求疑似xss`) | `review` · IP名单(c_ip) · 5 分钟 | XSS |
 
 ### VISITOR · 未归类(1 条)
 
 | 策略名 | 检测什么 | 命中后处置 | 标签 |
 |---|---|---|---|
-| **测试-地域FUNCTION** | 同一 IP:单条事件即命中 客户端ip(c_ip) 包含 `.`,另需 `nebula.HTTP_DYNAMIC.c_ip` 的归属地(province)= 上海市(原始备注:`地域function测试策略`) | `review` · IP名单(c_ip) · VISITOR · 5 小时 | — |
+| **测试-地域FUNCTION** | 同一 IP:单条事件即命中 客户端ip(c_ip) 包含 `.`,另需 CEL `ipLocation(c_ip, "province") == "上海市"`(IP 归属province匹配 上海市)(原始备注:`地域function测试策略`) | `review` · IP名单(c_ip) · 5 小时 | — |
 
-🔧 = 含占位符,需要先配置才能生效,见[下文](#需要配置才能生效的策略)。
+🔧 = 含占位符,需要先配置才能生效,见[下文](#需要配置才能生效的策略);⏱ = 用 `delay` 做延迟求值,见[延迟求值(delay)策略](#延迟求值delay策略)。
 
 ---
 
 ## 三维度镜像设计
 
 1.x 的内置策略遵循一条明确的设计规律:**同一个风险模式,按 IP / 设备 / 账号三个维度各写一条**。
-同一族的三条策略结构几乎相同,区别只在分组键(`groupby`)、触发键(`trigger.keys`)和写入的名单主体(`checktype`)。
+同一族的三条策略结构几乎相同,区别只在计数器的分组键(`groupby`)、变量引用的 `keys` 和写入的名单主体(`action.check_type` / `action.check_value`)。
 
 这样设计的原因是三个维度各有盲区:IP 会被代理池稀释,设备指纹会被改机工具伪造,账号在注册环节还不存在。三条一起跑才能互相补位。
 
@@ -634,7 +607,7 @@
 
 ### 只覆盖两个维度的策略族
 
-1.x 没有把这些模式补齐。缺失的那一维通常是可以照着补的 —— 复制一条,改 `groupby`、`trigger.keys`、`condition` 里的键和 `checkvalue`/`checktype` 即可。
+1.x 没有把这些模式补齐。缺失的那一维通常是可以照着补的 —— 复制一条,改计数器的 `groupby`、变量引用的 `keys`、filter 里的键,以及 `action.check_type` / `action.check_value` 即可。
 
 | 风险模式 | IP 维度 | 账号维度 | 设备维度 | 阈值/窗口 | 阈值一致 |
 |---|---|---|---|---|---|
@@ -701,7 +674,7 @@
 
 ### ⚠️ 名称与名单主体不一致的策略
 
-生成器发现下列策略的**名字声明的维度**与**实际写入的名单主体**对不上 —— 这是 1.x 数据里的既有问题(复制粘贴时漏改),不是生成器的误判。启用前请逐条确认到底想拉黑谁。
+生成器发现下列策略的**名字声明的维度**与**实际写入的名单主体**(`action.check_type`)对不上 —— 这是 1.x 数据里的既有问题(复制粘贴时漏改),转换到 2.0 时按原样保留,不是生成器的误判。启用前请逐条确认到底想拉黑谁。
 
 | 策略名 | 名称暗示的主体 | 实际写入的名单 | 实际统计口径(groupby) |
 |---|---|---|---|
@@ -713,35 +686,141 @@
 
 ---
 
+## 延迟求值(delay)策略
+
+内置模板里有 **3 条**策略带 `delay` 字段。它们检测的是一类特殊风险:**做了 A 之后,一段时间内始终没有做 B**。
+
+普通条件在事件到达的**那一瞬间**求值,而「没做 B」在那一瞬间总是成立 —— B 本来就还没来得及发生。所以这类模式没法用普通条件表达,必须**等一会儿再看**。`delay` 就是干这个的:
+
+```
+事件到达  ──►  condition 成立?  ──否──►  丢弃
+                    │是
+                    ▼
+              挂起,等待 duration_seconds(5 分钟)
+                    │
+                    ▼
+            delay.condition 成立?  ──否──►  丢弃(说明用户后来做了 B,行为正常)
+                    │是
+                    ▼
+               产出告警 + 执行 action
+```
+
+**两段条件都成立才命中**。`delay.condition` 与主 `condition` 结构完全一样(同一棵条件树的语法),里面照样可以写计数器、变量引用和嵌套布尔。
+
+### 模板中的 delay 策略
+
+| 策略名 | 前置条件(condition) | 延迟 | 到期后判定(delay.condition) | 命中后处置 |
+|---|---|---|---|---|
+| **IP请求A一段时间内没有请求B** | 伪静态页面加工后地址(page) = `A` | 5 分钟 | 5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) = `B`)的次数 = `0` | `review` · IP名单(c_ip) · 5 分钟 |
+| **用户请求A一段时间内没有请求B** | 伪静态页面加工后地址(page) = `A` | 5 分钟 | 5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) = `B`)的次数 = `0` | `review` · 账号名单(uid) · 5 分钟 |
+| **设备请求A一段时间内没有请求B** | 伪静态页面加工后地址(page) = `A` | 5 分钟 | 5 分钟内「动态资源请求」事件(伪静态页面加工后地址(page) = `B`)的次数 = `0` | `review` · 设备名单(did) · 5 分钟 |
+
+### 以 `IP请求A一段时间内没有请求B` 为例
+
+```json
+{
+  "condition": {
+    "left": {
+      "field": "page",
+      "kind": "event_field"
+    },
+    "op": "==",
+    "right": {
+      "kind": "constant",
+      "value": "A"
+    }
+  },
+  "delay": {
+    "condition": {
+      "left": {
+        "counter": {
+          "algorithm": "count",
+          "event": "HTTP_DYNAMIC",
+          "filter": {
+            "object": "page",
+            "operation": "==",
+            "type": "simple",
+            "value": "B"
+          },
+          "groupby": [
+            "c_ip"
+          ],
+          "operand": [
+            "c_ip"
+          ],
+          "window": 300
+        },
+        "kind": "counter"
+      },
+      "op": "==",
+      "right": {
+        "kind": "constant",
+        "value": "0"
+      }
+    },
+    "duration_seconds": 300
+  }
+}
+```
+
+逐步展开:
+
+1. 触发事件 `HTTP_DYNAMIC` 到达,先判 `condition` —— 「动态资源请求」事件的伪静态页面加工后地址(page) = `A`;
+2. **不立即出告警**,而是为这个主体挂起一个 5 分钟的定时器;
+3. 到期后再求 `delay.condition` —— 最近 5 分钟内、按 客户端ip(c_ip) 分组的「动态资源请求」事件(满足 伪静态页面加工后地址(page) = `B`)累计事件次数 = `0`;
+4. 两段都成立才产出告警并执行 `action`。中途只要主体做了 B,计数器就不为 0,到期判定不成立,什么也不会发生。
+
+注意计数器的窗口(`window`)与延迟时长(`duration_seconds`)是**两件事**:本例的窗口是 5 分钟、延迟是 5 分钟,到期时回看的是「最近一个窗口内」的行为。两者相等时语义最直观(等多久就看多久),但并不强制。
+
+### 用它写自己的策略
+
+这是模板里唯一一组**否定式(negative)**策略,可以直接当样板改。常见场景:
+
+- 加购/下单后 N 分钟未支付(占库存、锁优惠);
+- 领券后 N 天未核销(薅券转卖);
+- 注册后 N 分钟未完成实名(养号);
+- 触发风控挑战后 N 分钟未通过验证。
+
+工程上要留意:
+
+- **有状态**:每条挂起的判定都要在引擎里保留到到期,待定量约等于「触发事件量 × 前置条件命中率」,延迟越长占用越多,别把 `duration_seconds` 设成几天;
+- **延迟出告警**:告警会比风险发生晚一个 `duration_seconds`,不适合需要实时拦截的场景;
+- **到期时重新计算**:`delay.condition` 里的计数器是在**到期那一刻**按当时的窗口求值的,不是事件到达时的快照;
+- 1.x 用 `terms` 里的一条 `sleep` 条款表达同一件事(`sleep` 之后的条款就是到期后再判的部分),转换时提升为策略级的 `delay` 字段,溯源信息记在 `source_1x.notes` 里。
+
+> ⚠️ 这 3 条模板里的 A / B 是**字面占位值**,不替换成真实页面路径就永远不会命中,详见[需要配置才能生效的策略](#需要配置才能生效的策略)。
+
+---
+
 ## 需要配置才能生效的策略
 
 `index.json` 标了 **7 条**含占位符的策略;生成器另外扫出 **3 条**写死了字面占位值的骨架策略。这 **10 条**在配置之前**导入后不会正确工作**(全表中以 🔧 标出)。占位符的完整说明见 [`seeds/PLACEHOLDERS.md`](../../seeds/PLACEHOLDERS.md) 对应条目。
 
 ### `<YOUR_PAYMENT_PAGE_PATH>`
 
-能唯一标识你自己**支付/结算页面**的 URL 路径片段,例如 `/order/pay`、`/checkout/confirm`。策略用它来统计「下单之后有没有真的去付款」以及「进入登录/注册前有没有访问过必要页面」。比较运算符是 `contain`,填子串即可。
+能唯一标识你自己**支付/结算页面**的 URL 路径片段,例如 `/order/pay`、`/checkout/confirm`。策略用它来统计「下单之后有没有真的去付款」以及「进入登录/注册前有没有访问过必要页面」。比较运算符是 `contains`,填子串即可。
 
 | 策略名 | 出现位置 | 不配置的后果 |
 |---|---|---|
-| **IP下单不支付** | `nebula.HTTP_DYNAMIC` 计数器条件 `page contain <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**下单主体都判成「下单不支付」 |
-| **IP请求注册前未访问必要资源** | `nebula.HTTP_DYNAMIC` 计数器条件 `page contain <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
-| **IP请求登录前未访问必要资源** | `nebula.HTTP_DYNAMIC` 计数器条件 `page contain <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
-| **用户下单不支付** | `nebula.HTTP_DYNAMIC` 计数器条件 `page contain <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**下单主体都判成「下单不支付」 |
-| **设备下单不支付** | `nebula.HTTP_DYNAMIC` 计数器条件 `page contain <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**下单主体都判成「下单不支付」 |
-| **设备请求注册前未访问必要资源** | `nebula.HTTP_DYNAMIC` 计数器条件 `page contain <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
-| **设备请求登录前未访问必要资源** | `nebula.HTTP_DYNAMIC` 计数器条件 `page contain <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
+| **IP下单不支付** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**下单主体都判成「下单不支付」 |
+| **IP请求注册前未访问必要资源** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
+| **IP请求登录前未访问必要资源** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
+| **用户下单不支付** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**下单主体都判成「下单不支付」 |
+| **设备下单不支付** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**下单主体都判成「下单不支付」 |
+| **设备请求注册前未访问必要资源** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
+| **设备请求登录前未访问必要资源** | `HTTP_DYNAMIC` 计数器过滤 `page contains <YOUR_PAYMENT_PAGE_PATH>` | 计数器恒为 0 —— 策略会把**所有**登录/注册主体都判成「未访问必要资源」 |
 
 ### 另外 3 条「骨架策略」(index.json 未标记)
 
 这几条策略把页面路径写成了 `A`、`B` 这样的字面占位值 —— 它们是 1.x 留下的**模式骨架**,不是可用策略。`index.json` 没有把它们标成 `requires_configuration`(占位符扫描只认 `<YOUR_*>` 形式),但不改同样不会有任何意义:`page == "A"` 在真实流量里永不成立。
 
-| 策略名 | 占位值 | 要填什么 |
-|---|---|---|
-| **IP请求A一段时间内没有请求B** | `A`、`B` | A = 先访问的页面,B = 本应随后访问的页面;两处 `page` 条件都要换成真实路径 |
-| **用户请求A一段时间内没有请求B** | `A`、`B` | A = 先访问的页面,B = 本应随后访问的页面;两处 `page` 条件都要换成真实路径 |
-| **设备请求A一段时间内没有请求B** | `A`、`B` | A = 先访问的页面,B = 本应随后访问的页面;两处 `page` 条件都要换成真实路径 |
+| 策略名 | 占位值 | 出现位置 | 要填什么 |
+|---|---|---|---|
+| **IP请求A一段时间内没有请求B** | `A`、`B` | 事件条件 `page == A`；`HTTP_DYNAMIC` 计数器过滤 `page == B` | A = 先访问的页面,B = 本应随后访问的页面;两处 `page` 条件都要换成真实路径 |
+| **用户请求A一段时间内没有请求B** | `A`、`B` | 事件条件 `page == A`；`HTTP_DYNAMIC` 计数器过滤 `page == B` | A = 先访问的页面,B = 本应随后访问的页面;两处 `page` 条件都要换成真实路径 |
+| **设备请求A一段时间内没有请求B** | `A`、`B` | 事件条件 `page == A`；`HTTP_DYNAMIC` 计数器过滤 `page == B` | A = 先访问的页面,B = 本应随后访问的页面;两处 `page` 条件都要换成真实路径 |
 
-语义是「访问了 A,但 5 分钟内没有访问 B」—— 用 `sleep` 延迟判定实现,是模板里唯一一组否定式(negative)策略,可以拿它当自定义策略的样板。
+语义是「访问了 A,但 5 分钟内没有访问 B」—— 用 `delay` 延迟求值实现,是模板里唯一一组否定式(negative)策略,工作方式见[延迟求值(delay)策略](#延迟求值delay策略)。
 
 **怎么改**:直接编辑 `seeds/strategies/` 下对应文件,把占位符字符串替换掉;或在导入控制台后于策略编辑页修改该条件。替换后重新运行 `python3 tools/validate_seeds.py` 确认仍然合法。
 
@@ -755,11 +834,11 @@
 
 ### 1. 没有一条策略会自动阻断
 
-170 条策略的处置决策分布:`review` × 170。
+170 条策略的处置决策(`action.decision`)分布:`review` × 170。
 
 也就是说 **170/170 条全部是 `review`(转人工审核)**,没有任何一条会自动拦截、二次验证或限流。1.x 当年设计了处置能力但没有落地,系统实际只能产出「待审核」告警。
 
-**启用前你需要自己决定处置动作**:哪些策略可以直接阻断,哪些只发告警,哪些走二次验证。建议路径是先全部保持 `review` 观察一段时间,拿到误报率之后再逐条提升处置强度。
+2.0 在 `action` 下新增了 `handlers`(`block` / `captcha` / `throttle` / `degrade` / `notify` / `webhook`),但内置模板里 **0/170 条**用到它 —— **启用前你需要自己决定处置动作**:哪些策略可以直接阻断,哪些只发告警,哪些走二次验证。建议路径是先全部保持 `review` 观察一段时间,拿到误报率之后再逐条提升处置强度。
 
 ### 2. 风险分(score)没有落地
 
@@ -767,7 +846,7 @@ score 取值分布:0 × 169、1 × 1。
 
 **169/170 条的 score 为 0**,只有 `设备请求下单行为单一`(score=1) 是例外 —— 这个孤例没有任何配套逻辑,基本可以判定为 1.x 里的遗留噪声,而非有意设计。
 
-score 为 0 意味着**风险评分能力等于没有开启**:命中再多条策略,主体的风险分仍然是 0,无法按分数分级处置。要用起来,需要按自身业务给每条策略赋权 —— 通常按「误报代价 × 风险严重度」定档,而不是拍脑袋给 60/80/100。
+score 为 0 意味着**风险评分能力等于没有开启**:命中再多条策略,主体的风险分仍然是 0,无法按分数分级处置。2.0 的 schema 要求显式赋值,但迁移时保留了 1.x 的原值 —— 要用起来,需要按自身业务给每条策略赋权,通常按「误报代价 × 风险严重度」定档,而不是拍脑袋给 60/80/100。
 
 ### 3. 阈值来自 1.x 当年的业务流量,必须按自己的量级校准
 
@@ -782,12 +861,14 @@ score 为 0 意味着**风险评分能力等于没有开启**:命中再多条策
 ### 4. 其它需要留意的现状
 
 - **默认为观察状态**:status 分布为 `test` × 170。模板全部以 `test` 状态分发 —— 照常计算并产出告警,但告警标记 `test=true`,不参与线上决策。校准完阈值后再逐条切到 `online`。
-- **不设生效时间窗**:模板的 `end_effect` 已清空(长期有效)。1.x 出厂数据中该字段全部是当年生产实例的历史值且均已过期,照原样分发会导致导入后**一条都不触发且没有任何提示**,因此在 seeds 中做了规范化,详见 [`seeds/INVENTORY.md`](../../seeds/INVENTORY.md)。
-- **名单有效期普遍很短**:多数策略的 TTL 是 5 分钟,只够用于实时联防;要做长期黑名单需要自己调 `ttl` 或在下游落库。
+- **不设生效截止时间**:全部模板的 `effective_to` 都是 `null`(长期有效)。1.x 出厂数据中该字段全部是当年生产实例的历史值且均已过期,照原样分发会导致导入后**一条都不触发且没有任何提示**,因此在 seeds 中做了规范化,详见 [`seeds/INVENTORY.md`](../../seeds/INVENTORY.md)。`effective_from` 保留了 1.x 的原值(2016-09-02 — 2017-09-01),都是过去时间,不影响生效判定。
+- **名单有效期普遍很短**:151/170 条策略的 `action.ttl` 是 5 分钟,只够用于实时联防;要做长期黑名单需要自己调 `ttl` 或在下游落库。
 - **策略之间会重复命中**:三维度镜像意味着一次攻击往往同时触发 3 条策略,告警去重与合并要在消费侧做,否则运营会被同一事件刷屏。
-- **个别策略的备注与实际条件不符**:`IP相同密码请求登录不同账号`(备注 >3 in 5min,实际 `==3`)、`设备多次使用相同密码注册`(备注 >3, 1密码 in 5m,实际 `==3`)。`==` 意味着「不多不少正好等于」,在真实流量里几乎永远不命中,看起来是 1.x 里写错了运算符。本文表格中的「检测什么」以 **terms 实际条件**为准,备注仅供对照。
+- **未设置去重窗口**:没有一条模板显式写 `dedup_window`,全部落到 schema 默认的 300 秒。同一主体同一策略 5 分钟内只出一条告警,评估命中量时要把这一点算进去。
+- **个别策略的备注与实际条件不符**:`IP相同密码请求登录不同账号`(备注 >3 in 5min,实际 `==3`)、`设备多次使用相同密码注册`(备注 >3, 1密码 in 5m,实际 `==3`)。`==` 意味着「不多不少正好等于」,在真实流量里几乎永远不命中,看起来是 1.x 里写错了运算符。本文表格中的「检测什么」以 **`condition` 实际条件**为准,备注仅供对照。
+- **6 条策略把正则写进了子串算子**:`IP多用户请求下单`、`IP多设备请求下单`、`用户多IP请求下单`、`用户多设备请求下单`、`设备多IP请求下单`、`设备多用户请求下单` 的计数器过滤条件是 `page contains ^\s*$` —— `contains` 做的是**子串包含**,不会把 `^\s*$` 当正则解释,因此该条件永不成立、计数器恒为 0,策略实际上是死的。作者本意应当是 `!regex ^\s*$`(即「page 非空」)。这是 1.x 数据里的既有缺陷,转换到 2.0 时按原样保留;要启用这几条请先改算子。
 - **含测试策略**:`测试-地域FUNCTION` 是 1.x 留下的功能验证策略,没有业务含义,建议导入后直接停用或删除。
 
 ---
 
-*本文由 `tools/gen_strategy_reference.py` 生成。数据源:`seeds/strategies/`(170 条)、`seeds/events/`、`seeds/variables/`。*
+*本文由 `tools/gen_strategy_reference.py` 生成。数据源:`seeds/strategies/`(170 条,2.0 schema 结构)、`seeds/events/`、`seeds/variables/`。*

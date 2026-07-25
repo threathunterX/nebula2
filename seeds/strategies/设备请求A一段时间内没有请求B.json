@@ -1,125 +1,73 @@
 {
+  "action": {
+    "check_type": "DeviceID",
+    "check_value": "did",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "left": {
+      "field": "page",
+      "kind": "event_field"
+    },
+    "op": "==",
+    "right": {
+      "kind": "constant",
+      "value": "A"
+    }
+  },
+  "delay": {
+    "condition": {
+      "left": {
+        "counter": {
+          "algorithm": "count",
+          "event": "HTTP_DYNAMIC",
+          "filter": {
+            "object": "page",
+            "operation": "==",
+            "type": "simple",
+            "value": "B"
+          },
+          "groupby": [
+            "did"
+          ],
+          "operand": [
+            "c_ip"
+          ],
+          "window": 300
+        },
+        "kind": "counter"
+      },
+      "op": "==",
+      "right": {
+        "kind": "constant",
+        "value": "0"
+      }
+    },
+    "duration_seconds": 300
+  },
+  "effective_from": 1504075128120,
+  "effective_to": null,
+  "explain": true,
   "name": "设备请求A一段时间内没有请求B",
   "remark": "延迟判断 5m",
   "score": 0,
-  "start_effect": 1504075128120,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false,
+    "notes": [
+      "原 sleep 条款转换为 delay,其后的条款进入 delay.condition"
+    ]
+  },
   "status": "test",
   "tags": [
     "跳跃访问"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "page"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "==",
-      "remark": "A",
-      "right": {
-        "config": {
-          "value": "A"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "duration": 5,
-          "unit": "m"
-        },
-        "subtype": "sleep",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "algorithm": "count",
-          "condition": [
-            {
-              "left": "did",
-              "op": "=",
-              "right": "did"
-            },
-            {
-              "left": "page",
-              "op": "==",
-              "right": "B"
-            }
-          ],
-          "groupby": [
-            "did"
-          ],
-          "interval": 300,
-          "operand": [
-            "c_ip"
-          ],
-          "sourceevent": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "trigger": {
-            "event": [
-              "nebula",
-              "HTTP_DYNAMIC"
-            ],
-            "keys": [
-              "did"
-            ]
-          }
-        },
-        "subtype": "count",
-        "type": "func"
-      },
-      "op": "==",
-      "remark": "B",
-      "right": {
-        "config": {
-          "value": "0"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "DeviceID",
-          "checkvalue": "did",
-          "decision": "review",
-          "name": "ACCOUNT",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "HTTP_DYNAMIC"
+  },
+  "version": "2.0",
+  "visible_name": "设备请求A一段时间内没有请求B"
 }

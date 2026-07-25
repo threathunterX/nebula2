@@ -1,139 +1,94 @@
 {
+  "action": {
+    "check_type": "IP",
+    "check_value": "c_ip",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "page",
+          "kind": "event_field"
+        },
+        "op": "!regex",
+        "right": {
+          "kind": "constant",
+          "value": "^\\s*$"
+        }
+      },
+      {
+        "left": {
+          "field": "result",
+          "kind": "event_field"
+        },
+        "op": "==",
+        "right": {
+          "kind": "constant",
+          "value": "F"
+        }
+      },
+      {
+        "left": {
+          "counter": {
+            "algorithm": "count",
+            "event": "ACCOUNT_LOGIN",
+            "filter": {
+              "condition": [
+                {
+                  "object": "result",
+                  "operation": "==",
+                  "type": "simple",
+                  "value": "F"
+                },
+                {
+                  "object": "page",
+                  "operation": "!regex",
+                  "type": "simple",
+                  "value": "^\\s*$"
+                }
+              ],
+              "type": "and"
+            },
+            "groupby": [
+              "c_ip"
+            ],
+            "operand": [
+              "c_ip"
+            ],
+            "window": 600
+          },
+          "kind": "counter"
+        },
+        "op": ">",
+        "right": {
+          "kind": "constant",
+          "value": "5"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1484040852259,
+  "effective_to": null,
+  "explain": true,
   "name": "IP多次登录失败",
   "remark": ">5 in 10min F",
   "score": 0,
-  "start_effect": 1484040852259,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "高频登录"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ACCOUNT_LOGIN"
-          ],
-          "field": "page"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "!regex",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "^\\s*$"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ACCOUNT_LOGIN"
-          ],
-          "field": "result"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "==",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "F"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "algorithm": "count",
-          "condition": [
-            {
-              "left": "c_ip",
-              "op": "=",
-              "right": "c_ip"
-            },
-            {
-              "left": "result",
-              "op": "==",
-              "right": "F"
-            },
-            {
-              "left": "page",
-              "op": "!regex",
-              "right": "^\\s*$"
-            }
-          ],
-          "groupby": [
-            "c_ip"
-          ],
-          "interval": 600,
-          "operand": [
-            "c_ip"
-          ],
-          "sourceevent": [
-            "nebula",
-            "ACCOUNT_LOGIN"
-          ],
-          "trigger": {
-            "event": [
-              "nebula",
-              "ACCOUNT_LOGIN"
-            ],
-            "keys": [
-              "c_ip"
-            ]
-          }
-        },
-        "subtype": "count",
-        "type": "func"
-      },
-      "op": ">",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "5"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "IP",
-          "checkvalue": "c_ip",
-          "decision": "review",
-          "name": "ACCOUNT",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "ACCOUNT_LOGIN"
+  },
+  "version": "2.0",
+  "visible_name": "IP多次登录失败"
 }

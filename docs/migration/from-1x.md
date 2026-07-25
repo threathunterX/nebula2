@@ -85,6 +85,30 @@ nebula-migrate import ./my-assets --target http://localhost:8080
 
 **影响**:纯增强,无兼容性问题。告警存储体积会略有增加。
 
+## 策略结构的变化
+
+1.x 的策略是一个扁平的 `terms` 数组,条款之间隐含 AND 关系,其中一条实际上是处置动作(`setblacklist`)而不是条件。2.0 把两者分开:`condition` 是一棵可嵌套的布尔树,`action` 是独立的处置对象。
+
+迁移工具自动完成映射,你不需要手工改写:
+
+| 1.x 条款 | 2.0 |
+|---|---|
+| `event` | 比较条件,左值为事件字段 |
+| `func:count` | 比较条件,左值为内联计数器 |
+| `func:getvariable` | 比较条件,左值为变量引用 |
+| `func:setblacklist` | `action` 处置对象 |
+| `func:sleep` | 策略级 `delay` 字段(延迟求值) |
+| `func:time` | CEL 表达式 `inTimeWindow(start, end)` |
+| `func:getlocation` | CEL 表达式 `ipLocation(ip, level)` |
+
+两点值得注意:
+
+**内联计数器的分组对齐条件会被丢弃。** 1.x 的计数器 `condition` 数组里混着形如 `{"left":"c_ip","op":"=","right":"c_ip"}` 的元素,它不是过滤条件,而是表达"按 c_ip 分组"——2.0 中这由 `groupby` 表达。如果照搬会变成一条恒真的无意义过滤。
+
+**常量值保持字符串形态。** 1.x 把阈值 `5` 存为 `"5"`,迁移时不做类型推断,由引擎按左值类型转换。过早推断会出错。
+
+CEL 函数的定义见 [CEL 表达式参考](../guide/cel-reference.md) 与 [`packages/cel-functions/`](../../packages/cel-functions/)。
+
 ## 策略模板的生效状态已被规范化
 
 从 1.x 导出的 170 条策略携带了当年生产实例的生效时间窗与运行状态,直接分发会踩两个坑,2.0 的 seeds 已做规范化:

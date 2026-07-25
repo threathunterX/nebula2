@@ -1,145 +1,84 @@
 {
+  "action": {
+    "check_type": "IP",
+    "check_value": "c_ip",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "c_ip",
+          "kind": "event_field"
+        },
+        "op": "contains",
+        "right": {
+          "kind": "constant",
+          "value": "."
+        }
+      },
+      {
+        "left": {
+          "field": "useragent",
+          "kind": "event_field"
+        },
+        "op": "regex",
+        "right": {
+          "kind": "constant",
+          "value": ".*(iphone|ipod|android|ios|phone|ipad).*"
+        }
+      },
+      {
+        "left": {
+          "keys": [
+            "c_ip"
+          ],
+          "kind": "variable",
+          "variable": "ip__visit_dynamic_count__5m__rt"
+        },
+        "op": ">",
+        "right": {
+          "kind": "constant",
+          "value": "100"
+        }
+      },
+      {
+        "left": {
+          "keys": [
+            "c_ip"
+          ],
+          "kind": "variable",
+          "variable": "ip__visit_clicks_avg_timediff__5m__rt"
+        },
+        "op": "<",
+        "right": {
+          "kind": "constant",
+          "value": "500"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1484101358008,
+  "effective_to": null,
+  "explain": true,
   "name": "IP页面停留时间过短App",
   "remark": ">100, avg < 0.5, in 5m, web",
   "score": 0,
-  "start_effect": 1484101358008,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "高频访问"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "c_ip"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "contain",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "."
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "useragent"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "regex",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": ".*(iphone|ipod|android|ios|phone|ipad).*"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "trigger": {
-            "event": [
-              "nebula",
-              "HTTP_DYNAMIC"
-            ],
-            "keys": [
-              "c_ip"
-            ]
-          },
-          "variable": [
-            "nebula",
-            "ip__visit_dynamic_count__5m__rt"
-          ]
-        },
-        "subtype": "getvariable",
-        "type": "func"
-      },
-      "op": ">",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "100"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "trigger": {
-            "event": [
-              "nebula",
-              "HTTP_DYNAMIC"
-            ],
-            "keys": [
-              "c_ip"
-            ]
-          },
-          "variable": [
-            "nebula",
-            "ip__visit_clicks_avg_timediff__5m__rt"
-          ]
-        },
-        "subtype": "getvariable",
-        "type": "func"
-      },
-      "op": "<",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "500"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "IP",
-          "checkvalue": "c_ip",
-          "decision": "review",
-          "name": "VISITOR",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "HTTP_DYNAMIC"
+  },
+  "version": "2.0",
+  "visible_name": "IP页面停留时间过短App"
 }

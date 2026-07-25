@@ -1,74 +1,49 @@
 {
+  "action": {
+    "check_type": "USER",
+    "check_value": "uid",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "ORDER",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "order_money_amount",
+          "kind": "event_field"
+        },
+        "op": ">=",
+        "right": {
+          "kind": "constant",
+          "value": "2000"
+        }
+      },
+      {
+        "cel": "inTimeWindow(\"00:00\", \"06:00\")",
+        "remark": "事件发生在每日 00:00 ~ 06:00 之间"
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1484030778584,
+  "effective_to": null,
+  "explain": true,
   "name": "用户深夜请求下单金额过大",
   "remark": ">2,000, 0~6",
   "score": 0,
-  "start_effect": 1484030778584,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "午夜下单"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ORDER_SUBMIT"
-          ],
-          "field": "order_money_amount"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": ">=",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "2000"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "end": "06:00",
-          "start": "00:00"
-        },
-        "subtype": "time",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "USER",
-          "checkvalue": "uid",
-          "decision": "review",
-          "name": "ORDER",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "ORDER_SUBMIT"
+  },
+  "version": "2.0",
+  "visible_name": "用户深夜请求下单金额过大"
 }

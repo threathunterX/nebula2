@@ -70,3 +70,16 @@ jobs:
           python tools/gen_strategy_reference.py --check
       - name: 校验文档内部链接可达
         run: python tools/check_doc_links.py
+
+  reference-engine:
+    name: 参考引擎规格符合性
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 规格符合性测试
+        run: cd packages/reference-engine && node --test 'test/*.test.js'
+      - name: 场景冒烟(全部策略可完成求值)
+        run: cd packages/reference-engine && node run.js

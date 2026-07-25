@@ -11,7 +11,7 @@ help: ## 显示本帮助
 # ---------- 校验 ----------
 
 .PHONY: validate
-validate: validate-schema validate-seeds docs-check links ## 跑全部校验(等同 CI 的检查项)
+validate: validate-schema validate-seeds docs-check links test-reference ## 跑全部校验(等同 CI 的检查项)
 
 .PHONY: validate-schema
 validate-schema: ## 校验 JSON Schema 自身合法
@@ -68,8 +68,15 @@ lint: ## 🚧 代码风格检查
 	@echo "🚧 尚未实现(各 app 尚无代码)"
 
 .PHONY: test
-test: ## 🚧 单元测试
-	@echo "🚧 尚未实现(各 app 尚无代码)"
+test: test-reference ## 单元测试
+
+.PHONY: test-reference
+test-reference: ## 参考引擎的规格符合性测试
+	@cd packages/reference-engine && node --test 'test/*.test.js'
+
+.PHONY: demo
+demo: ## 用参考引擎跑一遍撞库场景
+	@cd packages/reference-engine && node run.js
 
 .PHONY: golden-verify
 golden-verify: ## 🚧 用 2.0 引擎跑 golden 用例并与 1.x 基线比对

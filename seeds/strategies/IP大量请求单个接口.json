@@ -1,122 +1,73 @@
 {
+  "action": {
+    "check_type": "IP",
+    "check_value": "c_ip",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "c_ip",
+          "kind": "event_field"
+        },
+        "op": "contains",
+        "right": {
+          "kind": "constant",
+          "value": "."
+        }
+      },
+      {
+        "left": {
+          "keys": [
+            "c_ip"
+          ],
+          "kind": "variable",
+          "variable": "ip__visit_dynamic_count__5m__rt"
+        },
+        "op": ">",
+        "right": {
+          "kind": "constant",
+          "value": "10"
+        }
+      },
+      {
+        "left": {
+          "keys": [
+            "c_ip"
+          ],
+          "kind": "variable",
+          "variable": "ip__visit_dynamic_distinct_count_page__5m__rt"
+        },
+        "op": "==",
+        "right": {
+          "kind": "constant",
+          "value": "1"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1484102336270,
+  "effective_to": null,
+  "explain": true,
   "name": "IP大量请求单个接口",
   "remark": ">10 , 页面=1",
   "score": 0,
-  "start_effect": 1484102336270,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "单一访问"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "field": "c_ip"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "contain",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "."
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "trigger": {
-            "event": [
-              "nebula",
-              "HTTP_DYNAMIC"
-            ],
-            "keys": [
-              "c_ip"
-            ]
-          },
-          "variable": [
-            "nebula",
-            "ip__visit_dynamic_count__5m__rt"
-          ]
-        },
-        "subtype": "getvariable",
-        "type": "func"
-      },
-      "op": ">",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "10"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "trigger": {
-            "event": [
-              "nebula",
-              "HTTP_DYNAMIC"
-            ],
-            "keys": [
-              "c_ip"
-            ]
-          },
-          "variable": [
-            "nebula",
-            "ip__visit_dynamic_distinct_count_page__5m__rt"
-          ]
-        },
-        "subtype": "getvariable",
-        "type": "func"
-      },
-      "op": "==",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "1"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "IP",
-          "checkvalue": "c_ip",
-          "decision": "review",
-          "name": "VISITOR",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "HTTP_DYNAMIC"
+  },
+  "version": "2.0",
+  "visible_name": "IP大量请求单个接口"
 }

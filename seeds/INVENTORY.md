@@ -263,3 +263,42 @@ See `PLACEHOLDERS.md` for what each one means and how to fill it in.
 因此 `tools/validate_seeds.py` 目前只校验事件与变量,**不校验策略**。这是一处明确的未完成工作,也是实现引擎前必须完成的一步——引擎按 2.0 schema 读取策略。
 
 转换涉及的映射:`terms` 单层 AND → `condition` 树、`setblacklist` 表达式 → `action` 对象、`count` 内联计数器 → `operand.counter`、`getvariable` → `operand.variable`。
+
+---
+
+## 策略已转换为 2.0 schema 结构
+
+此前记录的「策略 seeds 尚未转换为 2.0 schema」已完成。170 条全部通过 `strategy.schema.json` 校验,并已纳入 `tools/validate_seeds.py` 的 CI 门禁。
+
+转换由 `tools/convert_strategies.py` 完成(可复现)。1.x 的策略是一个扁平的 `terms` 数组、条款间隐含 AND、其中一条实为处置动作;2.0 把条件与动作分开,条件是可嵌套的布尔树。
+
+### 条款映射
+
+| 1.x 条款 | 数量 | 2.0 |
+|---|---:|---|
+| `event` | 227 | `comparison`,左值为 `event_field` |
+| `func:count` | 147 | `comparison`,左值为内联计数器 `counter` |
+| `func:getvariable` | 57 | `comparison`,左值为变量引用 `variable` |
+| `func:setblacklist` | 170 | `action` 对象(每条策略一个) |
+| `func:sleep` | 3 | 策略级 `delay` 字段,其后条款进入 `delay.condition` |
+| `func:time` | 2 | CEL 表达式 `inTimeWindow(start, end)` |
+| `func:getlocation` | 1 | CEL 表达式 `ipLocation(ip, level)` |
+
+### 转换中的两个判断
+
+**丢弃分组对齐条件。** 1.x 内联计数器的 `condition` 数组混了两类元素:真实过滤条件,以及形如 `{"left":"c_ip","op":"=","right":"c_ip"}` 的分组维度对齐。后者不是过滤,它表达的是"按 c_ip 分组",在 2.0 中已由 `groupby` 表达,转换时丢弃。若照搬会变成一条恒真的无意义过滤。
+
+**常量值保持字符串。** 1.x 的常量一律以字符串存储(阈值 `5` 存为 `"5"`)。转换时**不做**类型推断,由引擎按左值类型转换——过早推断会出错,例如把 `"5"` 转成整数但左值实际是字符串字段。
+
+### schema 的两处调整
+
+- 比较算子补入 `startwith` / `endwith`(1.x 资产实际用到 `endwith`)
+- 策略名的模式放宽,允许点号与内部空格(存量策略中有 `IP访问.asp文件`、`Java 用户代理` 等命名),但仍禁止首尾空格
+
+### 新引入的 CEL 函数
+
+`inTimeWindow`、`ipLocation` 的定义见 [`packages/cel-functions/README.md`](../packages/cel-functions/README.md)。引擎实现时以该文档为准。
+
+### 溯源
+
+1.x 的 `group_id`、`is_locked` 等内部字段收进 `source_1x` 对象保留,供审计与回溯,引擎不读取。转换过程中的判断也记在 `source_1x.notes` 里。

@@ -1,157 +1,93 @@
 {
+  "action": {
+    "check_type": "DeviceID",
+    "check_value": "did",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "page",
+          "kind": "event_field"
+        },
+        "op": "!regex",
+        "right": {
+          "kind": "constant",
+          "value": "^\\s*$"
+        }
+      },
+      {
+        "left": {
+          "counter": {
+            "algorithm": "count",
+            "event": "ACCOUNT_REGISTRATION",
+            "filter": {
+              "object": "page",
+              "operation": "!regex",
+              "type": "simple",
+              "value": "^\\s*$"
+            },
+            "groupby": [
+              "did"
+            ],
+            "operand": [
+              "c_ip"
+            ],
+            "window": 1800
+          },
+          "kind": "counter"
+        },
+        "op": ">",
+        "right": {
+          "kind": "constant",
+          "value": "5"
+        }
+      },
+      {
+        "left": {
+          "counter": {
+            "algorithm": "distinct_count",
+            "event": "HTTP_DYNAMIC",
+            "groupby": [
+              "did"
+            ],
+            "operand": [
+              "page"
+            ],
+            "window": 1800
+          },
+          "kind": "counter"
+        },
+        "op": "<=",
+        "right": {
+          "kind": "constant",
+          "value": "4"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1484042234738,
+  "effective_to": null,
+  "explain": true,
   "name": "设备集中请求注册接口",
   "remark": ">5 in 30m, 动态<=4",
   "score": 0,
-  "start_effect": 1484042234738,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "高频注册"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ACCOUNT_REGISTRATION"
-          ],
-          "field": "page"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "!regex",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "^\\s*$"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "algorithm": "count",
-          "condition": [
-            {
-              "left": "did",
-              "op": "=",
-              "right": "did"
-            },
-            {
-              "left": "page",
-              "op": "!regex",
-              "right": "^\\s*$"
-            }
-          ],
-          "groupby": [
-            "did"
-          ],
-          "interval": 1800,
-          "operand": [
-            "c_ip"
-          ],
-          "sourceevent": [
-            "nebula",
-            "ACCOUNT_REGISTRATION"
-          ],
-          "trigger": {
-            "event": [
-              "nebula",
-              "ACCOUNT_REGISTRATION"
-            ],
-            "keys": [
-              "did"
-            ]
-          }
-        },
-        "subtype": "count",
-        "type": "func"
-      },
-      "op": ">",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "5"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "algorithm": "distinct_count",
-          "condition": [
-            {
-              "left": "did",
-              "op": "=",
-              "right": "did"
-            }
-          ],
-          "groupby": [
-            "did"
-          ],
-          "interval": 1800,
-          "operand": [
-            "page"
-          ],
-          "sourceevent": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "trigger": {
-            "event": [
-              "nebula",
-              "ACCOUNT_REGISTRATION"
-            ],
-            "keys": [
-              "did"
-            ]
-          }
-        },
-        "subtype": "count",
-        "type": "func"
-      },
-      "op": "<=",
-      "remark": "distinct page <=4",
-      "right": {
-        "config": {
-          "value": "4"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "DeviceID",
-          "checkvalue": "did",
-          "decision": "review",
-          "name": "ACCOUNT",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "ACCOUNT_REGISTRATION"
+  },
+  "version": "2.0",
+  "visible_name": "设备集中请求注册接口"
 }

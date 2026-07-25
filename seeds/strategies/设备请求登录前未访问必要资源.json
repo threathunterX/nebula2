@@ -1,111 +1,72 @@
 {
+  "action": {
+    "check_type": "DeviceID",
+    "check_value": "did",
+    "decision": "review",
+    "ttl": 300
+  },
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": null,
-  "group_id": 2,
-  "is_locked": false,
+  "condition": {
+    "conditions": [
+      {
+        "left": {
+          "field": "page",
+          "kind": "event_field"
+        },
+        "op": "!regex",
+        "right": {
+          "kind": "constant",
+          "value": "^\\s*$"
+        }
+      },
+      {
+        "left": {
+          "counter": {
+            "algorithm": "count",
+            "event": "HTTP_DYNAMIC",
+            "filter": {
+              "object": "page",
+              "operation": "contains",
+              "type": "simple",
+              "value": "<YOUR_PAYMENT_PAGE_PATH>"
+            },
+            "groupby": [
+              "did"
+            ],
+            "operand": [
+              "c_ip"
+            ],
+            "window": 300
+          },
+          "kind": "counter"
+        },
+        "op": "==",
+        "right": {
+          "kind": "constant",
+          "value": "0"
+        }
+      }
+    ],
+    "op": "and"
+  },
+  "effective_from": 1504001710079,
+  "effective_to": null,
+  "explain": true,
   "name": "设备请求登录前未访问必要资源",
   "remark": "login, no xxx in 5m",
   "score": 0,
-  "start_effect": 1504001710079,
+  "source_1x": {
+    "group_id": 2,
+    "is_locked": false
+  },
   "status": "test",
   "tags": [
     "跳跃访问"
   ],
-  "terms": [
-    {
-      "left": {
-        "config": {
-          "event": [
-            "nebula",
-            "ACCOUNT_LOGIN"
-          ],
-          "field": "page"
-        },
-        "subtype": "",
-        "type": "event"
-      },
-      "op": "!regex",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "^\\s*$"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "algorithm": "count",
-          "condition": [
-            {
-              "left": "did",
-              "op": "=",
-              "right": "did"
-            },
-            {
-              "left": "page",
-              "op": "contain",
-              "right": "<YOUR_PAYMENT_PAGE_PATH>"
-            }
-          ],
-          "groupby": [
-            "did"
-          ],
-          "interval": 300,
-          "operand": [
-            "c_ip"
-          ],
-          "sourceevent": [
-            "nebula",
-            "HTTP_DYNAMIC"
-          ],
-          "trigger": {
-            "event": [
-              "nebula",
-              "ACCOUNT_LOGIN"
-            ],
-            "keys": [
-              "did"
-            ]
-          }
-        },
-        "subtype": "count",
-        "type": "func"
-      },
-      "op": "==",
-      "remark": "",
-      "right": {
-        "config": {
-          "value": "0"
-        },
-        "subtype": "",
-        "type": "constant"
-      },
-      "scope": "realtime"
-    },
-    {
-      "left": {
-        "config": {
-          "checkpoints": "",
-          "checktype": "DeviceID",
-          "checkvalue": "did",
-          "decision": "review",
-          "name": "ACCOUNT",
-          "remark": "",
-          "ttl": 300
-        },
-        "subtype": "setblacklist",
-        "type": "func"
-      },
-      "op": "",
-      "remark": "",
-      "right": null,
-      "scope": "realtime"
-    }
-  ],
-  "version": "1542255171782"
+  "trigger": {
+    "event": "ACCOUNT_LOGIN"
+  },
+  "version": "2.0",
+  "visible_name": "设备请求登录前未访问必要资源"
 }
