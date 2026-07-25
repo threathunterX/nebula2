@@ -1,0 +1,44 @@
+{
+  "app": "nebula",
+  "dimension": "global",
+  "filter": {
+    "object": "notices",
+    "object_subtype": "",
+    "object_type": "string",
+    "operation": "!=",
+    "param": "",
+    "source": "TRANSACTION_WITHDRAW",
+    "type": "simple",
+    "value": ""
+  },
+  "function": {
+    "config": {},
+    "method": "sum",
+    "object": "withdraw_amount",
+    "object_subtype": "",
+    "object_type": "long",
+    "param": "",
+    "source": "TRANSACTION_WITHDRAW"
+  },
+  "groupbykeys": [],
+  "hint": {},
+  "module": "slot",
+  "name": "global__transaction_withdraw_incident_sum_withdraw_amount__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "每小时风险交易总额",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "TRANSACTION_WITHDRAW"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "每小时风险交易总额"
+}

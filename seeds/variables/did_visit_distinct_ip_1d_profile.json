@@ -1,0 +1,36 @@
+{
+  "app": "nebula",
+  "dimension": "did",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "max",
+    "object": "value",
+    "object_subtype": "long",
+    "object_type": "map",
+    "param": "",
+    "source": "did__visit_distinct_ip__1h__profile"
+  },
+  "groupbykeys": [
+    "did"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "did__visit_distinct_ip__1d__profile",
+  "period": {
+    "type": "last_n_days"
+  },
+  "remark": "did当天最多1小时关联ip数量",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "did__visit_distinct_ip__1h__profile"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "did当天最多1小时关联ip数量"
+}

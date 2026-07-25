@@ -1,0 +1,122 @@
+{
+  "app": "nebula",
+  "category": "ACCOUNT",
+  "end_effect": 1641116053528,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "IP相同密码请求登录不同账号",
+  "remark": ">3 in 5min",
+  "score": 0,
+  "start_effect": 1484040852259,
+  "status": "online",
+  "tags": [
+    "高频登录"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ACCOUNT_LOGIN"
+          ],
+          "field": "page"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "!regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "^\\s*$"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "trigger": {
+            "event": [
+              "nebula",
+              "ACCOUNT_LOGIN"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          },
+          "variable": [
+            "nebula",
+            "ip__account_login_distinct_count_uid__5m__rt"
+          ]
+        },
+        "subtype": "getvariable",
+        "type": "func"
+      },
+      "op": "==",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "3"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "trigger": {
+            "event": [
+              "nebula",
+              "ACCOUNT_LOGIN"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          },
+          "variable": [
+            "nebula",
+            "ip__account_login_distinct_count_password__5m__rt"
+          ]
+        },
+        "subtype": "getvariable",
+        "type": "func"
+      },
+      "op": "==",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "1"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "ACCOUNT",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

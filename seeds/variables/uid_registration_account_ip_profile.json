@@ -1,0 +1,51 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {
+    "condition": [
+      {
+        "object": "result",
+        "object_subtype": "",
+        "object_type": "string",
+        "operation": "==",
+        "param": "",
+        "source": "ACCOUNT_REGISTRATION",
+        "type": "simple",
+        "value": "T"
+      }
+    ],
+    "type": "and"
+  },
+  "function": {
+    "config": {},
+    "method": "last",
+    "object": "c_ip",
+    "object_subtype": "",
+    "object_type": "string",
+    "param": "",
+    "source": "ACCOUNT_REGISTRATION"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid__registration__account__ip__profile",
+  "period": {
+    "type": "ever",
+    "value": ""
+  },
+  "remark": "用户注册时的ip",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_REGISTRATION"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "ip",
+  "value_subtype": "",
+  "value_type": "string",
+  "visible_name": ""
+}

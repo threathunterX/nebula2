@@ -1,0 +1,33 @@
+{
+  "app": "nebula",
+  "dimension": "",
+  "filter": {
+    "object": "notices",
+    "object_subtype": "",
+    "object_type": "string",
+    "operation": "!=",
+    "param": "",
+    "source": "HTTP_DYNAMIC",
+    "type": "simple",
+    "value": ""
+  },
+  "function": {},
+  "groupbykeys": [],
+  "hint": {},
+  "module": "base",
+  "name": "HTTP_INCIDENT",
+  "period": {},
+  "remark": "风险事件",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "status": "enable",
+  "type": "filter",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "",
+  "visible_name": "风险事件"
+}

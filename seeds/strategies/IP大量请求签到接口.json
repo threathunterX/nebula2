@@ -1,0 +1,111 @@
+{
+  "app": "nebula",
+  "category": "VISITOR",
+  "end_effect": 1672454699088,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "IP大量请求签到接口",
+  "remark": ">5 in 5m 不需要解析 sign",
+  "score": 0,
+  "start_effect": 1484102697103,
+  "status": "online",
+  "tags": [
+    "高频访问"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "page"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "contain",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "sign"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "count",
+          "condition": [
+            {
+              "left": "c_ip",
+              "op": "=",
+              "right": "c_ip"
+            },
+            {
+              "left": "page",
+              "op": "contain",
+              "right": "sign"
+            }
+          ],
+          "groupby": [
+            "c_ip"
+          ],
+          "interval": 300,
+          "operand": [
+            "c_ip"
+          ],
+          "sourceevent": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "HTTP_DYNAMIC"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "5"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "VISITOR",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

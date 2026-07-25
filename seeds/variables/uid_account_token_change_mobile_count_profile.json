@@ -1,0 +1,61 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {
+    "condition": [
+      {
+        "object": "result",
+        "object_subtype": "",
+        "object_type": "string",
+        "operation": "==",
+        "param": "",
+        "source": "ACCOUNT_TOKEN_CHANGE",
+        "type": "simple",
+        "value": "T"
+      },
+      {
+        "object": "token_type",
+        "object_subtype": "",
+        "object_type": "string",
+        "operation": "==",
+        "param": "",
+        "source": "ACCOUNT_TOKEN_CHANGE",
+        "type": "simple",
+        "value": "mobile"
+      }
+    ],
+    "type": "and"
+  },
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "ACCOUNT_TOKEN_CHANGE"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid__account_token_change_mobile_count__profile",
+  "period": {
+    "type": "ever",
+    "value": ""
+  },
+  "remark": "账号修改手机号次数",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_TOKEN_CHANGE"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "账号修改手机号次数"
+}

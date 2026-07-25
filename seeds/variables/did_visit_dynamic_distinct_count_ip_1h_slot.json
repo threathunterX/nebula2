@@ -1,0 +1,46 @@
+{
+  "app": "nebula",
+  "dimension": "did",
+  "filter": {
+    "object": "c_ip",
+    "object_subtype": "",
+    "object_type": "string",
+    "operation": "!=",
+    "param": "",
+    "source": "HTTP_DYNAMIC",
+    "type": "simple",
+    "value": ""
+  },
+  "function": {
+    "config": {},
+    "method": "distinct_count",
+    "object": "c_ip",
+    "object_subtype": "",
+    "object_type": "string",
+    "param": "",
+    "source": "HTTP_DYNAMIC"
+  },
+  "groupbykeys": [
+    "did"
+  ],
+  "hint": {},
+  "module": "slot",
+  "name": "did__visit_dynamic_distinct_count_ip__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "单个设备每小时关联ip数量",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "单个设备每小时关联ip数量"
+}

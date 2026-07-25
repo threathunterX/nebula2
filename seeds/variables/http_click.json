@@ -1,0 +1,73 @@
+{
+  "app": "nebula",
+  "dimension": "",
+  "filter": {
+    "condition": [
+      {
+        "object": "method",
+        "object_subtype": "",
+        "object_type": "string",
+        "operation": "==",
+        "param": "",
+        "source": "HTTP_DYNAMIC",
+        "type": "simple",
+        "value": "POST"
+      },
+      {
+        "condition": [
+          {
+            "object": "method",
+            "object_subtype": "",
+            "object_type": "string",
+            "operation": "==",
+            "param": "",
+            "source": "HTTP_DYNAMIC",
+            "type": "simple",
+            "value": "GET"
+          },
+          {
+            "object": "s_type",
+            "object_subtype": "",
+            "object_type": "string",
+            "operation": "contains",
+            "param": "",
+            "source": "HTTP_DYNAMIC",
+            "type": "simple",
+            "value": "text/html"
+          },
+          {
+            "object": "s_bytes",
+            "object_subtype": "",
+            "object_type": "long",
+            "operation": ">",
+            "param": "",
+            "source": "HTTP_DYNAMIC",
+            "type": "simple",
+            "value": "1000"
+          }
+        ],
+        "type": "and"
+      }
+    ],
+    "type": "or"
+  },
+  "function": {},
+  "groupbykeys": [],
+  "hint": {},
+  "module": "base",
+  "name": "HTTP_CLICK",
+  "period": {},
+  "remark": "点击",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "status": "enable",
+  "type": "filter",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "",
+  "visible_name": "点击"
+}

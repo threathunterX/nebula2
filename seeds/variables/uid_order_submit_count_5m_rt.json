@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "ORDER_SUBMIT"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "uid__order_submit_count__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "UID5分钟内下单总次数",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ORDER_SUBMIT"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "UID下单数[5m]"
+}

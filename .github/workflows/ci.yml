@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: 凭据扫描
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  schema:
+    name: 领域模型与资产校验
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 安装校验依赖
+        run: pip install jsonschema
+      - name: 校验 schema 自身合法
+        run: |
+          python - <<'PY'
+          import json, pathlib, sys
+          from jsonschema import Draft202012Validator
+          ok = True
+          for p in pathlib.Path('packages/domain-schema').glob('*.schema.json'):
+              try:
+                  Draft202012Validator.check_schema(json.loads(p.read_text(encoding='utf-8')))
+                  print(f'  ok  {p}')
+              except Exception as e:
+                  print(f'  ERR {p}: {e}'); ok = False
+          sys.exit(0 if ok else 1)
+          PY
+      - name: 校验 seeds 资产符合 schema
+        run: python tools/validate_seeds.py
+
+  privacy:
+    name: 隐私合规检查
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 检查是否混入真实个人信息或客户标识
+        run: python tools/check_no_pii.py

@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "top",
+    "object": "value",
+    "object_subtype": "long",
+    "object_type": "mmap",
+    "param": "useragent",
+    "source": "uid_useragent__visit_dynamic_group_count__1h__slot"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "slot",
+  "name": "uid_useragent__visit_dynamic_count_top20__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "每个user每个小时访问量前20的agent",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "uid_useragent__visit_dynamic_group_count__1h__slot"
+    }
+  ],
+  "status": "enable",
+  "type": "top",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "mmap",
+  "visible_name": "每个user每个小时访问量前20的agent"
+}

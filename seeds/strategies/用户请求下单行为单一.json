@@ -1,0 +1,157 @@
+{
+  "app": "nebula",
+  "category": "ORDER",
+  "end_effect": 1564925159000,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "用户请求下单行为单一",
+  "remark": ">3, <=4页面  in 30min",
+  "score": 0,
+  "start_effect": 1502889958243,
+  "status": "online",
+  "tags": [
+    "高频下单"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "field": "page"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "!regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "^\\s*$"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "distinct_count",
+          "condition": [
+            {
+              "left": "uid",
+              "op": "=",
+              "right": "uid"
+            },
+            {
+              "left": "page",
+              "op": "!regex",
+              "right": "^\\s*$"
+            }
+          ],
+          "groupby": [
+            "uid"
+          ],
+          "interval": 1800,
+          "operand": [
+            "order_id"
+          ],
+          "sourceevent": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "ORDER_SUBMIT"
+            ],
+            "keys": [
+              "uid"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "3"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "distinct_count",
+          "condition": [
+            {
+              "left": "uid",
+              "op": "=",
+              "right": "uid"
+            }
+          ],
+          "groupby": [
+            "uid"
+          ],
+          "interval": 1800,
+          "operand": [
+            "page"
+          ],
+          "sourceevent": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "ORDER_SUBMIT"
+            ],
+            "keys": [
+              "uid"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": "<=",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "4"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "USER",
+          "checkvalue": "uid",
+          "decision": "review",
+          "name": "ORDER",
+          "remark": "",
+          "ttl": 3600
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

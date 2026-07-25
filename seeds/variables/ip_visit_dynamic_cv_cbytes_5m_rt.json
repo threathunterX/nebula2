@@ -1,0 +1,41 @@
+{
+  "app": "nebula",
+  "dimension": "ip",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "/",
+    "object": "value",
+    "object_subtype": "",
+    "object_type": "double",
+    "param": "",
+    "source": "ip__visit_dynamic_var_cbytes__5m__rt"
+  },
+  "groupbykeys": [
+    "c_ip"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "ip__visit_dynamic_cv_cbytes__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "单个IP5分钟动态资源请求大小变异系数",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ip__visit_dynamic_var_cbytes__5m__rt"
+    },
+    {
+      "app": "nebula",
+      "name": "ip__visit_dynamic_avg_cbytes__5m__rt"
+    }
+  ],
+  "status": "enable",
+  "type": "dual",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "double",
+  "visible_name": "IP动态请求大小变异系数[5m]"
+}

@@ -1,0 +1,143 @@
+{
+  "count": 17,
+  "events": [
+    {
+      "file": "events/account_certification.json",
+      "name": "ACCOUNT_CERTIFICATION",
+      "property_count": 4,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "账号-实名验证"
+    },
+    {
+      "file": "events/account_login.json",
+      "name": "ACCOUNT_LOGIN",
+      "property_count": 7,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "账号-登录"
+    },
+    {
+      "file": "events/account_pw_change.json",
+      "name": "ACCOUNT_PW_CHANGE",
+      "property_count": 7,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "账号-密码修改"
+    },
+    {
+      "file": "events/account_referralcode_create.json",
+      "name": "ACCOUNT_REFERRALCODE_CREATE",
+      "property_count": 3,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "账号-生成推荐码"
+    },
+    {
+      "file": "events/account_registration.json",
+      "name": "ACCOUNT_REGISTRATION",
+      "property_count": 9,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "账号-注册"
+    },
+    {
+      "file": "events/account_token_change.json",
+      "name": "ACCOUNT_TOKEN_CHANGE",
+      "property_count": 6,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "账号-安全凭证修改"
+    },
+    {
+      "file": "events/activity_do.json",
+      "name": "ACTIVITY_DO",
+      "property_count": 8,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "营销-参加活动"
+    },
+    {
+      "file": "events/http_dynamic.json",
+      "name": "HTTP_DYNAMIC",
+      "property_count": 30,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "动态资源请求"
+    },
+    {
+      "file": "events/http_dynamic_delay.json",
+      "name": "HTTP_DYNAMIC_DELAY",
+      "property_count": 1,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "http动态资源访问"
+    },
+    {
+      "file": "events/http_static.json",
+      "name": "HTTP_STATIC",
+      "property_count": 30,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "静态资源请求"
+    },
+    {
+      "file": "events/order_cancel.json",
+      "name": "ORDER_CANCEL",
+      "property_count": 6,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "订单-取消"
+    },
+    {
+      "file": "events/order_submit.json",
+      "name": "ORDER_SUBMIT",
+      "property_count": 30,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "订单-提交"
+    },
+    {
+      "file": "events/transaction_bankcrd_bind.json",
+      "name": "TRANSACTION_BANKCRD_BIND",
+      "property_count": 8,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "支付-绑卡"
+    },
+    {
+      "file": "events/transaction_bankcrd_unbind.json",
+      "name": "TRANSACTION_BANKCRD_UNBIND",
+      "property_count": 6,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "支付-解绑"
+    },
+    {
+      "file": "events/transaction_deposit.json",
+      "name": "TRANSACTION_DEPOSIT",
+      "property_count": 7,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "支付-充值"
+    },
+    {
+      "file": "events/transaction_escrow.json",
+      "name": "TRANSACTION_ESCROW",
+      "property_count": 14,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "支付-第三方支付"
+    },
+    {
+      "file": "events/transaction_withdraw.json",
+      "name": "TRANSACTION_WITHDRAW",
+      "property_count": 8,
+      "type": "base",
+      "version": "1.0",
+      "visible_name": "支付-取现"
+    }
+  ],
+  "kind": "eventmodel",
+  "source_table": "nebula_default.eventmodel_default"
+}

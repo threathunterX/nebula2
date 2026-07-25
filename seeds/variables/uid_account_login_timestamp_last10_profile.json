@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "lastn",
+    "object": "timestamp",
+    "object_subtype": "",
+    "object_type": "long",
+    "param": "10",
+    "source": "ACCOUNT_LOGIN"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid__account_login_timestamp_last10__profile",
+  "period": {
+    "type": "ever",
+    "value": ""
+  },
+  "remark": "账号最近10条登录时间",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_LOGIN"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "list",
+  "visible_name": "账号最近10条登录时间"
+}

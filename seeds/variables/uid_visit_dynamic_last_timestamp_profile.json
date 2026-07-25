@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "last_value",
+    "object": "value",
+    "object_subtype": "long",
+    "object_type": "map",
+    "param": "",
+    "source": "uid__visit_dynamic_last_timestamp__1h__slot"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid__visit_dynamic_last_timestamp__profile",
+  "period": {
+    "type": "ever",
+    "value": ""
+  },
+  "remark": " 用户最后访问时间",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "uid__visit_dynamic_last_timestamp__1h__slot"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": " 用户最后访问时间"
+}

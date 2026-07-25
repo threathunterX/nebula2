@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "ip",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "HTTP_CLICK"
+  },
+  "groupbykeys": [
+    "c_ip"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "ip__visit_clicks_count_refererhit__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "单个IP5分钟引用页面被请求数",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_CLICK"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "IP引用页面被请求数[5m]"
+}

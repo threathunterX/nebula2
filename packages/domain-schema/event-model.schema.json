@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/threathunterX/nebula2/packages/domain-schema/event-model.schema.json",
+  "title": "EventModel",
+  "description": "业务事件模型定义。事件是风控系统的输入单元,通过 source 字段实现单继承。与 Nebula 1.x 保持结构兼容。",
+  "type": "object",
+  "required": ["app", "name", "visible_name", "type", "version", "source", "properties"],
+  "additionalProperties": false,
+  "properties": {
+    "app": {
+      "type": "string",
+      "const": "nebula",
+      "description": "命名空间。固定为 nebula。"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "description": "事件类型名,大写下划线风格。例:HTTP_DYNAMIC、ACCOUNT_LOGIN。"
+    },
+    "visible_name": { "type": "string", "description": "界面显示名(中文)。" },
+    "remark": { "type": "string", "default": "", "description": "备注说明。" },
+    "type": {
+      "type": "string",
+      "enum": ["base", "derived"],
+      "description": "base 为实际采集的事件;derived 为由过滤条件派生的伪事件(如 HTTP_CLICK)。"
+    },
+    "version": { "type": "string", "default": "1.0" },
+    "source": {
+      "type": "array",
+      "maxItems": 1,
+      "description": "父事件引用,实现单继承。根事件为空数组。子事件自动获得父事件的全部属性。",
+      "items": {
+        "type": "object",
+        "required": ["app", "name"],
+        "additionalProperties": false,
+        "properties": {
+          "app": { "type": "string" },
+          "name": { "type": "string" }
+        }
+      }
+    },
+    "properties": {
+      "type": "array",
+      "description": "增量属性列表。存储时只保存相对父事件新增或重定义的属性;运行时会自动合并父事件属性。",
+      "items": { "$ref": "#/$defs/property" }
+    }
+  },
+
+  "$defs": {
+    "property": {
+      "type": "object",
+      "required": ["name", "type", "visible_name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "属性名,小写下划线风格。"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["long", "double", "string", "bool", "list", "map", "mlist", "mmap"]
+        },
+        "subtype": {
+          "type": "string",
+          "enum": ["", "long", "double", "string", "kv", "list", "map"],
+          "default": "",
+          "description": "复合类型的元素类型。标量类型留空。"
+        },
+        "visible_name": { "type": "string" },
+        "remark": { "type": "string", "default": "" },
+        "sensitivity": {
+          "type": "string",
+          "enum": ["public", "internal", "pii", "sensitive"],
+          "default": "internal",
+          "description": "2.0 新增。敏感级别驱动采集端脱敏与存储加密策略,详见 docs/security/privacy.md。缺省按 internal 处理。"
+        },
+        "masking": {
+          "type": "string",
+          "enum": ["none", "drop", "hash", "partial", "regex"],
+          "default": "none",
+          "description": "2.0 新增。采集端脱敏方式。sensitivity 为 sensitive 时不允许为 none。"
+        },
+        "masking_pattern": {
+          "type": "string",
+          "description": "masking 为 regex 时的匹配模式。"
+        }
+      },
+      "allOf": [
+        {
+          "$comment": "敏感个人信息必须在采集端脱敏,不允许原文落库。",
+          "if": { "properties": { "sensitivity": { "const": "sensitive" } }, "required": ["sensitivity"] },
+          "then": { "properties": { "masking": { "enum": ["drop", "hash", "partial", "regex"] } } }
+        },
+        {
+          "$comment": "复合类型必须声明 subtype。",
+          "if": { "properties": { "type": { "enum": ["list", "map", "mlist", "mmap"] } } },
+          "then": { "properties": { "subtype": { "minLength": 1 } } }
+        }
+      ]
+    }
+  },
+
+  "$comment": "运行时另有三个自动注入字段,不在此声明:id(string,事件唯一 ID)、pid(string,父事件 ID)、timestamp(long,事件时间毫秒)。"
+}

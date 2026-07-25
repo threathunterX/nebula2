@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "ip",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "first",
+    "object": "timestamp",
+    "object_subtype": "",
+    "object_type": "long",
+    "param": "",
+    "source": "HTTP_INCIDENT"
+  },
+  "groupbykeys": [
+    "c_ip"
+  ],
+  "hint": {},
+  "module": "slot",
+  "name": "ip__visit_incident_first_timestamp__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "单个IP风险事件初始时间",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_INCIDENT"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "单个IP风险事件初始时间"
+}

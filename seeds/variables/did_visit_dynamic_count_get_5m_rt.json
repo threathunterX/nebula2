@@ -1,0 +1,46 @@
+{
+  "app": "nebula",
+  "dimension": "did",
+  "filter": {
+    "object": "method",
+    "object_subtype": "",
+    "object_type": "string",
+    "operation": "==",
+    "param": "",
+    "source": "HTTP_DYNAMIC",
+    "type": "simple",
+    "value": "GET"
+  },
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "HTTP_DYNAMIC"
+  },
+  "groupbykeys": [
+    "did"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "did__visit_dynamic_count_get__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "单个DID5分钟动态资源GET请求总量",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "单个DID5分钟动态资源GET请求总量"
+}

@@ -1,0 +1,134 @@
+{
+  "app": "nebula",
+  "category": "ORDER",
+  "end_effect": 1545898796395,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "设备多次请求下单__不同商品",
+  "remark": ">2 in 1h, product_id",
+  "score": 0,
+  "start_effect": 1482826795423,
+  "status": "online",
+  "tags": [
+    "不同下单"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "field": "uid"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "!regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "^\\s*$"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "field": "page"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "!regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "^\\s*$"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "distinct_count",
+          "condition": [
+            {
+              "left": "did",
+              "op": "=",
+              "right": "did"
+            },
+            {
+              "left": "page",
+              "op": "!regex",
+              "right": "^\\s*$"
+            }
+          ],
+          "groupby": [
+            "did"
+          ],
+          "interval": 3600,
+          "operand": [
+            "product_id"
+          ],
+          "sourceevent": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "ORDER_SUBMIT"
+            ],
+            "keys": [
+              "did"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "2"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "DeviceID",
+          "checkvalue": "did",
+          "decision": "review",
+          "name": "ORDER",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

@@ -1,0 +1,24 @@
+{
+  "app": "nebula",
+  "dimension": "",
+  "filter": {},
+  "function": {},
+  "groupbykeys": [],
+  "hint": {},
+  "module": "base",
+  "name": "ORDER_CANCEL",
+  "period": {},
+  "remark": "订单-取消",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ORDER_CANCEL"
+    }
+  ],
+  "status": "enable",
+  "type": "event",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "",
+  "visible_name": "订单-取消"
+}

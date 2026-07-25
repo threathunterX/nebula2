@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "group_count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "useragent",
+    "source": "HTTP_DYNAMIC"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "slot",
+  "name": "uid_useragent__visit_dynamic_group_count__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "单个用户每小时每个useragent的动态资源访问数量",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "mmap",
+  "visible_name": "单个用户每小时每个useragent的动态资源访问数量"
+}

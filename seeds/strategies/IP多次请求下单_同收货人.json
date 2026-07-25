@@ -1,0 +1,152 @@
+{
+  "app": "nebula",
+  "category": "ORDER",
+  "end_effect": 1545898796395,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "IP多次请求下单__同收货人",
+  "remark": ">5 in 1h, user_name",
+  "score": 0,
+  "start_effect": 1482826795423,
+  "status": "online",
+  "tags": [
+    "单一下单"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "field": "uid"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "!regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "^\\s*$"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "distinct_count",
+          "condition": [
+            {
+              "left": "c_ip",
+              "op": "=",
+              "right": "c_ip"
+            }
+          ],
+          "groupby": [
+            "c_ip"
+          ],
+          "interval": 3600,
+          "operand": [
+            "user_name"
+          ],
+          "sourceevent": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "ORDER_SUBMIT"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": "==",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "1"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "count",
+          "condition": [
+            {
+              "left": "c_ip",
+              "op": "=",
+              "right": "c_ip"
+            }
+          ],
+          "groupby": [
+            "c_ip"
+          ],
+          "interval": 3600,
+          "operand": [
+            "c_ip"
+          ],
+          "sourceevent": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "ORDER_SUBMIT"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "5"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "ORDER",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

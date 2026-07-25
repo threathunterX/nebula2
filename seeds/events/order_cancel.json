@@ -1,0 +1,52 @@
+{
+  "app": "nebula",
+  "name": "ORDER_CANCEL",
+  "properties": [
+    {
+      "name": "order_id",
+      "remark": "订单ID",
+      "type": "string",
+      "visible_name": "订单ID"
+    },
+    {
+      "name": "uid",
+      "remark": "取消订单账号",
+      "type": "string",
+      "visible_name": "取消订单账号"
+    },
+    {
+      "name": "merchant",
+      "remark": "订单对应商户",
+      "type": "string",
+      "visible_name": "订单对应商户"
+    },
+    {
+      "name": "cancel_reason",
+      "remark": "取消原因",
+      "type": "string",
+      "visible_name": "取消原因"
+    },
+    {
+      "name": "transaction_id",
+      "remark": "订单对应交易流水ID",
+      "type": "string",
+      "visible_name": "订单对应交易流水ID"
+    },
+    {
+      "name": "result",
+      "remark": "下单结果",
+      "type": "string",
+      "visible_name": "下单结果"
+    }
+  ],
+  "remark": "订单-取消",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "订单-取消"
+}

@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "did",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "stddev",
+    "object": "value",
+    "object_subtype": "",
+    "object_type": "long",
+    "param": "",
+    "source": "did__visit_clicks_timediff__5m__rt"
+  },
+  "groupbykeys": [
+    "did"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "did__visit_clicks_var_timediff__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "单个DID5分钟内点击时间差方差值",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "did__visit_clicks_timediff__5m__rt"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "double",
+  "visible_name": "单个DID5分钟内点击时间差方差值"
+}

@@ -1,0 +1,24 @@
+{
+  "app": "nebula",
+  "dimension": "",
+  "filter": {},
+  "function": {},
+  "groupbykeys": [],
+  "hint": {},
+  "module": "base",
+  "name": "ACCOUNT_REGISTRATION",
+  "period": {},
+  "remark": "账号-注册",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_REGISTRATION"
+    }
+  ],
+  "status": "enable",
+  "type": "event",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "",
+  "visible_name": "账号-注册"
+}

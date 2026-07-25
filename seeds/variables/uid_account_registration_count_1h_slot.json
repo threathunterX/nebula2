@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "ACCOUNT_REGISTRATION"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "slot",
+  "name": "uid__account_registration_count__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "单个用户本小时注册量",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_REGISTRATION"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "单个用户本小时注册量"
+}

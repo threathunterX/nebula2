@@ -1,0 +1,58 @@
+{
+  "app": "nebula",
+  "name": "ACCOUNT_LOGIN",
+  "properties": [
+    {
+      "name": "uid",
+      "remark": "登陆用户名",
+      "type": "string",
+      "visible_name": "登陆用户名"
+    },
+    {
+      "name": "login_verification_type",
+      "remark": "登陆验证类型",
+      "type": "string",
+      "visible_name": "登陆验证类型"
+    },
+    {
+      "name": "password",
+      "remark": "登陆验证密码(脱敏)",
+      "type": "string",
+      "visible_name": "登陆验证密码"
+    },
+    {
+      "name": "captcha",
+      "remark": "图片验证码",
+      "type": "string",
+      "visible_name": "图片验证码"
+    },
+    {
+      "name": "result",
+      "remark": "登陆结果",
+      "type": "string",
+      "visible_name": "登陆结果"
+    },
+    {
+      "name": "remember_me",
+      "remark": "下次自动登陆",
+      "type": "string",
+      "visible_name": "下次自动登陆"
+    },
+    {
+      "name": "login_channel",
+      "remark": "登陆渠道",
+      "type": "string",
+      "visible_name": "登陆渠道"
+    }
+  ],
+  "remark": "账号-登录",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "账号-登录"
+}

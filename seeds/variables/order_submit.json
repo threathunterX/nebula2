@@ -1,0 +1,24 @@
+{
+  "app": "nebula",
+  "dimension": "",
+  "filter": {},
+  "function": {},
+  "groupbykeys": [],
+  "hint": {},
+  "module": "base",
+  "name": "ORDER_SUBMIT",
+  "period": {},
+  "remark": "订单-提交",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ORDER_SUBMIT"
+    }
+  ],
+  "status": "enable",
+  "type": "event",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "",
+  "visible_name": "订单-提交"
+}

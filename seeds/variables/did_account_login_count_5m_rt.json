@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "did",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "ACCOUNT_LOGIN"
+  },
+  "groupbykeys": [
+    "did"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "did__account_login_count__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "单个DID5分钟内登录请求总和",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_LOGIN"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "DID登录请求总数[5m]"
+}

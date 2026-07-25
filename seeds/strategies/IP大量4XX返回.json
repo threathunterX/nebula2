@@ -1,0 +1,167 @@
+{
+  "app": "nebula",
+  "category": "VISITOR",
+  "end_effect": 1609553885794,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "IP大量4XX返回",
+  "remark": ">10 in 5m, 不包含404",
+  "score": 0,
+  "start_effect": 1484101084953,
+  "status": "online",
+  "tags": [
+    "恶意扫描"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "status"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "399"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "status"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "<",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "500"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "status"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "!=",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "404"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "count",
+          "condition": [
+            {
+              "left": "c_ip",
+              "op": "=",
+              "right": "c_ip"
+            },
+            {
+              "left": "status",
+              "op": ">",
+              "right": "399"
+            },
+            {
+              "left": "status",
+              "op": "<",
+              "right": "500"
+            },
+            {
+              "left": "status",
+              "op": "!=",
+              "right": "404"
+            }
+          ],
+          "groupby": [
+            "c_ip"
+          ],
+          "interval": 300,
+          "operand": [
+            "c_ip"
+          ],
+          "sourceevent": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "HTTP_DYNAMIC"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "10"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "VISITOR",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

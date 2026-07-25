@@ -1,0 +1,91 @@
+{
+  "app": "nebula",
+  "category": "ORDER",
+  "end_effect": 1641020242748,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "用户请求下单__金额较大5m",
+  "remark": ">1000 in 5m",
+  "score": 0,
+  "start_effect": 1484031441863,
+  "status": "online",
+  "tags": [
+    "特殊下单"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "field": "uid"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "!regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "^\\s*$ "
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "trigger": {
+            "event": [
+              "nebula",
+              "ORDER_SUBMIT"
+            ],
+            "keys": [
+              "uid"
+            ]
+          },
+          "variable": [
+            "nebula",
+            "uid__order_submit_avg_order_money_amount__5m__rt"
+          ]
+        },
+        "subtype": "getvariable",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "1000"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "USER",
+          "checkvalue": "uid",
+          "decision": "review",
+          "name": "ORDER",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "last",
+    "object": "timestamp",
+    "object_subtype": "",
+    "object_type": "long",
+    "param": "",
+    "source": "HTTP_DYNAMIC"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "slot",
+  "name": "uid__visit_dynamic_last_timestamp__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "单个用户每小时最后的访问时间",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "单个用户每小时最后的访问时间"
+}

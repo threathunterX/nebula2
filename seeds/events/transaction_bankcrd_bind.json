@@ -1,0 +1,64 @@
+{
+  "app": "nebula",
+  "name": "TRANSACTION_BANKCRD_BIND",
+  "properties": [
+    {
+      "name": "uid",
+      "remark": "用户账号",
+      "type": "string",
+      "visible_name": "用户账号"
+    },
+    {
+      "name": "card_number",
+      "remark": "银行卡号",
+      "type": "string",
+      "visible_name": "银行卡号"
+    },
+    {
+      "name": "card_type",
+      "remark": "银行卡类型",
+      "type": "string",
+      "visible_name": "银行卡类型"
+    },
+    {
+      "name": "bank_type",
+      "remark": "银行类型",
+      "type": "string",
+      "visible_name": "银行类型"
+    },
+    {
+      "name": "result",
+      "remark": "绑定结果",
+      "type": "string",
+      "visible_name": "绑定结果"
+    },
+    {
+      "name": "card_realname",
+      "remark": "银行卡姓名",
+      "type": "string",
+      "visible_name": "银行卡姓名"
+    },
+    {
+      "name": "card_mobile",
+      "remark": "银行卡验证手机",
+      "type": "string",
+      "visible_name": "银行卡验证手机"
+    },
+    {
+      "name": "captcha",
+      "remark": "图片验证码",
+      "type": "string",
+      "visible_name": "图片验证码"
+    }
+  ],
+  "remark": "支付-绑卡",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "支付-绑卡"
+}

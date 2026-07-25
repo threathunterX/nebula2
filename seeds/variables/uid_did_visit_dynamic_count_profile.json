@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "merge_value",
+    "object": "value",
+    "object_subtype": "long",
+    "object_type": "mmap",
+    "param": "",
+    "source": "uid_did__visit_dynamic_count_top20__1h__slot"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid_did__visit_dynamic_count__profile",
+  "period": {
+    "type": "ever",
+    "value": ""
+  },
+  "remark": "用户访问设备分布",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "uid_did__visit_dynamic_count_top20__1h__slot"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "用户访问设备分布"
+}

@@ -1,0 +1,51 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {
+    "condition": [
+      {
+        "object": "result",
+        "object_subtype": "",
+        "object_type": "string",
+        "operation": "==",
+        "param": "",
+        "source": "ACCOUNT_LOGIN",
+        "type": "simple",
+        "value": "T"
+      }
+    ],
+    "type": "and"
+  },
+  "function": {
+    "config": {},
+    "method": "last",
+    "object": "c_ip",
+    "object_subtype": "",
+    "object_type": "string",
+    "param": "",
+    "source": "ACCOUNT_LOGIN"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid__account_login_ip_last__profile",
+  "period": {
+    "type": "ever",
+    "value": ""
+  },
+  "remark": "账号最近登录成功的ip",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_LOGIN"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "ip",
+  "value_subtype": "",
+  "value_type": "string",
+  "visible_name": "账号最近登录成功的ip"
+}

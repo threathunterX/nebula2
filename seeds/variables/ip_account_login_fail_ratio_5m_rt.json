@@ -1,0 +1,41 @@
+{
+  "app": "nebula",
+  "dimension": "ip",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "/",
+    "object": "value",
+    "object_subtype": "",
+    "object_type": "long",
+    "param": "",
+    "source": "ip__account_login_count_fail__5m__rt"
+  },
+  "groupbykeys": [
+    "c_ip"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "ip__account_login_fail_ratio__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "单个IP5分钟内登陆失败比例",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ip__account_login_count_fail__5m__rt"
+    },
+    {
+      "app": "nebula",
+      "name": "ip__account_login_count__5m__rt"
+    }
+  ],
+  "status": "enable",
+  "type": "dual",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "double",
+  "visible_name": "IP登录失败比例[5m]"
+}

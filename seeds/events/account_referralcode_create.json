@@ -1,0 +1,34 @@
+{
+  "app": "nebula",
+  "name": "ACCOUNT_REFERRALCODE_CREATE",
+  "properties": [
+    {
+      "name": "uid",
+      "remark": "用户名",
+      "type": "string",
+      "visible_name": "用户名"
+    },
+    {
+      "name": "referralcode",
+      "remark": "生成ID",
+      "type": "string",
+      "visible_name": "生成ID"
+    },
+    {
+      "name": "code_type",
+      "remark": "生成ID的类型",
+      "type": "string",
+      "visible_name": "生成ID的类型"
+    }
+  ],
+  "remark": "账号-生成推荐码",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "账号-生成推荐码"
+}

@@ -1,0 +1,35 @@
+{
+  "app": "nebula",
+  "dimension": "ip",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "top",
+    "object": "value",
+    "object_subtype": "long",
+    "object_type": "map",
+    "param": "c_ip",
+    "source": "ip__visit_dynamic_distinct_count_page__1h__slot"
+  },
+  "groupbykeys": [],
+  "hint": {},
+  "module": "slot",
+  "name": "ip__visit_dynamic_distinct_count_page_top100__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "每小时关联page量前100的ip",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ip__visit_dynamic_distinct_count_page__1h__slot"
+    }
+  ],
+  "status": "enable",
+  "type": "top",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "mmap",
+  "visible_name": "每小时关联page前100的ip"
+}

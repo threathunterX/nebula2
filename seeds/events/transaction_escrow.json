@@ -1,0 +1,100 @@
+{
+  "app": "nebula",
+  "name": "TRANSACTION_ESCROW",
+  "properties": [
+    {
+      "name": "uid",
+      "remark": "用户账户",
+      "type": "string",
+      "visible_name": "用户账户"
+    },
+    {
+      "name": "transaction_id",
+      "remark": "第三方支付流水号",
+      "type": "string",
+      "visible_name": "第三方支付流水号"
+    },
+    {
+      "name": "order_id",
+      "remark": "订单id",
+      "type": "string",
+      "visible_name": "订单id"
+    },
+    {
+      "name": "merchant",
+      "remark": "商户号",
+      "type": "string",
+      "visible_name": "商户号"
+    },
+    {
+      "name": "merchant_name",
+      "remark": "商户名称",
+      "type": "string",
+      "visible_name": "商户名称"
+    },
+    {
+      "name": "order_original_amount",
+      "remark": "未使用优惠券前的订单原价",
+      "type": "long",
+      "visible_name": "未使用优惠券前的订单原价"
+    },
+    {
+      "name": "order_money_amount",
+      "remark": "订单现金金额",
+      "type": "long",
+      "visible_name": "订单现金金额"
+    },
+    {
+      "name": "order_coupon_amount",
+      "remark": "订单优惠券金额",
+      "type": "long",
+      "visible_name": "订单优惠券金额"
+    },
+    {
+      "name": "order_point_amount",
+      "remark": "订单积分数",
+      "type": "long",
+      "visible_name": "订单积分数"
+    },
+    {
+      "name": "order_use_balance_amount",
+      "remark": "订单使用储值余额数",
+      "type": "long",
+      "visible_name": "订单使用储值余额数"
+    },
+    {
+      "name": "escrow_type",
+      "remark": "第三方支付平台类型",
+      "type": "string",
+      "visible_name": "第三方支付平台类型"
+    },
+    {
+      "name": "escrow_account",
+      "remark": "第三方支付账号",
+      "type": "string",
+      "visible_name": "第三方支付账号"
+    },
+    {
+      "name": "result",
+      "remark": "支付结果",
+      "type": "string",
+      "visible_name": "支付结果"
+    },
+    {
+      "name": "uid_level",
+      "remark": "用户等级",
+      "type": "long",
+      "visible_name": "用户等级"
+    }
+  ],
+  "remark": "支付-第三方支付",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "支付-第三方支付"
+}

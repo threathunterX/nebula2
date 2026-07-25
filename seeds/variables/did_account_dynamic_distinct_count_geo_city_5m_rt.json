@@ -1,0 +1,46 @@
+{
+  "app": "nebula",
+  "dimension": "did",
+  "filter": {
+    "object": "geo_city",
+    "object_subtype": "",
+    "object_type": "string",
+    "operation": "!=",
+    "param": "",
+    "source": "HTTP_DYNAMIC",
+    "type": "simple",
+    "value": ""
+  },
+  "function": {
+    "config": {},
+    "method": "distinct_count",
+    "object": "geo_city",
+    "object_subtype": "",
+    "object_type": "string",
+    "param": "",
+    "source": "HTTP_DYNAMIC"
+  },
+  "groupbykeys": [
+    "did"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "did__account_dynamic_distinct_count_geo_city__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "单个DID5分钟关联不同城市个数",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "DID关联不同城市数[5m]"
+}

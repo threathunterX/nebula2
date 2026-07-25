@@ -1,0 +1,70 @@
+{
+  "app": "nebula",
+  "name": "ACCOUNT_REGISTRATION",
+  "properties": [
+    {
+      "name": "uid",
+      "remark": "注册名",
+      "type": "string",
+      "visible_name": "注册名"
+    },
+    {
+      "name": "password",
+      "remark": "注册密码(脱敏)",
+      "type": "string",
+      "visible_name": "注册密码"
+    },
+    {
+      "name": "register_verification_token",
+      "remark": "注册验证凭证",
+      "type": "string",
+      "visible_name": "注册验证凭证"
+    },
+    {
+      "name": "register_verification_token_type",
+      "remark": "注册验证凭证类型",
+      "type": "string",
+      "visible_name": "注册验证凭证类型"
+    },
+    {
+      "name": "captcha",
+      "remark": "图片验证码",
+      "type": "string",
+      "visible_name": "图片验证码"
+    },
+    {
+      "name": "result",
+      "remark": "注册结果",
+      "type": "string",
+      "visible_name": "注册结果"
+    },
+    {
+      "name": "user_name",
+      "remark": "注册真实姓名",
+      "type": "string",
+      "visible_name": "注册真实姓名"
+    },
+    {
+      "name": "register_channel",
+      "remark": "注册渠道",
+      "type": "string",
+      "visible_name": "注册渠道"
+    },
+    {
+      "name": "invite_code",
+      "remark": "注册邀请码",
+      "type": "string",
+      "visible_name": "注册邀请码"
+    }
+  ],
+  "remark": "账号-注册",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "账号-注册"
+}

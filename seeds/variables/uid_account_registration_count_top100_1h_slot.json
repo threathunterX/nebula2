@@ -1,0 +1,35 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "top",
+    "object": "value",
+    "object_subtype": "long",
+    "object_type": "map",
+    "param": "uid",
+    "source": "uid__account_registration_count__1h__slot"
+  },
+  "groupbykeys": [],
+  "hint": {},
+  "module": "slot",
+  "name": "uid__account_registration_count_top100__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "注册量前100的user",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "uid__account_registration_count__1h__slot"
+    }
+  ],
+  "status": "enable",
+  "type": "top",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "mmap",
+  "visible_name": "注册量前100的user"
+}

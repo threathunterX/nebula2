@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "did",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "HTTP_STATIC"
+  },
+  "groupbykeys": [
+    "did"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "did__visit_count_static__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "单个DID5分钟静态资源访问量总和",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_STATIC"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "DID静态资源请求量[5m]"
+}

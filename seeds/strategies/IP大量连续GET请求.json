@@ -1,0 +1,122 @@
+{
+  "app": "nebula",
+  "category": "VISITOR",
+  "end_effect": 1672543086878,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "IP大量连续GET请求",
+  "remark": ">30 in 5m",
+  "score": 0,
+  "start_effect": 1484104685827,
+  "status": "online",
+  "tags": [
+    "高频访问"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "method"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "==",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "GET"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "trigger": {
+            "event": [
+              "nebula",
+              "HTTP_DYNAMIC"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          },
+          "variable": [
+            "nebula",
+            "ip__visit_dynamic_count__5m__rt"
+          ]
+        },
+        "subtype": "getvariable",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "30"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "trigger": {
+            "event": [
+              "nebula",
+              "HTTP_DYNAMIC"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          },
+          "variable": [
+            "nebula",
+            "ip__visit_dynamic_get_ratio__5m__rt"
+          ]
+        },
+        "subtype": "getvariable",
+        "type": "func"
+      },
+      "op": "==",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "1"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "VISITOR",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

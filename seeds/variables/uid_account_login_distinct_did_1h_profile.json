@@ -1,0 +1,46 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {
+    "object": "result",
+    "object_subtype": "",
+    "object_type": "string",
+    "operation": "==",
+    "param": "",
+    "source": "ACCOUNT_LOGIN",
+    "type": "simple",
+    "value": "T"
+  },
+  "function": {
+    "config": {},
+    "method": "distinct",
+    "object": "did",
+    "object_subtype": "",
+    "object_type": "string",
+    "param": "",
+    "source": "ACCOUNT_LOGIN"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid__account_login_distinct_did__1h__profile",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "账号登陆成功did按小时去重列表",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_LOGIN"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "did",
+  "value_subtype": "string",
+  "value_type": "mlist",
+  "visible_name": "账号登陆成功did按小时去重列表"
+}

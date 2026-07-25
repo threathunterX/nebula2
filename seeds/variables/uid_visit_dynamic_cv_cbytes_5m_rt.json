@@ -1,0 +1,41 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "/",
+    "object": "value",
+    "object_subtype": "",
+    "object_type": "double",
+    "param": "",
+    "source": "uid__visit_dynamic_var_cbytes__5m__rt"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "uid__visit_dynamic_cv_cbytes__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "单个UID5分钟动态资源请求大小变异系数",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "uid__visit_dynamic_var_cbytes__5m__rt"
+    },
+    {
+      "app": "nebula",
+      "name": "uid__visit_dynamic_avg_cbytes__5m__rt"
+    }
+  ],
+  "status": "enable",
+  "type": "dual",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "double",
+  "visible_name": "UID动态请求大小变异系数[5m]"
+}

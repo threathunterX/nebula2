@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/threathunterX/nebula2/packages/domain-schema/notice.schema.json",
+  "title": "Notice",
+  "description": "风险告警。策略命中后产出,同时作为名单条目。与 Nebula 1.x 的 notice 表保持字段兼容。",
+  "type": "object",
+  "required": ["timestamp", "key", "check_type", "strategy_name", "scene_name", "decision", "expire"],
+  "additionalProperties": false,
+  "properties": {
+    "timestamp": { "type": "integer", "description": "告警产生时间(毫秒)。" },
+    "key": { "type": "string", "minLength": 1, "description": "风险主体的值,如具体 IP 或账号。" },
+    "check_type": { "type": "string", "enum": ["IP", "USER", "DeviceID", "OrderID"] },
+    "strategy_name": { "type": "string", "minLength": 1 },
+    "scene_name": { "type": "string", "enum": ["VISITOR", "ACCOUNT", "TRANSACTION", "ORDER", "MARKETING", "OTHER"] },
+    "decision": { "type": "string", "enum": ["accept", "review", "reject"] },
+    "risk_score": { "type": "integer", "minimum": 0, "maximum": 100, "default": 0 },
+    "expire": { "type": "integer", "description": "名单失效时刻(毫秒)= 命中时间 + 策略 ttl。" },
+    "checkpoints": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "remark": { "type": "string", "default": "" },
+    "tags": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "test": { "type": "boolean", "default": false, "description": "策略处于 test 状态时为 true,不参与线上决策。" },
+    "geo_province": { "type": "string", "default": "unknown" },
+    "geo_city": { "type": "string", "default": "unknown" },
+    "uri_stem": { "type": "string", "default": "" },
+    "variable_values": {
+      "type": "object",
+      "default": {},
+      "description": "触发时的变量值快照与阈值对比,用于解释判定依据。1.x 该字段恒为空,2.0 默认落地(见策略的 explain 开关)。",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "value": {},
+          "threshold": {},
+          "operator": { "type": "string" }
+        }
+      }
+    },
+    "trigger_event": { "type": "object", "default": {}, "description": "触发事件全文(已按敏感级别脱敏)。" }
+  }
+}

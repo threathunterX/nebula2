@@ -1,0 +1,35 @@
+{
+  "app": "nebula",
+  "dimension": "global",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "TRANSACTION_WITHDRAW"
+  },
+  "groupbykeys": [],
+  "hint": {},
+  "module": "slot",
+  "name": "global__transaction_withdraw_count__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "每小时交易总数",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "TRANSACTION_WITHDRAW"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "每小时交易总数"
+}

@@ -1,0 +1,35 @@
+{
+  "app": "nebula",
+  "dimension": "global",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "HTTP_INCIDENT"
+  },
+  "groupbykeys": [],
+  "hint": {},
+  "module": "slot",
+  "name": "global__visit_incident_count__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "本小时风险事件数量",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_INCIDENT"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "本小时风险事件数量"
+}

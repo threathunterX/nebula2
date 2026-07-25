@@ -1,0 +1,35 @@
+{
+  "app": "nebula",
+  "dimension": "global",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "ORDER_SUBMIT"
+  },
+  "groupbykeys": [],
+  "hint": {},
+  "module": "slot",
+  "name": "global__order_submit_count__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "本小时订单提交总量",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ORDER_SUBMIT"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "本小时订单提交总量"
+}

@@ -1,0 +1,40 @@
+{
+  "app": "nebula",
+  "name": "ACCOUNT_CERTIFICATION",
+  "properties": [
+    {
+      "name": "uid",
+      "remark": "实名验证账号",
+      "type": "string",
+      "visible_name": "实名验证账号"
+    },
+    {
+      "name": "person_id",
+      "remark": "实名身份证ID",
+      "type": "string",
+      "visible_name": "实名身份证ID"
+    },
+    {
+      "name": "user_name",
+      "remark": "真实姓名",
+      "type": "string",
+      "visible_name": "真实姓名"
+    },
+    {
+      "name": "result",
+      "remark": "实名验证结果",
+      "type": "string",
+      "visible_name": "实名验证结果"
+    }
+  ],
+  "remark": "账号-实名验证",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "账号-实名验证"
+}

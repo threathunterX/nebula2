@@ -1,0 +1,58 @@
+{
+  "app": "nebula",
+  "name": "ACCOUNT_PW_CHANGE",
+  "properties": [
+    {
+      "name": "uid",
+      "remark": "修改密码账号",
+      "type": "string",
+      "visible_name": "修改密码账号"
+    },
+    {
+      "name": "old_password",
+      "remark": "原密码(脱敏)",
+      "type": "string",
+      "visible_name": "原密码"
+    },
+    {
+      "name": "new_password",
+      "remark": "修改后密码(脱敏)",
+      "type": "string",
+      "visible_name": "修改后密码"
+    },
+    {
+      "name": "verification_token",
+      "remark": "验证凭证",
+      "type": "string",
+      "visible_name": "验证凭证"
+    },
+    {
+      "name": "verification_token_type",
+      "remark": "验证凭证类型",
+      "type": "string",
+      "visible_name": "验证凭证类型"
+    },
+    {
+      "name": "captcha",
+      "remark": "图片验证码",
+      "type": "string",
+      "visible_name": "图片验证码"
+    },
+    {
+      "name": "result",
+      "remark": "修改结果",
+      "type": "string",
+      "visible_name": "修改结果"
+    }
+  ],
+  "remark": "账号-密码修改",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "账号-密码修改"
+}

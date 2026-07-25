@@ -1,0 +1,91 @@
+{
+  "app": "nebula",
+  "category": "ACCOUNT",
+  "end_effect": 1641121620142,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "IP当天关联多个用户",
+  "remark": ">20, in 1d",
+  "score": 0,
+  "start_effect": 1484046419489,
+  "status": "online",
+  "tags": [
+    "一天关联"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ACCOUNT_LOGIN"
+          ],
+          "field": "result"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "==",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "T"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "trigger": {
+            "event": [
+              "nebula",
+              "ACCOUNT_LOGIN"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          },
+          "variable": [
+            "nebula",
+            "ip__visit_distinct_uid__1h__profile"
+          ]
+        },
+        "subtype": "getvariable",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "20"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "profile"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "ACCOUNT",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "profile"
+    }
+  ],
+  "version": "1542255171782"
+}

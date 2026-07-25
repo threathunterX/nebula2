@@ -1,0 +1,83 @@
+{
+  "app": "nebula",
+  "category": "VISITOR",
+  "end_effect": 1543374617253,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "visit_sql_injection_get_ip",
+  "remark": "GET参数中的包含SQL语句特征",
+  "score": 0,
+  "start_effect": 1477969816948,
+  "status": "online",
+  "tags": [
+    "SQL注入"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "uri_query"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "regex",
+      "remark": "SQL语句特征",
+      "right": {
+        "config": {
+          "value": ".*(\\bselect\\b|\\bunion\\b|\\bupdate\\b|\\bdelete\\b|\\binsert\\b|\\btable\\b|\\bascii\\b|\\bhex\\b|\\bunhex\\b|\\bdrop\\b).*\\bfrom\\b.*"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "method"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "==",
+      "remark": "GET请求",
+      "right": {
+        "config": {
+          "value": "GET"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "VISITOR",
+          "remark": "GET参数中的包含SQL语句特征",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

@@ -1,0 +1,122 @@
+{
+  "app": "nebula",
+  "category": "ORDER",
+  "end_effect": 1641026203555,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "用户高频请求下单__同一商户5m",
+  "remark": ">2 in 5m, merchant",
+  "score": 0,
+  "start_effect": 1484037402744,
+  "status": "online",
+  "tags": [
+    "特殊下单"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "field": "uid"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "!regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "^\\s*$ "
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "trigger": {
+            "event": [
+              "nebula",
+              "ORDER_SUBMIT"
+            ],
+            "keys": [
+              "uid"
+            ]
+          },
+          "variable": [
+            "nebula",
+            "uid__order_submit_distinct_count_merchant__5m__rt"
+          ]
+        },
+        "subtype": "getvariable",
+        "type": "func"
+      },
+      "op": "==",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "1"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "trigger": {
+            "event": [
+              "nebula",
+              "ORDER_SUBMIT"
+            ],
+            "keys": [
+              "uid"
+            ]
+          },
+          "variable": [
+            "nebula",
+            "uid__order_submit_count__5m__rt"
+          ]
+        },
+        "subtype": "getvariable",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "2"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "USER",
+          "checkvalue": "uid",
+          "decision": "review",
+          "name": "ORDER",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

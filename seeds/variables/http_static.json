@@ -1,0 +1,24 @@
+{
+  "app": "nebula",
+  "dimension": "",
+  "filter": {},
+  "function": {},
+  "groupbykeys": [],
+  "hint": {},
+  "module": "base",
+  "name": "HTTP_STATIC",
+  "period": {},
+  "remark": "静态资源请求",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_STATIC"
+    }
+  ],
+  "status": "enable",
+  "type": "event",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "",
+  "visible_name": "静态资源请求"
+}

@@ -1,0 +1,22 @@
+{
+  "app": "nebula",
+  "name": "HTTP_DYNAMIC_DELAY",
+  "properties": [
+    {
+      "name": "delay_strategy",
+      "remark": "延迟策略",
+      "type": "string",
+      "visible_name": "延迟策略"
+    }
+  ],
+  "remark": "http动态资源访问",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "http动态资源访问"
+}

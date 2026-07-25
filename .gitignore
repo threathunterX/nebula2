@@ -1,0 +1,37 @@
+# 构建产物
+target/
+build/
+dist/
+out/
+node_modules/
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# 本地配置与密钥 —— 严禁提交
+.env
+.env.*
+*.local.yaml
+*.local.yml
+secrets/
+*.pem
+*.key
+*.p12
+*.jks
+
+# 脱敏规则(含真实标识,仅本地使用)
+**/sanitize_rules.json
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 运行时
+logs/
+*.log
+tmp/

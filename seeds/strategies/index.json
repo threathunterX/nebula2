@@ -1,0 +1,2086 @@
+{
+  "count": 170,
+  "kind": "strategy_template",
+  "placeholder_reference": "../PLACEHOLDERS.md",
+  "source_table": "nebula.strategy_cust",
+  "strategies": [
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP使用相同邀请码注册.json",
+      "name": "IP使用相同邀请码注册",
+      "remark": ">3 register_count, 1 register_channel in 1h",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "邀请注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP使用相同邀请码注册5m.json",
+      "name": "IP使用相同邀请码注册5m",
+      "remark": ">2 register_count, same register_channel in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "邀请注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP关联多个用户.json",
+      "name": "IP关联多个用户",
+      "remark": ">5 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频关联"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP关联多个设备.json",
+      "name": "IP关联多个设备",
+      "remark": ">5 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频关联"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP关联多用户请求登录.json",
+      "name": "IP关联多用户请求登录",
+      "remark": ">5用户 in 5min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联登录"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP关联多设备请求登录.json",
+      "name": "IP关联多设备请求登录",
+      "remark": ">5设备 in 5min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联登录"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP多个用户请求注册.json",
+      "name": "IP多个用户请求注册",
+      "remark": ">2 uid in 10m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联注册"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP多个设备请求注册.json",
+      "name": "IP多个设备请求注册",
+      "remark": ">2 did in 10m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联注册"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP多次使用相同密码注册.json",
+      "name": "IP多次使用相同密码注册",
+      "remark": ">3, 1密码 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP多次注册失败.json",
+      "name": "IP多次注册失败",
+      "remark": ">5 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP多次注册成功.json",
+      "name": "IP多次注册成功",
+      "remark": ">5 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP多次登录失败.json",
+      "name": "IP多次登录失败",
+      "remark": ">5 in 10min F",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP多次登录成功.json",
+      "name": "IP多次登录成功",
+      "remark": ">5 in 10min T",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP多次请求注册.json",
+      "name": "IP多次请求注册",
+      "remark": ">10 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频注册"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP多次请求登录.json",
+      "name": "IP多次请求登录",
+      "remark": ">5 in 5min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP当天关联多个用户.json",
+      "name": "IP当天关联多个用户",
+      "remark": ">20, in 1d",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "一天关联"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP换密码请求登录单账号.json",
+      "name": "IP换密码请求登录单账号",
+      "remark": ">5 in 5min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP相同密码请求登录不同账号.json",
+      "name": "IP相同密码请求登录不同账号",
+      "remark": ">3 in 5min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP请求A一段时间内没有请求B.json",
+      "name": "IP请求A一段时间内没有请求B",
+      "remark": "延迟判断 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "跳跃访问"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP请求注册前未访问必要资源.json",
+      "name": "IP请求注册前未访问必要资源",
+      "placeholders": [
+        "<YOUR_PAYMENT_PAGE_PATH>"
+      ],
+      "remark": "register, no xxx in 5m",
+      "requires_configuration": true,
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "跳跃访问"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP请求登录前未访问必要资源.json",
+      "name": "IP请求登录前未访问必要资源",
+      "placeholders": [
+        "<YOUR_PAYMENT_PAGE_PATH>"
+      ],
+      "remark": "login, no xxx in 5m",
+      "requires_configuration": true,
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "跳跃访问"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP集中请求注册接口.json",
+      "name": "IP集中请求注册接口",
+      "remark": ">5 in 30m, 动态<=4",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/IP集中请求登录.json",
+      "name": "IP集中请求登录",
+      "remark": ">5 ，页面<=4 in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户关联多个IP.json",
+      "name": "用户关联多个IP",
+      "remark": ">5 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频关联"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户关联多个IP地域.json",
+      "name": "用户关联多个IP地域",
+      "remark": ">2 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频关联"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户关联多个设备.json",
+      "name": "用户关联多个设备",
+      "remark": ">2 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频关联"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户在多个IP请求注册.json",
+      "name": "用户在多个IP请求注册",
+      "remark": ">2 ip in 10m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联注册"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户在多个IP请求登录.json",
+      "name": "用户在多个IP请求登录",
+      "remark": ">2 ip in 10min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联登录"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户在多个设备请求注册.json",
+      "name": "用户在多个设备请求注册",
+      "remark": ">2 ip in 10m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联注册"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户在多个设备请求登录.json",
+      "name": "用户在多个设备请求登录",
+      "remark": ">2 did in 10min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联登录"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户多次登录失败.json",
+      "name": "用户多次登录失败",
+      "remark": ">3 in 10min T",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户多次登录成功.json",
+      "name": "用户多次登录成功",
+      "remark": ">3 in 10min T",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户多次请求注册.json",
+      "name": "用户多次请求注册",
+      "remark": ">2 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频注册"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户多次请求登录.json",
+      "name": "用户多次请求登录",
+      "remark": ">3 in 5min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户换密码登录.json",
+      "name": "用户换密码登录",
+      "remark": ">2 密码 in 10min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户相同密码请求登录.json",
+      "name": "用户相同密码请求登录",
+      "remark": ">2, 1密码 in 10min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/用户请求A一段时间内没有请求B.json",
+      "name": "用户请求A一段时间内没有请求B",
+      "remark": "延迟判断 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "跳跃访问"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备使用相同邀请码注册.json",
+      "name": "设备使用相同邀请码注册",
+      "remark": ">3 register_count, 1 register_channel in 1h",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "邀请注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备使用相同邀请码注册5m.json",
+      "name": "设备使用相同邀请码注册5m",
+      "remark": ">2 register_count, same register_channel in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "邀请注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备关联多个IP.json",
+      "name": "设备关联多个IP",
+      "remark": ">5 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频关联"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备关联多个IP地域.json",
+      "name": "设备关联多个IP地域",
+      "remark": ">2 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频关联"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备关联多个用户.json",
+      "name": "设备关联多个用户",
+      "remark": ">2 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频关联"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备在多个IP请求注册.json",
+      "name": "设备在多个IP请求注册",
+      "remark": ">2 ip in 10m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联注册"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备在多个IP请求登录.json",
+      "name": "设备在多个IP请求登录",
+      "remark": ">5设备 in 5min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联登录"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备多个用户请求注册.json",
+      "name": "设备多个用户请求注册",
+      "remark": ">2 uid in 10m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联注册"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备多次使用相同密码注册.json",
+      "name": "设备多次使用相同密码注册",
+      "remark": ">3, 1密码 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备多次注册失败.json",
+      "name": "设备多次注册失败",
+      "remark": ">10 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备多次注册成功.json",
+      "name": "设备多次注册成功",
+      "remark": ">10 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备多次登录失败.json",
+      "name": "设备多次登录失败",
+      "remark": ">5 in 10min F",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备多次登录成功.json",
+      "name": "设备多次登录成功",
+      "remark": ">5 in 10min T",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备多次请求注册.json",
+      "name": "设备多次请求注册",
+      "remark": ">10 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频注册"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备多次请求登录.json",
+      "name": "设备多次请求登录",
+      "remark": ">5 in 5min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备多用户请求登录.json",
+      "name": "设备多用户请求登录",
+      "remark": ">5用户 in 5min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联登录"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备换密码请求登录单账号.json",
+      "name": "设备换密码请求登录单账号",
+      "remark": ">5 in 5min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备相同密码请求登录不同账号.json",
+      "name": "设备相同密码请求登录不同账号",
+      "remark": ">3 in 5min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备请求A一段时间内没有请求B.json",
+      "name": "设备请求A一段时间内没有请求B",
+      "remark": "延迟判断 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "跳跃访问"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备请求注册前未访问必要资源.json",
+      "name": "设备请求注册前未访问必要资源",
+      "placeholders": [
+        "<YOUR_PAYMENT_PAGE_PATH>"
+      ],
+      "remark": "register, no xxx in 5m",
+      "requires_configuration": true,
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "跳跃访问"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备请求登录前未访问必要资源.json",
+      "name": "设备请求登录前未访问必要资源",
+      "placeholders": [
+        "<YOUR_PAYMENT_PAGE_PATH>"
+      ],
+      "remark": "login, no xxx in 5m",
+      "requires_configuration": true,
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "跳跃访问"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备集中请求注册接口.json",
+      "name": "设备集中请求注册接口",
+      "remark": ">5 in 30m, 动态<=4",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频注册"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ACCOUNT",
+      "file": "strategies/设备集中请求登录.json",
+      "name": "设备集中请求登录",
+      "remark": ">5 ，页面<=4 in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频登录"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP下单不支付.json",
+      "name": "IP下单不支付",
+      "placeholders": [
+        "<YOUR_PAYMENT_PAGE_PATH>"
+      ],
+      "remark": ">4 in 30min no pay",
+      "requires_configuration": true,
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "下单不支付"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次取消订单.json",
+      "name": "IP多次取消订单",
+      "remark": ">3 in 30min distinct orderid",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "取消订单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单.json",
+      "name": "IP多次请求下单",
+      "remark": ">5 in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_不同商品.json",
+      "name": "IP多次请求下单__不同商品",
+      "remark": ">2 in 1h, product_id",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_不同商户.json",
+      "name": "IP多次请求下单__不同商户",
+      "remark": ">2 in 1h, merchant",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_不同地址.json",
+      "name": "IP多次请求下单__不同地址",
+      "remark": ">2 in 1h, receiver_address_detail",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_不同城市.json",
+      "name": "IP多次请求下单__不同城市",
+      "remark": ">2 in 1h, receiver_address_city ",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_不同手机号.json",
+      "name": "IP多次请求下单__不同手机号",
+      "remark": ">2 in 1h, receiver_mobile",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_不同收货人.json",
+      "name": "IP多次请求下单__不同收货人",
+      "remark": ">2 in 1h, user_name",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_不同金额.json",
+      "name": "IP多次请求下单__不同金额",
+      "remark": ">2 in 1h, order_money_amount",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_同一商品.json",
+      "name": "IP多次请求下单__同一商品",
+      "remark": ">5 in 1h, product_id",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_同一商户.json",
+      "name": "IP多次请求下单__同一商户",
+      "remark": ">5 in 1h, merchant",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_同一地址.json",
+      "name": "IP多次请求下单__同一地址",
+      "remark": ">5 in 1h, receiver_address_detail",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_同一城市.json",
+      "name": "IP多次请求下单__同一城市",
+      "remark": ">5 in 1h, receiver_address_city ",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_同手机号.json",
+      "name": "IP多次请求下单__同手机号",
+      "remark": ">5 in 1h, receiver_mobile",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_同收货人.json",
+      "name": "IP多次请求下单__同收货人",
+      "remark": ">5 in 1h, user_name",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_金额较低.json",
+      "name": "IP多次请求下单__金额较低",
+      "remark": ">5 in 1h, order_money_amount<= 100",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多次请求下单_金额较高.json",
+      "name": "IP多次请求下单__金额较高",
+      "remark": ">5 in 1h, order_money_amount > 100",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多用户请求下单.json",
+      "name": "IP多用户请求下单",
+      "remark": ">3 用户 in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP多设备请求下单.json",
+      "name": "IP多设备请求下单",
+      "remark": ">3 设备 in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/IP请求下单行为单一.json",
+      "name": "IP请求下单行为单一",
+      "remark": ">3, <=4页面  in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户下单不支付.json",
+      "name": "用户下单不支付",
+      "placeholders": [
+        "<YOUR_PAYMENT_PAGE_PATH>"
+      ],
+      "remark": ">4 in 30min no pay",
+      "requires_configuration": true,
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "下单不支付"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多IP请求下单.json",
+      "name": "用户多IP请求下单",
+      "remark": ">1 ip in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次取消订单.json",
+      "name": "用户多次取消订单",
+      "remark": ">3 in 30min distinct orderid",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "取消订单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单.json",
+      "name": "用户多次请求下单",
+      "remark": ">5 in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_不同商品.json",
+      "name": "用户多次请求下单__不同商品",
+      "remark": ">2 in 1h, product_id",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_不同商户.json",
+      "name": "用户多次请求下单__不同商户",
+      "remark": ">2 in 1h, merchant",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_不同地址.json",
+      "name": "用户多次请求下单__不同地址",
+      "remark": ">2 in 1h, receiver_address_detail",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_不同城市.json",
+      "name": "用户多次请求下单__不同城市",
+      "remark": ">2 in 1h, receiver_address_city ",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_不同手机号.json",
+      "name": "用户多次请求下单__不同手机号",
+      "remark": ">2 in 1h, receiver_mobile",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_不同收货人.json",
+      "name": "用户多次请求下单__不同收货人",
+      "remark": ">2 in 1h, user_name",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_不同金额.json",
+      "name": "用户多次请求下单__不同金额",
+      "remark": ">2 in 1h, order_money_amount",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_同一商品.json",
+      "name": "用户多次请求下单__同一商品",
+      "remark": ">5 in 1h, product_id",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_同一商户.json",
+      "name": "用户多次请求下单__同一商户",
+      "remark": ">5 in 1h, merchant ",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_同一地址.json",
+      "name": "用户多次请求下单__同一地址",
+      "remark": ">5 in 1h, receiver_address_detail",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_同一城市.json",
+      "name": "用户多次请求下单__同一城市",
+      "remark": ">5 in 1h, receiver_address_city ",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_同手机号.json",
+      "name": "用户多次请求下单__同手机号",
+      "remark": ">5 in 1h, receiver_mobile",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_同收货人.json",
+      "name": "用户多次请求下单__同收货人",
+      "remark": ">5 in 1h, user_name",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_金额较低.json",
+      "name": "用户多次请求下单__金额较低",
+      "remark": ">5 in 1h, order_money_amount<= 100",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多次请求下单_金额较高.json",
+      "name": "用户多次请求下单__金额较高",
+      "remark": ">5 in 1h, order_money_amount > 100",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户多设备请求下单.json",
+      "name": "用户多设备请求下单",
+      "remark": ">1 ip in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户深夜多次请求下单.json",
+      "name": "用户深夜多次请求下单",
+      "remark": ">5 in 1h, 0~6",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "午夜下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户深夜请求下单金额过大.json",
+      "name": "用户深夜请求下单金额过大",
+      "remark": ">2,000, 0~6",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "午夜下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户请求下单_金额较大5m.json",
+      "name": "用户请求下单__金额较大5m",
+      "remark": ">1000 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "特殊下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户请求下单行为单一.json",
+      "name": "用户请求下单行为单一",
+      "remark": ">3, <=4页面  in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户高频请求下单_不同城市5m.json",
+      "name": "用户高频请求下单__不同城市5m",
+      "remark": ">3 order, >1 receiver_geo",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "特殊下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户高频请求下单_全部失败5m.json",
+      "name": "用户高频请求下单__全部失败5m",
+      "remark": ">3 order, F=1 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "特殊下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户高频请求下单_同一商户5m.json",
+      "name": "用户高频请求下单__同一商户5m",
+      "remark": ">2 in 5m, merchant",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "特殊下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/用户高频请求取消订单5m.json",
+      "name": "用户高频请求取消订单5m",
+      "remark": ">3 cancel in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "特殊下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备下单不支付.json",
+      "name": "设备下单不支付",
+      "placeholders": [
+        "<YOUR_PAYMENT_PAGE_PATH>"
+      ],
+      "remark": ">4 in 30min no pay",
+      "requires_configuration": true,
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "下单不支付"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多IP请求下单.json",
+      "name": "设备多IP请求下单",
+      "remark": ">1 ip in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次取消订单.json",
+      "name": "设备多次取消订单",
+      "remark": ">3 in 30min distinct orderid",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "取消订单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单.json",
+      "name": "设备多次请求下单",
+      "remark": ">5 in 30min ",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_不同商品.json",
+      "name": "设备多次请求下单__不同商品",
+      "remark": ">2 in 1h, product_id",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_不同商户.json",
+      "name": "设备多次请求下单__不同商户",
+      "remark": ">2 in 1h, merchant",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_不同地址.json",
+      "name": "设备多次请求下单__不同地址",
+      "remark": ">2 in 1h, receiver_address_detail",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_不同城市.json",
+      "name": "设备多次请求下单__不同城市",
+      "remark": ">2 in 1h, receiver_address_city ",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_不同手机号.json",
+      "name": "设备多次请求下单__不同手机号",
+      "remark": ">2 in 1h, receiver_mobile",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_不同收货人.json",
+      "name": "设备多次请求下单__不同收货人",
+      "remark": ">2 in 1h, user_name",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_不同金额.json",
+      "name": "设备多次请求下单__不同金额",
+      "remark": ">2 in 1h, order_money_amount",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "不同下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_同一商品.json",
+      "name": "设备多次请求下单__同一商品",
+      "remark": ">5 in 1h, product_id",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_同一商户.json",
+      "name": "设备多次请求下单__同一商户",
+      "remark": ">5 in 1h, merchant",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_同一地址.json",
+      "name": "设备多次请求下单__同一地址",
+      "remark": ">5 in 1h, user_name",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_同一城市.json",
+      "name": "设备多次请求下单__同一城市",
+      "remark": ">5 in 1h, receiver_address_city",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_同手机号.json",
+      "name": "设备多次请求下单__同手机号",
+      "remark": ">5 in 1h, receiver_mobile",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_同收货人.json",
+      "name": "设备多次请求下单__同收货人",
+      "remark": ">5 in 1h, user_name",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_金额较低.json",
+      "name": "设备多次请求下单__金额较低",
+      "remark": ">5 in 1h, order_money_amount<= 100",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多次请求下单_金额较高.json",
+      "name": "设备多次请求下单__金额较高",
+      "remark": ">5 in 1h, order_money_amount > 100",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备多用户请求下单.json",
+      "name": "设备多用户请求下单",
+      "remark": ">1 用户 in 30min",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "关联下单"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "ORDER",
+      "file": "strategies/设备请求下单行为单一.json",
+      "name": "设备请求下单行为单一",
+      "remark": ">3, <=4页面  in 30min",
+      "score": 1,
+      "status": "online",
+      "tags": [
+        "高频下单"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP响应字节过大.json",
+      "name": "IP响应字节过大",
+      "remark": "> 5M",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "恶意扫描"
+      ],
+      "term_count": 2
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量404返回.json",
+      "name": "IP大量404返回",
+      "remark": ">10 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "恶意扫描"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量4XX返回.json",
+      "name": "IP大量4XX返回",
+      "remark": ">10 in 5m, 不包含404",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "恶意扫描"
+      ],
+      "term_count": 5
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量动态请求.json",
+      "name": "IP大量动态请求",
+      "remark": ">100 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量访问.json",
+      "name": "IP大量访问",
+      "remark": ">300 in 5m 静态+动态",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量请求不加载静态资源.json",
+      "name": "IP大量请求不加载静态资源",
+      "remark": ">50 动态+静态, 0静态 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量请求不带referrer.json",
+      "name": "IP大量请求不带referrer",
+      "remark": ">20, 0 referrer in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一访问"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量请求单个接口.json",
+      "name": "IP大量请求单个接口",
+      "remark": ">10 , 页面=1",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一访问"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量请求注册接口.json",
+      "name": "IP大量请求注册接口",
+      "remark": ">5 in 5m 不需要解析 register",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量请求登录接口.json",
+      "name": "IP大量请求登录接口",
+      "remark": ">5 in 5m 不需要解析 login",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量请求相似接口.json",
+      "name": "IP大量请求相似接口",
+      "remark": ">20 ,<4 页面  cbytes_cv < 0.1 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一访问"
+      ],
+      "term_count": 5
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量请求签到接口.json",
+      "name": "IP大量请求签到接口",
+      "remark": ">5 in 5m 不需要解析 sign",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量连续GET请求.json",
+      "name": "IP大量连续GET请求",
+      "remark": ">30 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量连续POST请求.json",
+      "name": "IP大量连续POST请求",
+      "remark": ">30 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP大量连续其他类型请求.json",
+      "name": "IP大量连续其他类型请求",
+      "remark": ">20 in 5m 非GET非POST",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP扫描管理后台.json",
+      "name": "IP扫描管理后台",
+      "remark": "> 10 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "恶意扫描"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP相同UA大量请求单个页面.json",
+      "name": "IP相同UA大量请求单个页面",
+      "remark": ">50, 1 页面, 1UA",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 5
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP访问.asp文件.json",
+      "name": "IP访问.asp文件",
+      "remark": "> 5 动态+静态 ,404 .asp",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "恶意扫描"
+      ],
+      "term_count": 5
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP请求可疑文件地址.json",
+      "name": "IP请求可疑文件地址",
+      "remark": "> 10 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "恶意扫描"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP集中请求部分接口.json",
+      "name": "IP集中请求部分接口",
+      "remark": ">20 , < 5页面 in 5m",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "单一访问"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP页面停留时间过短App.json",
+      "name": "IP页面停留时间过短App",
+      "remark": ">100, avg < 0.5, in 5m, web",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 5
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/IP页面停留时间过短Web.json",
+      "name": "IP页面停留时间过短Web",
+      "remark": ">100, avg < 0.8, in 5m, web",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "高频访问"
+      ],
+      "term_count": 5
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/Java_用户代理.json",
+      "name": "Java 用户代理",
+      "remark": "java",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "特殊UA"
+      ],
+      "term_count": 2
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/Python_用户代理.json",
+      "name": "Python 用户代理",
+      "remark": "python",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "特殊UA"
+      ],
+      "term_count": 2
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/Spider_用户代理.json",
+      "name": "Spider 用户代理",
+      "remark": "spider",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "特殊UA"
+      ],
+      "term_count": 2
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_directory_traversal_get_ip.json",
+      "name": "visit_directory_traversal_get_ip",
+      "remark": "GET参数中包含目录遍历的特征",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "目录遍历"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_directory_traversal_post_ip.json",
+      "name": "visit_directory_traversal_post_ip",
+      "remark": "POST参数中包含目录遍历的特征",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "目录遍历"
+      ],
+      "term_count": 4
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_ngx_lua_waf_get_ip.json",
+      "name": "visit_ngx_lua_waf_get_ip",
+      "remark": "GET参数中ngx_lua_waf策略补充",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "ngx_lua_waf"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_ngx_lua_waf_post_ip.json",
+      "name": "visit_ngx_lua_waf_post_ip",
+      "remark": "POST参数中ngx_lua_waf策略补充",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "ngx_lua_waf"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_rfi_get_ip.json",
+      "name": "visit_rfi_get_ip",
+      "remark": "GET参数中包含rfi远程文件包含的特征",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "RFI"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_rfi_post_ip.json",
+      "name": "visit_rfi_post_ip",
+      "remark": "POST参数中包含rfi远程文件包含的特征",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "RFI"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_sql_injection_get_ip.json",
+      "name": "visit_sql_injection_get_ip",
+      "remark": "GET参数中的包含SQL语句特征",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "SQL注入"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_sql_injection_hardcore_get_ip.json",
+      "name": "visit_sql_injection_hardcore_get_ip",
+      "remark": "GET请求中包含SQL的符号",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "SQL注入"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_sql_injection_post_hardcore_ip.json",
+      "name": "visit_sql_injection_post_hardcore_ip",
+      "remark": "POST请求中包含SQL的符号",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "SQL注入"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_sql_injection_post_ip.json",
+      "name": "visit_sql_injection_post_ip",
+      "remark": "POST参数中包含SQL语句特征",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "SQL注入"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_xss_get_ip.json",
+      "name": "visit_xss_get_ip",
+      "remark": "GET参数包含跨站脚本攻击特征",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "XSS"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_xss_post_ip.json",
+      "name": "visit_xss_post_ip",
+      "remark": "POST参数包含跨站脚本攻击特征",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "XSS"
+      ],
+      "term_count": 3
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/visit_xss_request_ip.json",
+      "name": "visit_xss_request_ip",
+      "remark": "请求疑似xss",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "XSS"
+      ],
+      "term_count": 2
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/服务器用户代理.json",
+      "name": "服务器用户代理",
+      "remark": "apachebench|pycurl, 不包括java|python",
+      "score": 0,
+      "status": "online",
+      "tags": [
+        "特殊UA"
+      ],
+      "term_count": 2
+    },
+    {
+      "category": "VISITOR",
+      "file": "strategies/测试-地域FUNCTION.json",
+      "name": "测试-地域FUNCTION",
+      "remark": "地域function测试策略",
+      "score": 0,
+      "status": "online",
+      "tags": [],
+      "term_count": 3
+    }
+  ],
+  "strategies_requiring_configuration": {
+    "count": 7,
+    "files": [
+      "strategies/IP请求注册前未访问必要资源.json",
+      "strategies/IP请求登录前未访问必要资源.json",
+      "strategies/设备请求注册前未访问必要资源.json",
+      "strategies/设备请求登录前未访问必要资源.json",
+      "strategies/IP下单不支付.json",
+      "strategies/用户下单不支付.json",
+      "strategies/设备下单不支付.json"
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "stddev",
+    "object": "c_bytes",
+    "object_subtype": "",
+    "object_type": "long",
+    "param": "",
+    "source": "HTTP_DYNAMIC"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "uid__visit_dynamic_var_cbytes__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "单个UID5分钟内请求大小方差值",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "double",
+  "visible_name": "单个UID5分钟内请求大小方差值"
+}

@@ -1,0 +1,91 @@
+{
+  "app": "nebula",
+  "category": "ACCOUNT",
+  "end_effect": 1641120013785,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "用户关联多个设备",
+  "remark": ">2 in 5m",
+  "score": 0,
+  "start_effect": 1484044813003,
+  "status": "online",
+  "tags": [
+    "高频关联"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "c_ip"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "contain",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "."
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "trigger": {
+            "event": [
+              "nebula",
+              "HTTP_DYNAMIC"
+            ],
+            "keys": [
+              "uid"
+            ]
+          },
+          "variable": [
+            "nebula",
+            "uid__account_dynamic_distinct_count_did__5m__rt"
+          ]
+        },
+        "subtype": "getvariable",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "2"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "USER",
+          "checkvalue": "uid",
+          "decision": "review",
+          "name": "ACCOUNT",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

@@ -1,0 +1,125 @@
+{
+  "app": "nebula",
+  "category": "ACCOUNT",
+  "end_effect": 1627799928000,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "用户请求A一段时间内没有请求B",
+  "remark": "延迟判断 5m",
+  "score": 0,
+  "start_effect": 1504075128120,
+  "status": "online",
+  "tags": [
+    "跳跃访问"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "page"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "==",
+      "remark": "A",
+      "right": {
+        "config": {
+          "value": "A"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "duration": 5,
+          "unit": "m"
+        },
+        "subtype": "sleep",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "count",
+          "condition": [
+            {
+              "left": "uid",
+              "op": "=",
+              "right": "uid"
+            },
+            {
+              "left": "page",
+              "op": "==",
+              "right": "B"
+            }
+          ],
+          "groupby": [
+            "uid"
+          ],
+          "interval": 300,
+          "operand": [
+            "c_ip"
+          ],
+          "sourceevent": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "HTTP_DYNAMIC"
+            ],
+            "keys": [
+              "uid"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": "==",
+      "remark": "B",
+      "right": {
+        "config": {
+          "value": "0"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "USER",
+          "checkvalue": "uid",
+          "decision": "review",
+          "name": "ACCOUNT",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

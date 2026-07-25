@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "ip",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "merge",
+    "object": "value",
+    "object_subtype": "long",
+    "object_type": "map",
+    "param": "",
+    "source": "ip__visit_dynamic_distinct_count_did__1h__slot"
+  },
+  "groupbykeys": [
+    "c_ip"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "ip__visit_distinct_did__1h__profile",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "ip每小时关联did数量",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ip__visit_dynamic_distinct_count_did__1h__slot"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": ""
+}

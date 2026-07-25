@@ -1,0 +1,74 @@
+{
+  "app": "nebula",
+  "category": "ORDER",
+  "end_effect": 1609569979438,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "用户深夜请求下单金额过大",
+  "remark": ">2,000, 0~6",
+  "score": 0,
+  "start_effect": 1484030778584,
+  "status": "online",
+  "tags": [
+    "午夜下单"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "field": "order_money_amount"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": ">=",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "2000"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "end": "06:00",
+          "start": "00:00"
+        },
+        "subtype": "time",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "USER",
+          "checkvalue": "uid",
+          "decision": "review",
+          "name": "ORDER",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

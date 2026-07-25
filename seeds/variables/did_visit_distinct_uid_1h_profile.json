@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "did",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "merge",
+    "object": "value",
+    "object_subtype": "long",
+    "object_type": "map",
+    "param": "",
+    "source": "did__visit_dynamic_distinct_count_uid__1h__slot"
+  },
+  "groupbykeys": [
+    "did"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "did__visit_distinct_uid__1h__profile",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "did每小时关联uid数量",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "did__visit_dynamic_distinct_count_uid__1h__slot"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "did每小时关联uid数"
+}

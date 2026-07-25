@@ -1,0 +1,28 @@
+# gitleaks 配置 —— CI 门禁,发现任何疑似凭据即阻断合并
+title = "Nebula 2.0 secret scanning"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "nebula-internal-auth-token"
+description = "Nebula 内部服务 auth token(1.x 遗留形态:32 位十六进制)"
+regex = '''(?i)auth[\"'\s]*[:=][\"'\s]*[0-9a-f]{32}'''
+tags = ["nebula", "token"]
+
+[[rules]]
+id = "nebula-hardcoded-db-password"
+description = "硬编码数据库口令"
+regex = '''(?i)(mysql_passwd|db_password|passwd)\s*=\s*(?!CHANGE_ME|\$\{|\"\")\S+'''
+tags = ["nebula", "password"]
+
+[allowlist]
+description = "允许占位符与文档示例"
+regexes = [
+  '''CHANGE_ME_[A-Z_]+''',
+  '''<YOUR_[A-Z_]+>''',
+  '''<SESSION_COOKIE>''',
+  '''<REDACTED>''',
+  '''example\.(com|net|org)''',
+]
+paths = ['''docs/.*\.md$''']

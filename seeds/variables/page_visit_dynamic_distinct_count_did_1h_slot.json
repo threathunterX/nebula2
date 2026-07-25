@@ -1,0 +1,46 @@
+{
+  "app": "nebula",
+  "dimension": "page",
+  "filter": {
+    "object": "did",
+    "object_subtype": "",
+    "object_type": "string",
+    "operation": "!=",
+    "param": "",
+    "source": "HTTP_DYNAMIC",
+    "type": "simple",
+    "value": ""
+  },
+  "function": {
+    "config": {},
+    "method": "distinct_count",
+    "object": "did",
+    "object_subtype": "",
+    "object_type": "string",
+    "param": "",
+    "source": "HTTP_DYNAMIC"
+  },
+  "groupbykeys": [
+    "page"
+  ],
+  "hint": {},
+  "module": "slot",
+  "name": "page__visit_dynamic_distinct_count_did__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "单个页面每小时动态资源访问关联设备数",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "单个页面每小时动态资源访问关联设备数"
+}

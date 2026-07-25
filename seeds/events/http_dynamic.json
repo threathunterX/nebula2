@@ -1,0 +1,191 @@
+{
+  "app": "nebula",
+  "name": "HTTP_DYNAMIC",
+  "properties": [
+    {
+      "name": "c_ip",
+      "remark": "客户端IP(默认取xforward最后一个)",
+      "type": "string",
+      "visible_name": "客户端ip"
+    },
+    {
+      "name": "sid",
+      "remark": "session会话ID",
+      "type": "string",
+      "visible_name": "session会话ID"
+    },
+    {
+      "name": "uid",
+      "remark": "用户ID",
+      "type": "string",
+      "visible_name": "用户ID"
+    },
+    {
+      "name": "did",
+      "remark": "设备ID",
+      "type": "string",
+      "visible_name": "设备ID"
+    },
+    {
+      "name": "platform",
+      "remark": "客户端类型",
+      "type": "string",
+      "visible_name": "客户端类型"
+    },
+    {
+      "name": "page",
+      "remark": "伪静态页面加工后地址(全部小写，去端口)",
+      "type": "string",
+      "visible_name": "伪静态页面加工后地址"
+    },
+    {
+      "name": "c_port",
+      "remark": "客户端端口",
+      "type": "long",
+      "visible_name": "客户端端口"
+    },
+    {
+      "name": "c_bytes",
+      "remark": "请求内容大小",
+      "type": "long",
+      "visible_name": "请求内容大小"
+    },
+    {
+      "name": "c_body",
+      "remark": "请求内容(json和form表单脱敏)",
+      "type": "string",
+      "visible_name": "请求内容"
+    },
+    {
+      "name": "c_type",
+      "remark": "请求内容类型",
+      "type": "string",
+      "visible_name": "请求内容类型"
+    },
+    {
+      "name": "s_ip",
+      "remark": "服务端IP",
+      "type": "string",
+      "visible_name": "服务端IP"
+    },
+    {
+      "name": "s_port",
+      "remark": "服务端端口",
+      "type": "long",
+      "visible_name": "服务端端口"
+    },
+    {
+      "name": "s_bytes",
+      "remark": "响应内容大小",
+      "type": "long",
+      "visible_name": "响应内容大小"
+    },
+    {
+      "name": "s_body",
+      "remark": "响应内容(json和form表单脱敏)",
+      "type": "string",
+      "visible_name": "响应内容"
+    },
+    {
+      "name": "s_type",
+      "remark": "响应内容类型(全部小写)",
+      "type": "string",
+      "visible_name": "响应内容类型"
+    },
+    {
+      "name": "host",
+      "remark": "主机地址(全部小写，去端口)",
+      "type": "string",
+      "visible_name": "主机地址"
+    },
+    {
+      "name": "uri_stem",
+      "remark": "请求路径(全部小写)",
+      "type": "string",
+      "visible_name": "请求路径"
+    },
+    {
+      "name": "uri_query",
+      "remark": "请求参数(全部小写,脱敏)",
+      "type": "string",
+      "visible_name": "请求参数"
+    },
+    {
+      "name": "referer",
+      "remark": "引用页面(全部小写，去端口)",
+      "type": "string",
+      "visible_name": "引用页面"
+    },
+    {
+      "name": "method",
+      "remark": "请求方法(全部大写)",
+      "type": "string",
+      "visible_name": "请求方法"
+    },
+    {
+      "name": "status",
+      "remark": "响应状态码",
+      "type": "long",
+      "visible_name": "响应状态码"
+    },
+    {
+      "name": "cookie",
+      "remark": "用户身份存储",
+      "type": "string",
+      "visible_name": "用户身份存储"
+    },
+    {
+      "name": "useragent",
+      "remark": "用户代理信息(浏览器类型)",
+      "type": "string",
+      "visible_name": "用户代理信息"
+    },
+    {
+      "name": "xforward",
+      "remark": "用户的xff header，具体header名可配",
+      "type": "string",
+      "visible_name": "用户的xff header"
+    },
+    {
+      "name": "request_time",
+      "remark": "请求消耗时间(毫秒精度)",
+      "type": "long",
+      "visible_name": "请求消耗时间"
+    },
+    {
+      "name": "request_type",
+      "remark": "请求类型",
+      "type": "string",
+      "visible_name": "请求类型"
+    },
+    {
+      "name": "referer_hit",
+      "remark": "referer是否命中",
+      "type": "string",
+      "visible_name": "referer是否命中"
+    },
+    {
+      "name": "notices",
+      "remark": "风险名单",
+      "type": "string",
+      "visible_name": "风险名单"
+    },
+    {
+      "name": "geo_city",
+      "remark": "地理位置",
+      "type": "string",
+      "visible_name": "地理位置"
+    },
+    {
+      "name": "geo_province",
+      "remark": "地理位置",
+      "type": "string",
+      "visible_name": "地理位置"
+    }
+  ],
+  "remark": "动态资源请求",
+  "source": [],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "动态资源请求"
+}

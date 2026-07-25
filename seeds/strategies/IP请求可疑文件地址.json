@@ -1,0 +1,111 @@
+{
+  "app": "nebula",
+  "category": "VISITOR",
+  "end_effect": 1599203703047,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "IP请求可疑文件地址",
+  "remark": "> 10 in 5m",
+  "score": 0,
+  "start_effect": 1472800501994,
+  "status": "online",
+  "tags": [
+    "恶意扫描"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "uri_stem"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "regex",
+      "remark": "请求可疑文件的特征",
+      "right": {
+        "config": {
+          "value": ".*(vhost|bbs|host|wwwroot|www|site|root|hytop|flashfxp|backup|data).*\\.(rar|zip|gz|tar).*"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "count",
+          "condition": [
+            {
+              "left": "c_ip",
+              "op": "=",
+              "right": "c_ip"
+            },
+            {
+              "left": "uri_stem",
+              "op": "regex",
+              "right": ".*(vhost|bbs|host|wwwroot|www|site|root|hytop|flashfxp|backup|data).*\\\\.(rar|zip|gz|tar).*"
+            }
+          ],
+          "groupby": [
+            "c_ip"
+          ],
+          "interval": 300,
+          "operand": [
+            "c_ip"
+          ],
+          "sourceevent": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "HTTP_DYNAMIC"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "5分钟内所有满足条件一的访问次数大于10",
+      "right": {
+        "config": {
+          "value": "10"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "VISITOR",
+          "remark": "IP请求可疑文件地址",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

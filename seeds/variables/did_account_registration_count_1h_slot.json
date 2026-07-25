@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "did",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "ACCOUNT_REGISTRATION"
+  },
+  "groupbykeys": [
+    "did"
+  ],
+  "hint": {},
+  "module": "slot",
+  "name": "did__account_registration_count__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "单个设备每小时注册总量",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_REGISTRATION"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "单个设备每小时注册总量"
+}

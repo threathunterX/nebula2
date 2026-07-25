@@ -1,0 +1,162 @@
+{
+  "app": "nebula",
+  "category": "ACCOUNT",
+  "end_effect": 1609667608438,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "IP使用相同邀请码注册",
+  "remark": ">3 register_count, 1 register_channel in 1h",
+  "score": 0,
+  "start_effect": 1484042007770,
+  "status": "online",
+  "tags": [
+    "邀请注册"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ACCOUNT_REGISTRATION"
+          ],
+          "field": "did"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "!regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "^\\s*$"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "count",
+          "condition": [
+            {
+              "left": "c_ip",
+              "op": "=",
+              "right": "c_ip"
+            },
+            {
+              "left": "register_channel",
+              "op": "!regex",
+              "right": "^\\s*$"
+            }
+          ],
+          "groupby": [
+            "c_ip"
+          ],
+          "interval": 3600,
+          "operand": [
+            "c_ip"
+          ],
+          "sourceevent": [
+            "nebula",
+            "ACCOUNT_REGISTRATION"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "ACCOUNT_REGISTRATION"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "3"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "distinct_count",
+          "condition": [
+            {
+              "left": "register_channel",
+              "op": "!regex",
+              "right": "^\\s*$"
+            },
+            {
+              "left": "c_ip",
+              "op": "=",
+              "right": "c_ip"
+            }
+          ],
+          "groupby": [
+            "c_ip"
+          ],
+          "interval": 3600,
+          "operand": [
+            "register_channel"
+          ],
+          "sourceevent": [
+            "nebula",
+            "ACCOUNT_REGISTRATION"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "ACCOUNT_REGISTRATION"
+            ],
+            "keys": [
+              "c_ip"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": "==",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "1"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "DeviceID",
+          "checkvalue": "did",
+          "decision": "review",
+          "name": "ACCOUNT",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171781"
+}

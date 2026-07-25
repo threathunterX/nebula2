@@ -1,0 +1,2284 @@
+{
+  "count": 253,
+  "kind": "variablemodel",
+  "source_table": "nebula_default.variablemodel_default",
+  "variables": [
+    {
+      "dimension": "",
+      "file": "variables/account_certification.json",
+      "module": "base",
+      "name": "ACCOUNT_CERTIFICATION",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "账号-实名验证"
+    },
+    {
+      "dimension": "",
+      "file": "variables/account_login.json",
+      "module": "base",
+      "name": "ACCOUNT_LOGIN",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "账号-登录"
+    },
+    {
+      "dimension": "",
+      "file": "variables/account_pw_change.json",
+      "module": "base",
+      "name": "ACCOUNT_PW_CHANGE",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "账号-密码修改"
+    },
+    {
+      "dimension": "",
+      "file": "variables/account_referralcode_create.json",
+      "module": "base",
+      "name": "ACCOUNT_REFERRALCODE_CREATE",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "账号-生成推荐码"
+    },
+    {
+      "dimension": "",
+      "file": "variables/account_registration.json",
+      "module": "base",
+      "name": "ACCOUNT_REGISTRATION",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "账号-注册"
+    },
+    {
+      "dimension": "",
+      "file": "variables/account_token_change.json",
+      "module": "base",
+      "name": "ACCOUNT_TOKEN_CHANGE",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "账号-安全凭证修改"
+    },
+    {
+      "dimension": "",
+      "file": "variables/activity_do.json",
+      "module": "base",
+      "name": "ACTIVITY_DO",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "营销-参加活动"
+    },
+    {
+      "dimension": "",
+      "file": "variables/http_click.json",
+      "module": "base",
+      "name": "HTTP_CLICK",
+      "status": "enable",
+      "type": "filter",
+      "visible_name": "点击"
+    },
+    {
+      "dimension": "",
+      "file": "variables/http_dynamic.json",
+      "module": "base",
+      "name": "HTTP_DYNAMIC",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "动态资源请求"
+    },
+    {
+      "dimension": "",
+      "file": "variables/http_dynamic_delay.json",
+      "module": "base",
+      "name": "HTTP_DYNAMIC_DELAY",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "http动态资源访问"
+    },
+    {
+      "dimension": "",
+      "file": "variables/http_incident.json",
+      "module": "base",
+      "name": "HTTP_INCIDENT",
+      "status": "enable",
+      "type": "filter",
+      "visible_name": "风险事件"
+    },
+    {
+      "dimension": "",
+      "file": "variables/http_static.json",
+      "module": "base",
+      "name": "HTTP_STATIC",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "静态资源请求"
+    },
+    {
+      "dimension": "",
+      "file": "variables/order_cancel.json",
+      "module": "base",
+      "name": "ORDER_CANCEL",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "订单-取消"
+    },
+    {
+      "dimension": "",
+      "file": "variables/order_submit.json",
+      "module": "base",
+      "name": "ORDER_SUBMIT",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "订单-提交"
+    },
+    {
+      "dimension": "",
+      "file": "variables/transaction_bankcrd_bind.json",
+      "module": "base",
+      "name": "TRANSACTION_BANKCRD_BIND",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "支付-绑卡"
+    },
+    {
+      "dimension": "",
+      "file": "variables/transaction_bankcrd_unbind.json",
+      "module": "base",
+      "name": "TRANSACTION_BANKCRD_UNBIND",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "支付-解绑"
+    },
+    {
+      "dimension": "",
+      "file": "variables/transaction_deposit.json",
+      "module": "base",
+      "name": "TRANSACTION_DEPOSIT",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "支付-充值"
+    },
+    {
+      "dimension": "",
+      "file": "variables/transaction_escrow.json",
+      "module": "base",
+      "name": "TRANSACTION_ESCROW",
+      "status": "",
+      "type": "event",
+      "visible_name": "支付-第三方支付"
+    },
+    {
+      "dimension": "",
+      "file": "variables/transaction_withdraw.json",
+      "module": "base",
+      "name": "TRANSACTION_WITHDRAW",
+      "status": "enable",
+      "type": "event",
+      "visible_name": "支付-取现"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_dynamic_distinct_count_geo_city_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_dynamic_distinct_count_geo_city__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID关联不同城市数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_dynamic_distinct_count_ip_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_dynamic_distinct_count_ip__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID关联IP数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_dynamic_distinct_count_uid_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_dynamic_distinct_count_uid__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID关联UID数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_login_count_1h_slot.json",
+      "module": "slot",
+      "name": "did__account_login_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个设备每小时登陆总量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_login_count_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_login_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID登录请求总数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_login_count_fail_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_login_count_fail__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个DID5分钟内登陆失败总和"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_login_distinct_count_password_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_login_distinct_count_password__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID不同登录密码数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_login_distinct_count_uid_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_login_distinct_count_uid__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID登录不同UID数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_login_fail_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_login_fail_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "DID登录失败比例[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_regist_count_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_regist_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID注册请求总数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_regist_count_fail_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_regist_count_fail__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个DID5分钟内注册失败总和"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_regist_distinct_count_password_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_regist_distinct_count_password__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID不同注册密码数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_regist_distinct_count_uid_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_regist_distinct_count_uid__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID注册不同UID数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_regist_fail_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "did__account_regist_fail_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "DID注册失败比例[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_account_registration_count_1h_slot.json",
+      "module": "slot",
+      "name": "did__account_registration_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个设备每小时注册总量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_clicks_avg_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_clicks_avg_timediff__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID页面点击间隔平均值[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_clicks_count_refererhit_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_clicks_count_refererhit__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID引用页面被请求数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_clicks_cv_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_clicks_cv_timediff__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "DID页面点击间隔变异系数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_clicks_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_clicks_timediff__5m__rt",
+      "status": "enable",
+      "type": "sequence",
+      "visible_name": "单个DID5分钟内最近两次点击时间差"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_clicks_var_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_clicks_var_timediff__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个DID5分钟内点击时间差方差值"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_count_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_count__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "DID请求量[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_count_static_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_count_static__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID静态资源请求量[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_distinct_ip_1d_profile.json",
+      "module": "profile",
+      "name": "did__visit_distinct_ip__1d__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "did当天最多1小时关联ip数量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_distinct_ip_1h_profile.json",
+      "module": "profile",
+      "name": "did__visit_distinct_ip__1h__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户每小时关联ip数"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_distinct_uid_1d_profile.json",
+      "module": "profile",
+      "name": "did__visit_distinct_uid__1d__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "did当天最多1小时关联uid数量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_distinct_uid_1h_profile.json",
+      "module": "profile",
+      "name": "did__visit_distinct_uid__1h__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "did每小时关联uid数"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_avg_cbytes_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_dynamic_avg_cbytes__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个DID5分钟内请求大小平均值"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_count_1h_slot.json",
+      "module": "slot",
+      "name": "did__visit_dynamic_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个设备每小时访问量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_count_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_dynamic_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID动态资源请求量[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_count_get_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_dynamic_count_get__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个DID5分钟动态资源GET请求总量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_count_post_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_dynamic_count_post__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个DID5分钟动态资源POST请求总量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_count_top100_1h_slot.json",
+      "module": "slot",
+      "name": "did__visit_dynamic_count_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时访问量前100的did"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_cv_cbytes_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_dynamic_cv_cbytes__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "DID动态请求大小变异系数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_distinct_count_ip_1h_slot.json",
+      "module": "slot",
+      "name": "did__visit_dynamic_distinct_count_ip__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个设备每小时关联ip数量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_distinct_count_ip_top100_1h_slot.json",
+      "module": "slot",
+      "name": "did__visit_dynamic_distinct_count_ip_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时关联ip前100的did"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_distinct_count_page_1h_slot.json",
+      "module": "slot",
+      "name": "did__visit_dynamic_distinct_count_page__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个设备每小时动态资源关联page数量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_distinct_count_page_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_dynamic_distinct_count_page__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID动态请求不同页面数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_distinct_count_page_top100_1h_slot.json",
+      "module": "slot",
+      "name": "did__visit_dynamic_distinct_count_page_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时关联page前100的did"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_distinct_count_referer_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_dynamic_distinct_count_referer__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "DID动态请求不同引用页面数[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_distinct_count_uid_1h_slot.json",
+      "module": "slot",
+      "name": "did__visit_dynamic_distinct_count_uid__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个设备每小时动态资源关联用户数量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_distinct_count_uid_top100_1h_slot.json",
+      "module": "slot",
+      "name": "did__visit_dynamic_distinct_count_uid_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时关联uid前100的did"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_distinct_count_useragent_1h_slot.json",
+      "module": "slot",
+      "name": "did__visit_dynamic_distinct_count_useragent__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个设备每小时动态资源关联useragent数量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_get_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_dynamic_get_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "DID动态请求GET占比[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_post_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_dynamic_post_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "DID动态请求POST占比[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_dynamic_var_cbytes_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_dynamic_var_cbytes__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个DID5分钟内请求大小方差值"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_incident_count_1h_slot.json",
+      "module": "slot",
+      "name": "did__visit_incident_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个设备每小时风险访问量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_incident_count_top100_1h_slot.json",
+      "module": "slot",
+      "name": "did__visit_incident_count_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时风险访问量前100的did"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_visit_static_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "did__visit_static_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "DID静态资源请求比[5m]"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_geo_city_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "did_geo_city__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个did访问的前20的城市"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_geo_city_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "did_geo_city__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个did每小时每个城市的动态资源访问数量"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_ip_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "did_ip__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个设备访问的前20的ip"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_ip_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "did_ip__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "did_ip__visit_dynamic_group_count__1h__slot"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_page_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "did_page__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个设备访问的前20的页面"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_page_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "did_page__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个设备上每个页面当前小时动态资源访问数"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_uid_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "did_uid__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个设备访问量前20的用户"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_uid_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "did_uid__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个设备上每个用户当前小时动态资源访问数"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_useragent_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "did_useragent__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个设备访问的前20的agent"
+    },
+    {
+      "dimension": "did",
+      "file": "variables/did_useragent_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "did_useragent__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个设备上每个agent当前小时动态资源访问数"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_marketing_count_1h_slot.json",
+      "module": "slot",
+      "name": "global__marketing_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "每小时营销活动次数"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_marketing_incident_count_1h_slot.json",
+      "module": "slot",
+      "name": "global__marketing_incident_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "每小时风险营销活动次数"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_order_submit_count_1h_slot.json",
+      "module": "slot",
+      "name": "global__order_submit_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "本小时订单提交总量"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_order_submit_incident_count_1h_slot.json",
+      "module": "slot",
+      "name": "global__order_submit_incident_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "本小时订单风险提交总量"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_transaction_withdraw_count_1h_slot.json",
+      "module": "slot",
+      "name": "global__transaction_withdraw_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "每小时交易总数"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_transaction_withdraw_incident_count_1h_slot.json",
+      "module": "slot",
+      "name": "global__transaction_withdraw_incident_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "每小时交易风险总数"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_transaction_withdraw_incident_sum_withdraw_amount_1h_slot.json",
+      "module": "slot",
+      "name": "global__transaction_withdraw_incident_sum_withdraw_amount__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "每小时风险交易总额"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_transaction_withdraw_sum_withdraw_amount_1h_slot.json",
+      "module": "slot",
+      "name": "global__transaction_withdraw_sum_withdraw_amount__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "每小时交易总额"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_visit_count_5m_rt.json",
+      "module": "realtime",
+      "name": "global__visit_count__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "5分钟访问量总和"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_visit_dynamic_count_1h_slot.json",
+      "module": "slot",
+      "name": "global__visit_dynamic_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "本小时动态资源访问总量"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_visit_dynamic_count_5m_rt.json",
+      "module": "realtime",
+      "name": "global__visit_dynamic_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "5分钟动态资源访问量总和"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_visit_dynamic_distinct_count_did_1h_slot.json",
+      "module": "slot",
+      "name": "global__visit_dynamic_distinct_count_did__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "本小时动态资源访问设备数量"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_visit_dynamic_distinct_count_ip_1h_slot.json",
+      "module": "slot",
+      "name": "global__visit_dynamic_distinct_count_ip__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "本小时动态资源访问IP数量"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_visit_dynamic_distinct_count_uid_1h_slot.json",
+      "module": "slot",
+      "name": "global__visit_dynamic_distinct_count_uid__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "本小时动态资源访问用户数量"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_visit_incident_count_1h_slot.json",
+      "module": "slot",
+      "name": "global__visit_incident_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "本小时风险事件数量"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_visit_incident_distinct_count_ip_1h_slot.json",
+      "module": "slot",
+      "name": "global__visit_incident_distinct_count_ip__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "本小时动态资源访问风险IP数量"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_visit_incident_distinct_count_uid_1h_slot.json",
+      "module": "slot",
+      "name": "global__visit_incident_distinct_count_uid__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "本小时动态资源访问风险UID数量"
+    },
+    {
+      "dimension": "global",
+      "file": "variables/global_visit_static_count_5m_rt.json",
+      "module": "realtime",
+      "name": "global__visit_static_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "5分钟静态资源访问量总和"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_login_count_1h_slot.json",
+      "module": "slot",
+      "name": "ip__account_login_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip每小时账号登陆次数"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_login_count_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__account_login_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP登录请求总数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_login_count_fail_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__account_login_count_fail__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个IP5分钟内登陆失败总和"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_login_distinct_count_password_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__account_login_distinct_count_password__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP不同登录密码数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_login_distinct_count_uid_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__account_login_distinct_count_uid__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP登录不同UID数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_login_fail_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__account_login_fail_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "IP登录失败比例[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_regist_count_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__account_regist_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP注册请求总数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_regist_distinct_count_password_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__account_regist_distinct_count_password__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP不同注册密码数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_regist_distinct_count_uid_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__account_regist_distinct_count_uid__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP注册不同UID数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_regist_fail_count_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__account_regist_fail_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个IP5分钟内注册失败总和"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_regist_fail_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__account_regist_fail_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "IP注册失败比例[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_account_registration_count_1h_slot.json",
+      "module": "slot",
+      "name": "ip__account_registration_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip账号注册次数"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_clicks_avg_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_clicks_avg_timediff__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP页面点击间隔平均值[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_clicks_count_refererhit_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_clicks_count_refererhit__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP引用页面被请求数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_clicks_cv_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_clicks_cv_timediff__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "IP页面点击间隔变异系数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_clicks_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_clicks_timediff__5m__rt",
+      "status": "enable",
+      "type": "sequence",
+      "visible_name": "单个IP5分钟内最近两次点击时间差"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_clicks_var_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_clicks_var_timediff__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个IP5分钟内点击时间差方差值"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_count_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_count__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "IP请求量[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_distinct_did_1d_profile.json",
+      "module": "profile",
+      "name": "ip__visit_distinct_did__1d__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP当天最多1小时关联DID数量[1d]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_distinct_did_1h_profile.json",
+      "module": "profile",
+      "name": "ip__visit_distinct_did__1h__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": ""
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_distinct_uid_1d_profile.json",
+      "module": "profile",
+      "name": "ip__visit_distinct_uid__1d__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP当天最多1小时关联UID数量[1d]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_distinct_uid_1h_profile.json",
+      "module": "profile",
+      "name": "ip__visit_distinct_uid__1h__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": ""
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_avg_cbytes_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_avg_cbytes__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个IP5分钟内请求大小平均值"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_count_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_dynamic_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip本小时动态资源访问数量"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_count_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP动态资源请求量[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_count_get_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_count_get__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个IP5分钟动态资源GET请求总量"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_count_post_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_count_post__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个IP5分钟动态资源POST请求总量"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_count_top100_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_dynamic_count_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时访问量前100的ip"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_cv_cbytes_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_cv_cbytes__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "IP动态请求大小变异系数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_distinct_count_did_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_dynamic_distinct_count_did__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip本小时动态资源访问关联DID数量"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_distinct_count_did_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_distinct_count_did__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP关联DID数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_distinct_count_did_top100_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_dynamic_distinct_count_did_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时关联did前100的ip"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_distinct_count_page_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_dynamic_distinct_count_page__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip本小时动态资源访问关联页面数量"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_distinct_count_page_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_distinct_count_page__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP动态请求不同页面数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_distinct_count_page_top100_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_dynamic_distinct_count_page_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时关联page前100的ip"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_distinct_count_referer_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_distinct_count_referer__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP动态请求不同引用页面数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_distinct_count_uid_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_dynamic_distinct_count_uid__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip本小时动态资源访问关联用户数量"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_distinct_count_uid_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_distinct_count_uid__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP关联UID数[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_distinct_count_uid_top100_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_dynamic_distinct_count_uid_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时关联uid前100的ip"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_distinct_count_useragent_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_dynamic_distinct_count_useragent__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip每小时每个ua的动态资源请求数量"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_get_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_get_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "IP动态请求GET占比[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_post_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_post_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "IP动态请求POST占比[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_dynamic_var_cbytes_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_dynamic_var_cbytes__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个IP5分钟内请求大小方差值"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_incident_count_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_incident_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个IP每小时风险访问量"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_incident_count_top100_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_incident_count_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时风险访问量前100的ip"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_incident_first_timestamp_1h_slot.json",
+      "module": "slot",
+      "name": "ip__visit_incident_first_timestamp__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个IP风险事件初始时间"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_static_count_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_static_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "IP静态资源请求量[5m]"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_visit_static_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "ip__visit_static_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "单个IP5分钟静态资源访问量占比"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_did_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "ip_did__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个IP访问的前20的设备"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_did_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "ip_did__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip上每个设备当前小时动态资源访问数"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_geo_city_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "ip_geo_city__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个ip访问的前20的城市"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_geo_city_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "ip_geo_city__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip每小时每个城市的动态资源访问数量"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_page_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "ip_page__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个IP访问的前20的页面"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_page_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "ip_page__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip本小时内每个页面的动态资源访问数量"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_uid_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "ip_uid__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个IP访问的前20的uid"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_uid_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "ip_uid__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip本小时内每个用户的动态资源访问数量"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_useragent_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "ip_useragent__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个IP访问的前20的useragent"
+    },
+    {
+      "dimension": "ip",
+      "file": "variables/ip_useragent_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "ip_useragent__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个ip本小时内每个ua的动态资源访问数量"
+    },
+    {
+      "dimension": "page",
+      "file": "variables/page_visit_dynamic_count_1h_slot.json",
+      "module": "slot",
+      "name": "page__visit_dynamic_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个页面每小时动态访问量"
+    },
+    {
+      "dimension": "page",
+      "file": "variables/page_visit_dynamic_distinct_count_did_1h_slot.json",
+      "module": "slot",
+      "name": "page__visit_dynamic_distinct_count_did__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个页面每小时动态资源访问关联设备数"
+    },
+    {
+      "dimension": "page",
+      "file": "variables/page_visit_dynamic_distinct_count_ip_1h_slot.json",
+      "module": "slot",
+      "name": "page__visit_dynamic_distinct_count_ip__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个页面每小时动态资源访问关联ip数"
+    },
+    {
+      "dimension": "page",
+      "file": "variables/page_visit_dynamic_distinct_count_uid_1h_slot.json",
+      "module": "slot",
+      "name": "page__visit_dynamic_distinct_count_uid__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个页面每小时动态资源访问关联用户数"
+    },
+    {
+      "dimension": "page",
+      "file": "variables/page_visit_incident_count_1h_slot.json",
+      "module": "slot",
+      "name": "page__visit_incident_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个页面每小时风险访问量"
+    },
+    {
+      "dimension": "page",
+      "file": "variables/page_did_visit_dynamic_count_top100_1h_slot.json",
+      "module": "slot",
+      "name": "page_did__visit_dynamic_count_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个页面上访问量前100的did"
+    },
+    {
+      "dimension": "page",
+      "file": "variables/page_did_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "page_did__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个页面上每个设备当前小时访问数"
+    },
+    {
+      "dimension": "page",
+      "file": "variables/page_ip_visit_dynamic_count_top100_1h_slot.json",
+      "module": "slot",
+      "name": "page_ip__visit_dynamic_count_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个页面上访问量前100的ip"
+    },
+    {
+      "dimension": "page",
+      "file": "variables/page_ip_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "page_ip__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个页面上每个ip当前小时访问数"
+    },
+    {
+      "dimension": "page",
+      "file": "variables/page_uid_visit_dynamic_count_top100_1h_slot.json",
+      "module": "slot",
+      "name": "page_uid__visit_dynamic_count_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个页面上访问量前100的uid"
+    },
+    {
+      "dimension": "page",
+      "file": "variables/page_uid_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "page_uid__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个页面上每个用户当前小时访问数"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_dynamic_distinct_count_did_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__account_dynamic_distinct_count_did__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID关联DID数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_dynamic_distinct_count_geo_city_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__account_dynamic_distinct_count_geo_city__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID关联不同城市数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_dynamic_distinct_count_ip_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__account_dynamic_distinct_count_ip__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID关联IP数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_count_1h_slot.json",
+      "module": "slot",
+      "name": "uid__account_login_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户本小时登陆量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_count_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__account_login_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID登录请求总数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_count_fail_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__account_login_count_fail__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个UID5分钟内登陆失败总和"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_count_succ_profile.json",
+      "module": "profile",
+      "name": "uid__account_login_count_succ__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户登录成功次数[total]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_distinct_count_did_succ_1d_profile.json",
+      "module": "profile",
+      "name": "uid__account_login_distinct_count_did_succ__1d__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户登录成功不同did个数[1d]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_distinct_count_password_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__account_login_distinct_count_password__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID不同登录密码数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_distinct_did_1h_profile.json",
+      "module": "profile",
+      "name": "uid__account_login_distinct_did__1h__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "账号登陆成功did按小时去重列表"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_fail_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__account_login_fail_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "UID登录失败比例[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_geocity_last10_profile.json",
+      "module": "profile",
+      "name": "uid__account_login_geocity_last10__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "账号最近10条登录城市"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_ip_last10_profile.json",
+      "module": "profile",
+      "name": "uid__account_login_ip_last10__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "账号最近10条登录IP"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_ip_last_profile.json",
+      "module": "profile",
+      "name": "uid__account_login_ip_last__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "账号最近登录成功的ip"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_login_timestamp_last10_profile.json",
+      "module": "profile",
+      "name": "uid__account_login_timestamp_last10__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "账号最近10条登录时间"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_register_timestamp_profile.json",
+      "module": "profile",
+      "name": "uid__account_register_timestamp__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户注册时间"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_registration_count_1h_slot.json",
+      "module": "slot",
+      "name": "uid__account_registration_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户本小时注册量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_registration_count_top100_1h_slot.json",
+      "module": "slot",
+      "name": "uid__account_registration_count_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "注册量前100的user"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_token_change_mail_profile.json",
+      "module": "profile",
+      "name": "uid__account_token_change_mail__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "帐号修改的邮箱"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_token_change_mail_count_profile.json",
+      "module": "profile",
+      "name": "uid__account_token_change_mail_count__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "账号累计修改邮箱次数"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_token_change_mail_last_timestamp_profile.json",
+      "module": "profile",
+      "name": "uid__account_token_change_mail_last_timestamp__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "账号最近修改邮箱时间"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_token_change_mail_timestamp_profile.json",
+      "module": "profile",
+      "name": "uid__account_token_change_mail_timestamp__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": ""
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_token_change_mobile_profile.json",
+      "module": "profile",
+      "name": "uid__account_token_change_mobile__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "帐号修改的手机号"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_token_change_mobile_count_profile.json",
+      "module": "profile",
+      "name": "uid__account_token_change_mobile_count__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "账号修改手机号次数"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_account_token_change_mobile_timestamp_profile.json",
+      "module": "profile",
+      "name": "uid__account_token_change_mobile_timestamp__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "帐号修改的手机号时间"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_alarm_count_profile.json",
+      "module": "profile",
+      "name": "uid__alarm_count__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "报警次数"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_order_cancel_count_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__order_cancel_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID取消订单请求数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_order_distinct_count_receiver_geo_city_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__order_distinct_count_receiver_geo_city__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID下单不同收货城市数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_order_submit_avg_order_money_amount_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__order_submit_avg_order_money_amount__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID平均下单成功金额[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_order_submit_count_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__order_submit_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID下单数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_order_submit_count_fail_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__order_submit_count_fail__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID5分钟内下单失败总次数"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_order_submit_count_succ_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__order_submit_count_succ__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户下单成功数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_order_submit_distinct_count_merchant_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__order_submit_distinct_count_merchant__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID下单不同商户数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_order_submit_fail_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__order_submit_fail_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "UID下单失败比例[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_registration_account_ip_profile.json",
+      "module": "profile",
+      "name": "uid__registration__account__ip__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": ""
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_registration_account_mail_profile.json",
+      "module": "profile",
+      "name": "uid__registration__account__mail__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户注册邮箱"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_registration_account_mobile_profile.json",
+      "module": "profile",
+      "name": "uid__registration__account__mobile__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户注册手机"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_registration_account_username_profile.json",
+      "module": "profile",
+      "name": "uid__registration__account__username__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户注册用户名"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_transaction_withdraw_sum_withdraw_amount_1h_profile.json",
+      "module": "profile",
+      "name": "uid__transaction_withdraw_sum_withdraw_amount__1h__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "账号每小时消费金额"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_clicks_avg_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_clicks_avg_timediff__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID页面点击间隔平均值[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_clicks_count_refererhit_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_clicks_count_refererhit__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID引用页面被请求数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_clicks_cv_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_clicks_cv_timediff__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "UID页面点击间隔变异系数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_clicks_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_clicks_timediff__5m__rt",
+      "status": "enable",
+      "type": "sequence",
+      "visible_name": "单个UID5分钟内最近两次点击时间差"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_clicks_var_timediff_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_clicks_var_timediff__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个UID5分钟内点击时间差方差值"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_count_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_count__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "UID请求量[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_count_static_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_count_static__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID静态资源请求量[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_distinct_did_1d_profile.json",
+      "module": "profile",
+      "name": "uid__visit_distinct_did__1d__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID当天最多1小时关联DID数量[1d]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_distinct_did_1h_profile.json",
+      "module": "profile",
+      "name": "uid__visit_distinct_did__1h__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": ""
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_distinct_ip_1d_profile.json",
+      "module": "profile",
+      "name": "uid__visit_distinct_ip__1d__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID当天最多1小时关联IP数量[1d]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_distinct_ip_1h_profile.json",
+      "module": "profile",
+      "name": "uid__visit_distinct_ip__1h__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": ""
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_avg_cbytes_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_dynamic_avg_cbytes__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个UID5分钟内请求大小平均值"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_count_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_dynamic_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户本小时内动态资源访问总和"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_count_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_dynamic_count__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID动态资源请求量[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_count_get_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_dynamic_count_get__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个UID5分钟动态资源GET请求总量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_count_post_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_dynamic_count_post__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个UID5分钟动态资源POST请求总量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_count_top100_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_dynamic_count_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时访问量前100的uid"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_cv_cbytes_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_dynamic_cv_cbytes__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "UID动态请求大小变异系数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_distinct_count_did_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_dynamic_distinct_count_did__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户本小时内动态资源访问关联设备数量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_distinct_count_did_top100_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_dynamic_distinct_count_did_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时关联did前100的uid"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_distinct_count_ip_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_dynamic_distinct_count_ip__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户本小时内动态资源访问关联ip数量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_distinct_count_ip_top100_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_dynamic_distinct_count_ip_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时关联ip前100的uid"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_distinct_count_page_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_dynamic_distinct_count_page__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户本小时内动态资源访问关联page数量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_distinct_count_page_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_dynamic_distinct_count_page__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID动态请求不同页面数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_distinct_count_page_top100_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_dynamic_distinct_count_page_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时关联page前100的uid"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_distinct_count_referer_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_dynamic_distinct_count_referer__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "UID动态请求不同引用页面数[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_distinct_count_useragent_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_dynamic_distinct_count_useragent__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户本小时内动态资源访问关联useragent数量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_get_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_dynamic_get_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "UID动态请求GET占比[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_last_timestamp_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_dynamic_last_timestamp__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户每小时最后的访问时间"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_last_timestamp_profile.json",
+      "module": "profile",
+      "name": "uid__visit_dynamic_last_timestamp__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": " 用户最后访问时间"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_post_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_dynamic_post_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "UID动态请求POST占比[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_dynamic_var_cbytes_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_dynamic_var_cbytes__5m__rt",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个UID5分钟内请求大小方差值"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_incident_count_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_incident_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个UID每小时风险访问量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_incident_count_top100_1h_slot.json",
+      "module": "slot",
+      "name": "uid__visit_incident_count_top100__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每小时风险访问量前100的uid"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_visit_static_ratio_5m_rt.json",
+      "module": "realtime",
+      "name": "uid__visit_static_ratio__5m__rt",
+      "status": "enable",
+      "type": "dual",
+      "visible_name": "UID静态资源请求比[5m]"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_did_account_login_count_succ_profile.json",
+      "module": "profile",
+      "name": "uid_did__account_login_count_succ__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "账号登录成功did去重列表，并按照次数自增"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_did_visit_dynamic_count_profile.json",
+      "module": "profile",
+      "name": "uid_did__visit_dynamic_count__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户访问设备分布"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_did_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "uid_did__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每个user每个小时访问量前20的agent"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_did_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "uid_did__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户每小时每个设备的动态资源访问数量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_geo_city_visit_dynamic_count_profile.json",
+      "module": "profile",
+      "name": "uid_geo_city__visit_dynamic_count__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户主要访问地区来源"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_geo_city_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "uid_geo_city__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个用户访问的前20的城市"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_geo_city_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "uid_geo_city__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户每小时每个城市的动态资源访问数量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_ip_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "uid_ip__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个UID访问的前20的ip"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_ip_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "uid_ip__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户每小时每个ip的动态资源访问数量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_page_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "uid_page__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "单个UID访问的前20的页面"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_page_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "uid_page__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户每小时每个页面的动态资源访问数量"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_timestamp_visit_dynamic_count_profile.json",
+      "module": "profile",
+      "name": "uid_timestamp__visit_dynamic_count__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户访问时间偏好"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_useragent_visit_dynamic_count_profile.json",
+      "module": "profile",
+      "name": "uid_useragent__visit_dynamic_count__profile",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "用户访问User Agent分布"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_useragent_visit_dynamic_count_top20_1h_slot.json",
+      "module": "slot",
+      "name": "uid_useragent__visit_dynamic_count_top20__1h__slot",
+      "status": "enable",
+      "type": "top",
+      "visible_name": "每个user每个小时访问量前20的agent"
+    },
+    {
+      "dimension": "uid",
+      "file": "variables/uid_useragent_visit_dynamic_group_count_1h_slot.json",
+      "module": "slot",
+      "name": "uid_useragent__visit_dynamic_group_count__1h__slot",
+      "status": "enable",
+      "type": "aggregate",
+      "visible_name": "单个用户每小时每个useragent的动态资源访问数量"
+    }
+  ]
+}

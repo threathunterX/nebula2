@@ -1,0 +1,64 @@
+{
+  "app": "nebula",
+  "name": "TRANSACTION_WITHDRAW",
+  "properties": [
+    {
+      "name": "uid",
+      "remark": "用户账户",
+      "type": "string",
+      "visible_name": "用户账户"
+    },
+    {
+      "name": "transaction_id",
+      "remark": "取现或消费流水号",
+      "type": "string",
+      "visible_name": "取现或消费流水号"
+    },
+    {
+      "name": "withdraw_amount",
+      "remark": "取出或消费金额",
+      "type": "long",
+      "visible_name": "取出或消费金额"
+    },
+    {
+      "name": "withdraw_type",
+      "remark": "取出类型，消费／提现",
+      "type": "string",
+      "visible_name": "取出类型，消费／提现"
+    },
+    {
+      "name": "card_number",
+      "remark": "被充值卡号",
+      "type": "string",
+      "visible_name": "被充值卡号"
+    },
+    {
+      "name": "user_name",
+      "remark": "交易相关用户",
+      "type": "string",
+      "visible_name": "交易相关用户"
+    },
+    {
+      "name": "account_balance_before",
+      "remark": "账户取现／消费前余额",
+      "type": "long",
+      "visible_name": "账户取现／消费前余额"
+    },
+    {
+      "name": "result",
+      "remark": "取现结果",
+      "type": "string",
+      "visible_name": "取现结果"
+    }
+  ],
+  "remark": "支付-取现",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "支付-取现"
+}

@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "sum",
+    "object": "withdraw_amount",
+    "object_subtype": "",
+    "object_type": "long",
+    "param": "",
+    "source": "TRANSACTION_WITHDRAW"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid__transaction_withdraw_sum_withdraw_amount__1h__profile",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "账号每小时消费金额",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "TRANSACTION_WITHDRAW"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "账号每小时消费金额"
+}

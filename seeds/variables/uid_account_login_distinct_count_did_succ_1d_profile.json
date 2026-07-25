@@ -1,0 +1,36 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "distinct_count",
+    "object": "value",
+    "object_subtype": "string",
+    "object_type": "mlist",
+    "param": "",
+    "source": "uid__account_login_distinct_did__1h__profile"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid__account_login_distinct_count_did_succ__1d__profile",
+  "period": {
+    "type": "last_n_days"
+  },
+  "remark": "用户当天登录成功不同did个数",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "uid__account_login_distinct_did__1h__profile"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "用户登录成功不同did个数[1d]"
+}

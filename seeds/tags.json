@@ -1,0 +1,67 @@
+{
+  "count": 15,
+  "kind": "risk_tag",
+  "source_table": "nebula.tags",
+  "tags": [
+    {
+      "app": "nebula",
+      "name": "RFI"
+    },
+    {
+      "app": "nebula",
+      "name": "SQL注入"
+    },
+    {
+      "app": "nebula",
+      "name": "XSS"
+    },
+    {
+      "app": "nebula",
+      "name": "ngx_lua_waf"
+    },
+    {
+      "app": "nebula",
+      "name": "其他"
+    },
+    {
+      "app": "nebula",
+      "name": "刷单"
+    },
+    {
+      "app": "nebula",
+      "name": "恶意扫描"
+    },
+    {
+      "app": "nebula",
+      "name": "恶意注册"
+    },
+    {
+      "app": "nebula",
+      "name": "撞库"
+    },
+    {
+      "app": "nebula",
+      "name": "爬虫"
+    },
+    {
+      "app": "nebula",
+      "name": "盗号"
+    },
+    {
+      "app": "nebula",
+      "name": "目录遍历"
+    },
+    {
+      "app": "nebula",
+      "name": "简历爬虫"
+    },
+    {
+      "app": "nebula",
+      "name": "羊毛党"
+    },
+    {
+      "app": "nebula",
+      "name": "账号异常"
+    }
+  ]
+}

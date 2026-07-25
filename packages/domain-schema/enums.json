@@ -1,0 +1,94 @@
+{
+  "$comment": "星云 Nebula 2.0 领域枚举 —— 单一真相源。这些枚举与 1.x 保持二进制兼容,修改会破坏与客户业务系统的对接契约。",
+  "version": "2.0",
+
+  "decision": {
+    "description": "风控决策。1.x 契约,不可变更。",
+    "values": {
+      "accept": { "label": "通过", "semantic": "白名单,明确放行" },
+      "review": { "label": "审核", "semantic": "存疑,交由人工或二次验证" },
+      "reject": { "label": "拒绝", "semantic": "黑名单,阻断" }
+    }
+  },
+
+  "scene": {
+    "description": "风险场景。1.x 契约,不可变更。",
+    "values": {
+      "VISITOR":     { "label": "访客" },
+      "ACCOUNT":     { "label": "帐号" },
+      "TRANSACTION": { "label": "支付" },
+      "ORDER":       { "label": "订单" },
+      "MARKETING":   { "label": "营销" },
+      "OTHER":       { "label": "其他" }
+    }
+  },
+
+  "check_type": {
+    "description": "名单主体类型。1.x 契约,不可变更。",
+    "values": {
+      "IP":       { "label": "IP 地址",  "event_field": "c_ip" },
+      "USER":     { "label": "用户账号", "event_field": "uid" },
+      "DeviceID": { "label": "设备标识", "event_field": "did" },
+      "OrderID":  { "label": "订单号",   "event_field": "order_id" }
+    }
+  },
+
+  "dimension": {
+    "description": "变量统计维度。",
+    "values": ["ip", "uid", "did", "page", "others", "global", ""]
+  },
+
+  "variable_type": {
+    "description": "变量类型,决定计算图中的节点种类。",
+    "values": {
+      "event":     { "label": "事件",   "stateful": false, "note": "DAG 根节点,事件解包" },
+      "filter":    { "label": "过滤",   "stateful": false, "note": "过滤 + 字段派生" },
+      "aggregate": { "label": "聚合",   "stateful": true,  "note": "窗口内按 key 聚合" },
+      "dual":      { "label": "二元",   "stateful": true,  "note": "两个变量做二元运算" },
+      "sequence":  { "label": "序列",   "stateful": true,  "note": "相邻事件间求差" },
+      "top":       { "label": "TopN",   "stateful": true,  "note": "按值排序取前 N" }
+    }
+  },
+
+  "period_type": {
+    "description": "时间窗口类型。2.0 统一由 Flink 窗口实现。",
+    "values": {
+      "self":           { "window": "无窗口",      "note": "对当前值直接变形" },
+      "last_n_seconds": { "window": "滑动窗口",    "note": "1.x 内置资产中主要为 300 秒" },
+      "hourly":         { "window": "滚动窗口",    "note": "整点对齐,1 小时" },
+      "last_n_hours":   { "window": "滑动窗口" },
+      "last_n_days":    { "window": "滑动窗口" },
+      "today":          { "window": "自然日窗口" },
+      "ever":           { "window": "无界",        "note": "长期画像,由保留期策略约束" }
+    }
+  },
+
+  "value_type": {
+    "description": "值类型系统。复合类型的 subtype 取值受限。",
+    "values": {
+      "long":   { "subtypes": [] },
+      "double": { "subtypes": [] },
+      "string": { "subtypes": [] },
+      "bool":   { "subtypes": [] },
+      "list":   { "subtypes": ["long", "double", "string", "kv"] },
+      "map":    { "subtypes": ["long", "double", "string", "list"] },
+      "mlist":  { "subtypes": ["long", "double", "string", "kv"], "note": "map<key, list>" },
+      "mmap":   { "subtypes": ["long", "double", "string", "list"], "note": "map<key, map>" }
+    }
+  },
+
+  "strategy_status": {
+    "description": "策略生命周期。只有 online 且在生效时间窗内的策略参与计算。",
+    "values": ["inedit", "test", "online", "outline"]
+  },
+
+  "sensitivity": {
+    "description": "字段敏感级别。2.0 新增 —— 驱动采集端脱敏、存储加密与访问控制。",
+    "values": {
+      "public":    { "label": "公开",         "handling": "明文存储" },
+      "internal":  { "label": "内部",         "handling": "明文存储,访问需授权" },
+      "pii":       { "label": "个人信息",     "handling": "HMAC 存储或加密列,查询需授权 + 审计" },
+      "sensitive": { "label": "敏感个人信息", "handling": "采集端即脱敏,原文不落库" }
+    }
+  }
+}

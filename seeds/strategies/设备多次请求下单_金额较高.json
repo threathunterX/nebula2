@@ -1,0 +1,139 @@
+{
+  "app": "nebula",
+  "category": "ORDER",
+  "end_effect": 1545898796395,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "设备多次请求下单__金额较高",
+  "remark": ">5 in 1h, order_money_amount > 100",
+  "score": 0,
+  "start_effect": 1482826795423,
+  "status": "online",
+  "tags": [
+    "单一下单"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "field": "page"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "!regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "^\\s*$"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "field": "order_money_amount"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": ">",
+      "remark": "金额",
+      "right": {
+        "config": {
+          "value": "100"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "count",
+          "condition": [
+            {
+              "left": "did",
+              "op": "=",
+              "right": "did"
+            },
+            {
+              "left": "page",
+              "op": "!regex",
+              "right": "^\\s*$"
+            },
+            {
+              "left": "order_money_amount",
+              "op": ">",
+              "right": "100"
+            }
+          ],
+          "groupby": [
+            "did"
+          ],
+          "interval": 3600,
+          "operand": [
+            "c_ip"
+          ],
+          "sourceevent": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "ORDER_SUBMIT"
+            ],
+            "keys": [
+              "did"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "次数",
+      "right": {
+        "config": {
+          "value": "5"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "DeviceID",
+          "checkvalue": "did",
+          "decision": "review",
+          "name": "ORDER",
+          "remark": "",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

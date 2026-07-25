@@ -1,0 +1,61 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {
+    "condition": [
+      {
+        "object": "result",
+        "object_subtype": "",
+        "object_type": "string",
+        "operation": "==",
+        "param": "",
+        "source": "ACCOUNT_REGISTRATION",
+        "type": "simple",
+        "value": "T"
+      },
+      {
+        "object": "register_verification_token_type",
+        "object_subtype": "",
+        "object_type": "string",
+        "operation": "==",
+        "param": "",
+        "source": "ACCOUNT_REGISTRATION",
+        "type": "simple",
+        "value": "email"
+      }
+    ],
+    "type": "and"
+  },
+  "function": {
+    "config": {},
+    "method": "last",
+    "object": "register_verification_token",
+    "object_subtype": "",
+    "object_type": "string",
+    "param": "",
+    "source": "ACCOUNT_REGISTRATION"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid__registration__account__mail__profile",
+  "period": {
+    "type": "ever",
+    "value": ""
+  },
+  "remark": "用户注册邮箱",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_REGISTRATION"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "string",
+  "visible_name": "用户注册邮箱"
+}

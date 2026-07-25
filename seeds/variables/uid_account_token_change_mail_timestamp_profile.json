@@ -1,0 +1,61 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {
+    "condition": [
+      {
+        "object": "result",
+        "object_subtype": "",
+        "object_type": "string",
+        "operation": "==",
+        "param": "",
+        "source": "ACCOUNT_TOKEN_CHANGE",
+        "type": "simple",
+        "value": "T"
+      },
+      {
+        "object": "token_type",
+        "object_subtype": "",
+        "object_type": "string",
+        "operation": "==",
+        "param": "",
+        "source": "ACCOUNT_TOKEN_CHANGE",
+        "type": "simple",
+        "value": "email"
+      }
+    ],
+    "type": "and"
+  },
+  "function": {
+    "config": {},
+    "method": "last",
+    "object": "timestamp",
+    "object_subtype": "",
+    "object_type": "long",
+    "param": "",
+    "source": "ACCOUNT_TOKEN_CHANGE"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid__account_token_change_mail_timestamp__profile",
+  "period": {
+    "type": "ever",
+    "value": ""
+  },
+  "remark": "帐号修改的邮箱的时间",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_TOKEN_CHANGE"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": ""
+}

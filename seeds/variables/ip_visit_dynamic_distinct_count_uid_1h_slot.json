@@ -1,0 +1,46 @@
+{
+  "app": "nebula",
+  "dimension": "ip",
+  "filter": {
+    "object": "uid",
+    "object_subtype": "",
+    "object_type": "string",
+    "operation": "!=",
+    "param": "",
+    "source": "HTTP_DYNAMIC",
+    "type": "simple",
+    "value": ""
+  },
+  "function": {
+    "config": {},
+    "method": "distinct_count",
+    "object": "uid",
+    "object_subtype": "",
+    "object_type": "string",
+    "param": "",
+    "source": "HTTP_DYNAMIC"
+  },
+  "groupbykeys": [
+    "c_ip"
+  ],
+  "hint": {},
+  "module": "slot",
+  "name": "ip__visit_dynamic_distinct_count_uid__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "单个ip本小时动态资源访问关联用户数量",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "单个ip本小时动态资源访问关联用户数量"
+}

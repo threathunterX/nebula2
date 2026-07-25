@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "did",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "-",
+    "object": "timestamp",
+    "object_subtype": "",
+    "object_type": "long",
+    "param": "",
+    "source": "HTTP_CLICK"
+  },
+  "groupbykeys": [
+    "did"
+  ],
+  "hint": {},
+  "module": "realtime",
+  "name": "did__visit_clicks_timediff__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "单个DID5分钟内最近两次点击时间差",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_CLICK"
+    }
+  ],
+  "status": "enable",
+  "type": "sequence",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "单个DID5分钟内最近两次点击时间差"
+}

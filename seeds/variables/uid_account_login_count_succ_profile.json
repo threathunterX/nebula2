@@ -1,0 +1,46 @@
+{
+  "app": "nebula",
+  "dimension": "uid",
+  "filter": {
+    "object": "result",
+    "object_subtype": "",
+    "object_type": "string",
+    "operation": "==",
+    "param": "",
+    "source": "ACCOUNT_LOGIN",
+    "type": "simple",
+    "value": "T"
+  },
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "ACCOUNT_LOGIN"
+  },
+  "groupbykeys": [
+    "uid"
+  ],
+  "hint": {},
+  "module": "profile",
+  "name": "uid__account_login_count_succ__profile",
+  "period": {
+    "type": "ever",
+    "value": ""
+  },
+  "remark": "用户登录成功次数",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_LOGIN"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "用户登录成功次数[total]"
+}

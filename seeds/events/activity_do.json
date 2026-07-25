@@ -1,0 +1,64 @@
+{
+  "app": "nebula",
+  "name": "ACTIVITY_DO",
+  "properties": [
+    {
+      "name": "uid",
+      "remark": "用户账号",
+      "type": "string",
+      "visible_name": "用户账号"
+    },
+    {
+      "name": "activity_name",
+      "remark": "活动名",
+      "type": "string",
+      "visible_name": "活动名"
+    },
+    {
+      "name": "activity_type",
+      "remark": "活动类型",
+      "type": "string",
+      "visible_name": "活动类型"
+    },
+    {
+      "name": "activity_gain_count",
+      "remark": "活动所得",
+      "type": "long",
+      "visible_name": "活动所得"
+    },
+    {
+      "name": "activity_gain_amount",
+      "remark": "活动所得",
+      "type": "long",
+      "visible_name": "活动所得"
+    },
+    {
+      "name": "activity_pay_amount",
+      "remark": "活动支出",
+      "type": "long",
+      "visible_name": "活动支出"
+    },
+    {
+      "name": "user_name",
+      "remark": "活动相关人员",
+      "type": "string",
+      "visible_name": "活动相关人员"
+    },
+    {
+      "name": "result",
+      "remark": "参与结果",
+      "type": "string",
+      "visible_name": "参与结果"
+    }
+  ],
+  "remark": "营销-参加活动",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC"
+    }
+  ],
+  "type": "base",
+  "version": "1.0",
+  "visible_name": "营销-参加活动"
+}

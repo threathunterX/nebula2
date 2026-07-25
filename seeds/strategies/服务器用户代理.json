@@ -1,0 +1,60 @@
+{
+  "app": "nebula",
+  "category": "VISITOR",
+  "end_effect": 1630565831241,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "服务器用户代理",
+  "remark": "apachebench|pycurl, 不包括java|python",
+  "score": 0,
+  "start_effect": 1473058630310,
+  "status": "online",
+  "tags": [
+    "特殊UA"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "useragent"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": ".*(feeddemon|indy library|alexa toolbar|asktbfxtv|ahrefsbot|crawldaddy|coolpadwebkit|feedly|universalfeedparser|apachebench|microsoft url control|swiftbot|Zmeu|obot|jaunty|lightdeckreports bot|digext|httpclient|mj12bot|heritrix|easouspider|ezooms|httrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|parser|libwww|bbbike|sqlmap|w3af|owasp|nikto|fimap|havij|pycurl|zmeu|babykrokodil|netsparker|httperf|bench|SF/).*"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "VISITOR",
+          "remark": "请求Useragent中包含服务器信息",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

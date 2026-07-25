@@ -1,0 +1,76 @@
+{
+  "app": "nebula",
+  "category": "VISITOR",
+  "end_effect": 1509076867000,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "测试-地域FUNCTION",
+  "remark": "地域function测试策略",
+  "score": 0,
+  "start_effect": 1504238467272,
+  "status": "online",
+  "tags": [],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "c_ip"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "contain",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "."
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "location_string": [
+            "上海市"
+          ],
+          "location_type": "province",
+          "op": "=",
+          "source_event_key": "nebula.HTTP_DYNAMIC.c_ip"
+        },
+        "subtype": "getlocation",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "VISITOR",
+          "remark": "",
+          "ttl": 18000
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

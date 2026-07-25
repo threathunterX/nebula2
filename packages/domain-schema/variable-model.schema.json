@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/threathunterX/nebula2/packages/domain-schema/variable-model.schema.json",
+  "title": "VariableModel",
+  "description": "统计变量定义。变量在事件流上做窗口计算,是策略判定的输入。变量之间可以互为输入,构成有向无环计算图。",
+  "type": "object",
+  "required": ["module", "app", "name", "visible_name", "status", "type", "source"],
+  "additionalProperties": false,
+  "$comment": "period 与 function 的必填性取决于 type —— 见文件末尾的 allOf 条件约束。base 层的 event/filter 变量不参与窗口计算,两者均为空对象。",
+  "properties": {
+    "module": {
+      "type": "string",
+      "enum": ["base", "realtime", "slot", "profile"],
+      "description": "base 事件层 / realtime 实时滑窗 / slot 小时滚动窗 / profile 长期画像。"
+    },
+    "app": { "type": "string", "const": "nebula" },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "命名规范因类型而异:计算类变量(aggregate/dual/sequence/top)为 {维度key}__{业务语义}__{窗口}__{模块},维度 key 复合时用单下划线连接(如 did_ip),分段用双下划线,例 ip__visit_dynamic_distinct_count_did__1h__slot;base 层的 event/filter 变量直接使用事件名(大写下划线),例 HTTP_DYNAMIC、HTTP_CLICK。具体约束见 allOf。"
+    },
+    "visible_name": { "type": "string", "description": "界面显示名(中文)。" },
+    "remark": { "type": "string", "default": "" },
+    "dimension": {
+      "type": "string",
+      "enum": ["ip", "uid", "did", "page", "others", "global", ""],
+      "description": "统计维度。可由 groupbykeys 自动推导:c_ip→ip,uid→uid,did→did,page/uri_stem→page,其余→others;无 groupbykeys 且非 event/filter 类型→global。"
+    },
+    "status": { "type": "string", "enum": ["enable", "disable"], "default": "enable" },
+    "type": {
+      "type": "string",
+      "enum": ["event", "filter", "aggregate", "dual", "sequence", "top"],
+      "description": "决定计算图节点类型。语义见 docs/concepts/data-model.md。"
+    },
+    "value_type": {
+      "type": "string",
+      "enum": ["long", "double", "string", "bool", "list", "map", "mlist", "mmap", ""]
+    },
+    "value_subtype": { "type": "string", "default": "" },
+    "value_category": {
+      "type": "string",
+      "enum": ["did", "uid", "ip", ""],
+      "default": "",
+      "description": "值的语义类别,用于关联分析(例如某变量的值本身是一批设备 ID)。"
+    },
+    "source": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 2,
+      "description": "输入来源:事件或上游变量。dual 类型必须恰好 2 个。",
+      "items": {
+        "type": "object",
+        "required": ["app", "name"],
+        "additionalProperties": false,
+        "properties": { "app": { "type": "string" }, "name": { "type": "string" } }
+      }
+    },
+    "filter": {
+      "oneOf": [{ "$ref": "#/$defs/filter" }, { "type": "object", "maxProperties": 0 }],
+      "description": "过滤条件。空对象表示不过滤。"
+    },
+    "period": {
+      "oneOf": [{ "$ref": "#/$defs/period" }, { "type": "object", "maxProperties": 0 }],
+      "description": "时间窗口。event/filter 类型为空对象。"
+    },
+    "function": {
+      "oneOf": [{ "$ref": "#/$defs/function" }, { "type": "object", "maxProperties": 0 }],
+      "description": "聚合函数。event/filter 类型为空对象。"
+    },
+    "groupbykeys": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "maxItems": 2,
+      "description": "分组键。0 个为全局聚合,1 个为一级 key,2 个为二级 key。"
+    },
+    "hint": { "type": "object", "default": {}, "description": "引擎优化提示,可选。" }
+  },
+
+  "allOf": [
+    {
+      "$comment": "base 层的事件与过滤变量:以事件名命名,不参与窗口计算。",
+      "if": {
+        "properties": { "type": { "enum": ["event", "filter"] } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "name": { "pattern": "^[A-Z][A-Z0-9_]*$" },
+          "period": { "type": "object", "maxProperties": 0 },
+          "function": { "type": "object", "maxProperties": 0 }
+        }
+      }
+    },
+    {
+      "$comment": "计算类变量:遵循四段命名规范,且必须声明窗口与聚合函数。",
+      "if": {
+        "properties": { "type": { "enum": ["aggregate", "dual", "sequence", "top"] } },
+        "required": ["type"]
+      },
+      "then": {
+        "required": ["period", "function", "value_type"],
+        "properties": {
+          "name": { "pattern": "^[a-z0-9_]+__[a-z0-9_]+__[a-z0-9]+(__[a-z]+)?$" },
+          "period": { "$ref": "#/$defs/period" },
+          "function": { "$ref": "#/$defs/function" }
+        }
+      }
+    },
+    {
+      "$comment": "二元变量必须恰好有两个输入。",
+      "if": { "properties": { "type": { "const": "dual" } }, "required": ["type"] },
+      "then": { "properties": { "source": { "minItems": 2, "maxItems": 2 } } }
+    }
+  ],
+
+  "$defs": {
+    "filter": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "enum": ["simple", "and", "or", "not"] },
+        "source": { "type": "string" },
+        "object": { "type": "string", "description": "被判定的字段名。" },
+        "object_type": { "type": "string", "enum": ["", "long", "double", "string", "bool"] },
+        "object_subtype": { "type": "string", "default": "" },
+        "operation": {
+          "type": "string",
+          "description": "条件算子。2.0 要求全部算子均有引擎实现(1.x 声明多于实现,是已知缺陷)。",
+          "enum": [
+            "==", "!=", ">", "<", ">=", "<=",
+            "contains", "!contains", "startwith", "!startwith", "endwith", "!endwith",
+            "empty", "!empty", "regex", "!regex", "in", "!in", "containsby", "!containsby",
+            "locationequals", "!locationequals", "locationcontainsby", "!locationcontainsby"
+          ]
+        },
+        "value": { "description": "比较值。empty/!empty 算子无需此字段。" },
+        "param": { "type": "string", "default": "" },
+        "condition": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/filter" },
+          "description": "复合条件的子条件。type 为 and/or/not 时必填;not 只取第一个。"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "simple" } }, "required": ["type"] },
+          "then": { "required": ["object", "operation"] }
+        },
+        {
+          "if": { "properties": { "type": { "enum": ["and", "or", "not"] } }, "required": ["type"] },
+          "then": { "required": ["condition"], "properties": { "condition": { "minItems": 1 } } }
+        }
+      ]
+    },
+
+    "period": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["self", "last_n_seconds", "last_n_hours", "last_n_days", "hourly", "today", "ever", ""]
+        },
+        "value": {
+          "type": ["string", "integer"],
+          "default": "",
+          "description": "窗口大小。last_n_seconds 单位为秒,hourly 单位为小时。"
+        }
+      }
+    },
+
+    "function": {
+      "type": "object",
+      "required": ["method"],
+      "properties": {
+        "method": {
+          "type": "string",
+          "description": "聚合算子。合法取值受 period.type 与操作数类型共同约束,由类型推导规则校验(见 type-inference.md)。",
+          "enum": [
+            "count", "sum", "max", "min", "avg", "stddev", "variance", "cv",
+            "distinct_count", "distinct", "first", "last", "lastn",
+            "group_count", "group_sum", "top", "topn", "merge", "merge_value",
+            "collection", "global_latest", "last_value", "+", "-", "*", "/"
+          ]
+        },
+        "source": { "type": "string" },
+        "object": { "type": "string", "description": "被聚合的字段名。" },
+        "object_type": { "type": "string", "default": "" },
+        "object_subtype": { "type": "string", "default": "" },
+        "param": { "type": "string", "default": "", "description": "算子参数,如 top 的分组字段、lastn 的 N。" },
+        "config": {
+          "type": "object",
+          "default": {},
+          "properties": {
+            "distinct_mode": {
+              "type": "string",
+              "enum": ["exact", "approx"],
+              "default": "exact",
+              "description": "2.0 新增。distinct_count 的精度模式。exact 为精确去重;approx 使用 HyperLogLog(log2m=14,标准误差约 0.8%)。1.x 采用「前 20 精确 + HLL(log2m=9)」混合方案,误差约 4.6%,新版不再兼容该行为,详见迁移指南。"
+            },
+            "approx_threshold": {
+              "type": "integer",
+              "default": 100000,
+              "description": "exact 模式下基数超过此阈值自动降级为 approx,并在结果中标记。"
+            }
+          }
+        }
+      }
+    }
+  }
+}

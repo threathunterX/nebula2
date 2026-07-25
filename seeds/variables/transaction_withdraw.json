@@ -1,0 +1,24 @@
+{
+  "app": "nebula",
+  "dimension": "",
+  "filter": {},
+  "function": {},
+  "groupbykeys": [],
+  "hint": {},
+  "module": "base",
+  "name": "TRANSACTION_WITHDRAW",
+  "period": {},
+  "remark": "支付-取现",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "TRANSACTION_WITHDRAW"
+    }
+  ],
+  "status": "enable",
+  "type": "event",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "",
+  "visible_name": "支付-取现"
+}

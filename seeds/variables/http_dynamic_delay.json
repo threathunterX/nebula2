@@ -1,0 +1,24 @@
+{
+  "app": "nebula",
+  "dimension": "",
+  "filter": {},
+  "function": {},
+  "groupbykeys": [],
+  "hint": {},
+  "module": "base",
+  "name": "HTTP_DYNAMIC_DELAY",
+  "period": {},
+  "remark": "http动态资源访问",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "HTTP_DYNAMIC_DELAY"
+    }
+  ],
+  "status": "enable",
+  "type": "event",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "",
+  "visible_name": "http动态资源访问"
+}

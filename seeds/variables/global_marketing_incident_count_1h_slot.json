@@ -1,0 +1,44 @@
+{
+  "app": "nebula",
+  "dimension": "global",
+  "filter": {
+    "object": "notices",
+    "object_subtype": "",
+    "object_type": "string",
+    "operation": "!=",
+    "param": "",
+    "source": "ACTIVITY_DO",
+    "type": "simple",
+    "value": ""
+  },
+  "function": {
+    "config": {},
+    "method": "count",
+    "object": "",
+    "object_subtype": "",
+    "object_type": "",
+    "param": "",
+    "source": "ACTIVITY_DO"
+  },
+  "groupbykeys": [],
+  "hint": {},
+  "module": "slot",
+  "name": "global__marketing_incident_count__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "每小时风险营销活动次数",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACTIVITY_DO"
+    }
+  ],
+  "status": "enable",
+  "type": "aggregate",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "map",
+  "visible_name": "每小时风险营销活动次数"
+}

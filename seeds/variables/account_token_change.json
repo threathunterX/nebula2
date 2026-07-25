@@ -1,0 +1,24 @@
+{
+  "app": "nebula",
+  "dimension": "",
+  "filter": {},
+  "function": {},
+  "groupbykeys": [],
+  "hint": {},
+  "module": "base",
+  "name": "ACCOUNT_TOKEN_CHANGE",
+  "period": {},
+  "remark": "账号-安全凭证修改",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "ACCOUNT_TOKEN_CHANGE"
+    }
+  ],
+  "status": "enable",
+  "type": "event",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "",
+  "visible_name": "账号-安全凭证修改"
+}

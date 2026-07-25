@@ -1,0 +1,24 @@
+{
+  "app": "nebula",
+  "dimension": "",
+  "filter": {},
+  "function": {},
+  "groupbykeys": [],
+  "hint": {},
+  "module": "base",
+  "name": "TRANSACTION_DEPOSIT",
+  "period": {},
+  "remark": "支付-充值",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "TRANSACTION_DEPOSIT"
+    }
+  ],
+  "status": "enable",
+  "type": "event",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "",
+  "visible_name": "支付-充值"
+}

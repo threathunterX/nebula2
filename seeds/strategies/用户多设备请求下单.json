@@ -1,0 +1,111 @@
+{
+  "app": "nebula",
+  "category": "ORDER",
+  "end_effect": 1564925159000,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "用户多设备请求下单",
+  "remark": ">1 ip in 30min",
+  "score": 0,
+  "start_effect": 1502889958243,
+  "status": "online",
+  "tags": [
+    "关联下单"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "field": "page"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "!regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "^\\s*$"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "algorithm": "distinct_count",
+          "condition": [
+            {
+              "left": "uid",
+              "op": "=",
+              "right": "uid"
+            },
+            {
+              "left": "page",
+              "op": "contain",
+              "right": "^\\s*$"
+            }
+          ],
+          "groupby": [
+            "uid"
+          ],
+          "interval": 1800,
+          "operand": [
+            "did"
+          ],
+          "sourceevent": [
+            "nebula",
+            "ORDER_SUBMIT"
+          ],
+          "trigger": {
+            "event": [
+              "nebula",
+              "ORDER_SUBMIT"
+            ],
+            "keys": [
+              "uid"
+            ]
+          }
+        },
+        "subtype": "count",
+        "type": "func"
+      },
+      "op": ">",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "1"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "USER",
+          "checkvalue": "uid",
+          "decision": "review",
+          "name": "ORDER",
+          "remark": "",
+          "ttl": 3600
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

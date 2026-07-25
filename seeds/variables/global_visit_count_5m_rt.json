@@ -1,0 +1,39 @@
+{
+  "app": "nebula",
+  "dimension": "global",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "+",
+    "object": "value",
+    "object_subtype": "",
+    "object_type": "long",
+    "param": "",
+    "source": "global__visit_static_count__5m__rt"
+  },
+  "groupbykeys": [],
+  "hint": {},
+  "module": "realtime",
+  "name": "global__visit_count__5m__rt",
+  "period": {
+    "type": "last_n_seconds",
+    "value": "300"
+  },
+  "remark": "5分钟访问量总和",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "global__visit_static_count__5m__rt"
+    },
+    {
+      "app": "nebula",
+      "name": "global__visit_dynamic_count__5m__rt"
+    }
+  ],
+  "status": "enable",
+  "type": "dual",
+  "value_category": "",
+  "value_subtype": "",
+  "value_type": "long",
+  "visible_name": "5分钟访问量总和"
+}

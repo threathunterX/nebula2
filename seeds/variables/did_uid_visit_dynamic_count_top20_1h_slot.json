@@ -1,0 +1,37 @@
+{
+  "app": "nebula",
+  "dimension": "did",
+  "filter": {},
+  "function": {
+    "config": {},
+    "method": "top",
+    "object": "value",
+    "object_subtype": "long",
+    "object_type": "mmap",
+    "param": "uid",
+    "source": "did_uid__visit_dynamic_group_count__1h__slot"
+  },
+  "groupbykeys": [
+    "did"
+  ],
+  "hint": {},
+  "module": "slot",
+  "name": "did_uid__visit_dynamic_count_top20__1h__slot",
+  "period": {
+    "type": "hourly",
+    "value": "1"
+  },
+  "remark": "单个设备访问量前20的用户",
+  "source": [
+    {
+      "app": "nebula",
+      "name": "did_uid__visit_dynamic_group_count__1h__slot"
+    }
+  ],
+  "status": "enable",
+  "type": "top",
+  "value_category": "",
+  "value_subtype": "long",
+  "value_type": "mmap",
+  "visible_name": "单个设备访问量前20的用户"
+}

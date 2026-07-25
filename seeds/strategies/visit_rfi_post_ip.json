@@ -1,0 +1,83 @@
+{
+  "app": "nebula",
+  "category": "VISITOR",
+  "end_effect": 1543377535967,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "visit_rfi_post_ip",
+  "remark": "POST参数中包含rfi远程文件包含的特征",
+  "score": 0,
+  "start_effect": 1477972735783,
+  "status": "online",
+  "tags": [
+    "RFI"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "method"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "==",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "POST"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "c_body"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "regex",
+      "remark": "",
+      "right": {
+        "config": {
+          "value": "http://|https://|ftp://|php://|sftp://|zlib://|data://|glob://|phar://|file://|gopher://"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "VISITOR",
+          "remark": "POST参数中包含rfi远程文件包含的特征",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}

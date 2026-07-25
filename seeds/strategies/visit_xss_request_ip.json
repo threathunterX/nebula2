@@ -1,0 +1,60 @@
+{
+  "app": "nebula",
+  "category": "VISITOR",
+  "end_effect": 1630649840283,
+  "group_id": 2,
+  "is_locked": false,
+  "name": "visit_xss_request_ip",
+  "remark": "请求疑似xss",
+  "score": 0,
+  "start_effect": 1472797039443,
+  "status": "online",
+  "tags": [
+    "XSS"
+  ],
+  "terms": [
+    {
+      "left": {
+        "config": {
+          "event": [
+            "nebula",
+            "HTTP_DYNAMIC"
+          ],
+          "field": "uri_query"
+        },
+        "subtype": "",
+        "type": "event"
+      },
+      "op": "regex",
+      "remark": "IP访问URL参数包含xss攻击特征（攻击字符串包含<script>…..</script>，encode后为%3cscript%3e和%3c%2fscript%3e，即url参数包含正则.*script\\%.*script\\%.*）",
+      "right": {
+        "config": {
+          "value": ".*script.*script.*"
+        },
+        "subtype": "",
+        "type": "constant"
+      },
+      "scope": "realtime"
+    },
+    {
+      "left": {
+        "config": {
+          "checkpoints": "",
+          "checktype": "IP",
+          "checkvalue": "c_ip",
+          "decision": "review",
+          "name": "VISITOR",
+          "remark": "请求疑似xss",
+          "ttl": 300
+        },
+        "subtype": "setblacklist",
+        "type": "func"
+      },
+      "op": "",
+      "remark": "",
+      "right": null,
+      "scope": "realtime"
+    }
+  ],
+  "version": "1542255171782"
+}
