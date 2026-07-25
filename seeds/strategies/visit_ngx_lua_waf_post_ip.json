@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1543398183037,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "visit_ngx_lua_waf_post_ip",
   "remark": "POST参数中ngx_lua_waf策略补充",
   "score": 0,
   "start_effect": 1477993382852,
-  "status": "online",
+  "status": "test",
   "tags": [
     "ngx_lua_waf"
   ],

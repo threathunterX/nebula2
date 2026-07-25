@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1593502751000,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP相同UA大量请求单个页面",
   "remark": ">50, 1 页面, 1UA",
   "score": 0,
   "start_effect": 1496389151220,
-  "status": "online",
+  "status": "test",
   "tags": [
     "高频访问"
   ],

@@ -181,6 +181,8 @@ def fmt_duration(seconds):
 
 def fmt_date(ms):
     """毫秒时间戳 → UTC 日期。固定用 UTC,保证不同时区生成的文档一致。"""
+    if ms in (None, 0, ""):
+        return "—"          # 模板不设生效时间窗,见 seeds/INVENTORY.md
     return datetime.datetime.fromtimestamp(ms / 1000, datetime.timezone.utc).strftime("%Y-%m-%d")
 
 
@@ -899,8 +901,9 @@ def sec_caveats(seeds):
     scores = Counter(d["score"] for d in S)
     statuses = Counter(d["status"] for d in S)
     nonzero = sorted((d["name"], d["score"]) for d in S if d["score"] != 0)
-    max_end = max(d["end_effect"] for d in S)
-    min_end = min(d["end_effect"] for d in S)
+    ends = [d["end_effect"] for d in S if d.get("end_effect")]
+    max_end = max(ends) if ends else None
+    min_end = min(ends) if ends else None
 
     dec_txt = "、".join(f"`{k}` × {n}" for k, n in sorted(decisions.items()))
     score_txt = "、".join(f"{k} × {n}" for k, n in sorted(scores.items()))
@@ -948,12 +951,25 @@ def sec_caveats(seeds):
               "### 4. 其它需要留意的现状", ""]
 
     status_txt = "、".join(f"`{k}` × {n}" for k, n in sorted(statuses.items()))
-    lines += [f"- **导入即全部生效**:status 分布为 {status_txt}。"
-              f"{statuses.get('online', 0)} 条策略的状态是 `online`,导入后会立刻开始产生告警。"
-              "如需先观察,导入后请批量改为 `test`。",
-              f"- **生效时间戳是历史值**:所有模板的 `end_effect` 落在 "
-              f"{fmt_date(min_end)} — {fmt_date(max_end)} 之间,均已是过去时间。"
-              "如果引擎严格按这两个字段判生效期,导入后策略会「一条都不命中」—— 需要在导入时重写这两个字段。",
+    if statuses.get("online"):
+        lines.append(f"- **导入即全部生效**:status 分布为 {status_txt}。"
+                     f"{statuses['online']} 条策略的状态是 `online`,导入后会立刻开始产生告警。"
+                     "如需先观察,导入后请批量改为 `test`。")
+    else:
+        lines.append(f"- **默认为观察状态**:status 分布为 {status_txt}。"
+                     "模板全部以 `test` 状态分发 —— 照常计算并产出告警,但告警标记 `test=true`,"
+                     "不参与线上决策。校准完阈值后再逐条切到 `online`。")
+    if ends:
+        lines.append(f"- **生效时间戳是历史值**:{len(ends)} 条模板的 `end_effect` 落在 "
+                     f"{fmt_date(min_end)} — {fmt_date(max_end)} 之间。若已是过去时间,"
+                     "引擎按生效期判定后策略会「一条都不命中」—— 需要在导入时重写该字段。")
+    else:
+        lines.append("- **不设生效时间窗**:模板的 `end_effect` 已清空(长期有效)。"
+                     "1.x 出厂数据中该字段全部是当年生产实例的历史值且均已过期,"
+                     "照原样分发会导致导入后**一条都不触发且没有任何提示**,"
+                     "因此在 seeds 中做了规范化,详见 "
+                     "[`seeds/INVENTORY.md`](../../seeds/INVENTORY.md)。")
+    lines += [
               "- **名单有效期普遍很短**:多数策略的 TTL 是 5 分钟,只够用于实时联防;"
               "要做长期黑名单需要自己调 `ttl` 或在下游落库。",
               "- **策略之间会重复命中**:三维度镜像意味着一次攻击往往同时触发 3 条策略,"

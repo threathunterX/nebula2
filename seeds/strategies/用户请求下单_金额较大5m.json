@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ORDER",
-  "end_effect": 1641020242748,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "用户请求下单__金额较大5m",
   "remark": ">1000 in 5m",
   "score": 0,
   "start_effect": 1484031441863,
-  "status": "online",
+  "status": "test",
   "tags": [
     "特殊下单"
   ],

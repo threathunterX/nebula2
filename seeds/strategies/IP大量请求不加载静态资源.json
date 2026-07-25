@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1672540382000,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP大量请求不加载静态资源",
   "remark": ">50 动态+静态, 0静态 in 5m",
   "score": 0,
   "start_effect": 1484101981295,
-  "status": "online",
+  "status": "test",
   "tags": [
     "高频访问"
   ],

@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1630565831241,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "服务器用户代理",
   "remark": "apachebench|pycurl, 不包括java|python",
   "score": 0,
   "start_effect": 1473058630310,
-  "status": "online",
+  "status": "test",
   "tags": [
     "特殊UA"
   ],

@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ORDER",
-  "end_effect": 1545898796395,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "用户多次请求下单__不同商户",
   "remark": ">2 in 1h, merchant",
   "score": 0,
   "start_effect": 1482826795423,
-  "status": "online",
+  "status": "test",
   "tags": [
     "不同下单"
   ],

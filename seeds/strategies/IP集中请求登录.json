@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": 1641116053528,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP集中请求登录",
   "remark": ">5 ，页面<=4 in 30min",
   "score": 0,
   "start_effect": 1484040852259,
-  "status": "online",
+  "status": "test",
   "tags": [
     "高频登录"
   ],

@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1630650711288,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP扫描管理后台",
   "remark": "> 10 in 5m",
   "score": 0,
   "start_effect": 1472797910264,
-  "status": "online",
+  "status": "test",
   "tags": [
     "恶意扫描"
   ],

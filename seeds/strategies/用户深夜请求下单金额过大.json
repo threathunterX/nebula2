@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ORDER",
-  "end_effect": 1609569979438,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "用户深夜请求下单金额过大",
   "remark": ">2,000, 0~6",
   "score": 0,
   "start_effect": 1484030778584,
-  "status": "online",
+  "status": "test",
   "tags": [
     "午夜下单"
   ],

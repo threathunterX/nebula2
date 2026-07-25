@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1641091136886,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP大量请求单个接口",
   "remark": ">10 , 页面=1",
   "score": 0,
   "start_effect": 1484102336270,
-  "status": "online",
+  "status": "test",
   "tags": [
     "单一访问"
   ],

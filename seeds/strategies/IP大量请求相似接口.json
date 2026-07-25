@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1609554496426,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP大量请求相似接口",
   "remark": ">20 ,<4 页面  cbytes_cv < 0.1 in 5m",
   "score": 0,
   "start_effect": 1484101695856,
-  "status": "online",
+  "status": "test",
   "tags": [
     "单一访问"
   ],

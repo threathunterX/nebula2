@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": 1641116053528,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "设备多次登录失败",
   "remark": ">5 in 10min F",
   "score": 0,
   "start_effect": 1484040852259,
-  "status": "online",
+  "status": "test",
   "tags": [
     "高频登录"
   ],

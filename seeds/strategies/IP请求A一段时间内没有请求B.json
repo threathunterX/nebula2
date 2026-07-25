@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": 1627799928000,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP请求A一段时间内没有请求B",
   "remark": "延迟判断 5m",
   "score": 0,
   "start_effect": 1504075128120,
-  "status": "online",
+  "status": "test",
   "tags": [
     "跳跃访问"
   ],

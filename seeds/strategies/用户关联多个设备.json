@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": 1641120013785,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "用户关联多个设备",
   "remark": ">2 in 5m",
   "score": 0,
   "start_effect": 1484044813003,
-  "status": "online",
+  "status": "test",
   "tags": [
     "高频关联"
   ],

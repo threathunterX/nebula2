@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ORDER",
-  "end_effect": 1564925159000,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "设备多次请求下单",
   "remark": ">5 in 30min ",
   "score": 0,
   "start_effect": 1502889958243,
-  "status": "online",
+  "status": "test",
   "tags": [
     "高频下单"
   ],

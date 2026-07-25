@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1609553885794,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP大量404返回",
   "remark": ">10 in 5m",
   "score": 0,
   "start_effect": 1484101084953,
-  "status": "online",
+  "status": "test",
   "tags": [
     "恶意扫描"
   ],

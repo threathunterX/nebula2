@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1609554158776,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP页面停留时间过短App",
   "remark": ">100, avg < 0.5, in 5m, web",
   "score": 0,
   "start_effect": 1484101358008,
-  "status": "online",
+  "status": "test",
   "tags": [
     "高频访问"
   ],

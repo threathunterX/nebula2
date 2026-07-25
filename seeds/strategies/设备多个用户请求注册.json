@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": 1641031035299,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "设备多个用户请求注册",
   "remark": ">2 uid in 10m",
   "score": 0,
   "start_effect": 1484042234738,
-  "status": "online",
+  "status": "test",
   "tags": [
     "关联注册"
   ],

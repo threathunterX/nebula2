@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ORDER",
-  "end_effect": 1545898796395,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP多次请求下单__同手机号",
   "remark": ">5 in 1h, receiver_mobile",
   "score": 0,
   "start_effect": 1482826795423,
-  "status": "online",
+  "status": "test",
   "tags": [
     "单一下单"
   ],

@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1511667864319,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "visit_sql_injection_hardcore_get_ip",
   "remark": "GET请求中包含SQL的符号",
   "score": 0,
   "start_effect": 1477971844933,
-  "status": "online",
+  "status": "test",
   "tags": [
     "SQL注入"
   ],

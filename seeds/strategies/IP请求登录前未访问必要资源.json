@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": 1627812910000,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP请求登录前未访问必要资源",
   "remark": "login, no xxx in 5m",
   "score": 0,
   "start_effect": 1504001710079,
-  "status": "online",
+  "status": "test",
   "tags": [
     "跳跃访问"
   ],

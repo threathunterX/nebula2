@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1509076867000,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "测试-地域FUNCTION",
   "remark": "地域function测试策略",
   "score": 0,
   "start_effect": 1504238467272,
-  "status": "online",
+  "status": "test",
   "tags": [],
   "terms": [
     {

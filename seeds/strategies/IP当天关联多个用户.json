@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": 1641121620142,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP当天关联多个用户",
   "remark": ">20, in 1d",
   "score": 0,
   "start_effect": 1484046419489,
-  "status": "online",
+  "status": "test",
   "tags": [
     "一天关联"
   ],

@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1543377535967,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "visit_rfi_post_ip",
   "remark": "POST参数中包含rfi远程文件包含的特征",
   "score": 0,
   "start_effect": 1477972735783,
-  "status": "online",
+  "status": "test",
   "tags": [
     "RFI"
   ],

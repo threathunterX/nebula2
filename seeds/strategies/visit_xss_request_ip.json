@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1630649840283,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "visit_xss_request_ip",
   "remark": "请求疑似xss",
   "score": 0,
   "start_effect": 1472797039443,
-  "status": "online",
+  "status": "test",
   "tags": [
     "XSS"
   ],

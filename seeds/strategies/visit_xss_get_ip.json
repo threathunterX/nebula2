@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1542789646124,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "visit_xss_get_ip",
   "remark": "GET参数包含跨站脚本攻击特征",
   "score": 0,
   "start_effect": 1477989645897,
-  "status": "online",
+  "status": "test",
   "tags": [
     "XSS"
   ],

@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ACCOUNT",
-  "end_effect": 1641031035299,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP多次注册失败",
   "remark": ">5 in 5m",
   "score": 0,
   "start_effect": 1484042234738,
-  "status": "online",
+  "status": "test",
   "tags": [
     "高频注册"
   ],

@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1630565831241,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "Java 用户代理",
   "remark": "java",
   "score": 0,
   "start_effect": 1473058630310,
-  "status": "online",
+  "status": "test",
   "tags": [
     "特殊UA"
   ],

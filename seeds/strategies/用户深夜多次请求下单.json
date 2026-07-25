@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ORDER",
-  "end_effect": 1641106486953,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "用户深夜多次请求下单",
   "remark": ">5 in 1h, 0~6",
   "score": 0,
   "start_effect": 1484031286167,
-  "status": "online",
+  "status": "test",
   "tags": [
     "午夜下单"
   ],

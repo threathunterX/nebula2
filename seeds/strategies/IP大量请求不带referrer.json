@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1672540882527,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP大量请求不带referrer",
   "remark": ">20, 0 referrer in 5m",
   "score": 0,
   "start_effect": 1484102481911,
-  "status": "online",
+  "status": "test",
   "tags": [
     "单一访问"
   ],

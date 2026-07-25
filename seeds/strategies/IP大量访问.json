@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1641091020091,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP大量访问",
   "remark": ">300 in 5m 静态+动态",
   "score": 0,
   "start_effect": 1484102219223,
-  "status": "online",
+  "status": "test",
   "tags": [
     "高频访问"
   ],

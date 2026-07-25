@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "ORDER",
-  "end_effect": 1672472457461,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "用户高频请求下单__不同城市5m",
   "remark": ">3 order, >1 receiver_geo",
   "score": 0,
   "start_effect": 1484034056700,
-  "status": "online",
+  "status": "test",
   "tags": [
     "特殊下单"
   ],

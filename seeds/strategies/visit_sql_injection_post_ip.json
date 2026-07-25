@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1543029329330,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "visit_sql_injection_post_ip",
   "remark": "POST参数中包含SQL语句特征",
   "score": 0,
   "start_effect": 1477970129128,
-  "status": "online",
+  "status": "test",
   "tags": [
     "SQL注入"
   ],

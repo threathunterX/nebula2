@@ -1,14 +1,14 @@
 {
   "app": "nebula",
   "category": "VISITOR",
-  "end_effect": 1572589588503,
+  "end_effect": null,
   "group_id": 2,
   "is_locked": false,
   "name": "IP访问.asp文件",
   "remark": "> 5 动态+静态 ,404 .asp",
   "score": 0,
   "start_effect": 1479709588319,
-  "status": "online",
+  "status": "test",
   "tags": [
     "恶意扫描"
   ],
