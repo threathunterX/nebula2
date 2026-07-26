@@ -33,6 +33,10 @@ links: ## 校验文档内部链接可达
 diagrams: ## 校验文档中的 Mermaid 图能否渲染(需 mermaid-cli)
 	@$(PYTHON) tools/check_mermaid.py
 
+.PHONY: build-web
+build-web: ## 构建管理界面(需 Node 20+)
+	@cd apps/console-web && npm ci --silent && npm run typecheck && npm run build
+
 .PHONY: test-tools
 test-tools: ## 校验工具自身的测试(隐私检查器等)
 	@$(PYTHON) -m unittest discover -s tools/test -q

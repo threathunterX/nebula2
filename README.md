@@ -94,7 +94,7 @@ echo '{"name":"ACCOUNT_LOGIN","timestamp":1784944800000,"c_ip":"198.51.100.1",
 | | |
 |---|---|
 | **能做什么** | `docker compose up` 起完整链路(采集 → Kafka → Flink → 告警 → 控制面),接入自己的流量评估效果,在控制面管理策略与账号、查告警 |
-| **不能做什么** | 承接生产流量。全部组件单节点、无高可用;策略改动需重启作业才生效;没有管理界面 |
+| **不能做什么** | 承接生产流量。全部组件单节点、无高可用;策略改动需重启作业才生效 |
 
 <details>
 <summary><b>逐项实现状态</b>(点击展开)</summary>
@@ -131,7 +131,8 @@ echo '{"name":"ACCOUNT_LOGIN","timestamp":1784944800000,"c_ip":"198.51.100.1",
 | [告警查询与趋势](apps/console-api/#告警查询)(分级脱敏) | ✅ |
 | [策略编辑](apps/console-api/#策略编辑)(schema 校验、乐观并发、修订历史) | ✅ |
 | [元数据下发](apps/console-api/#元数据下发)(引擎从控制面加载,单一事实来源) | ✅ |
-| 管理界面、策略热更新(改完无需重启作业) | 🚧 |
+| [管理界面](apps/console-web/)(登录、策略管理、告警查询、变量浏览) | ✅ |
+| 策略热更新(改完无需重启作业)、可视化策略编辑器 | 🚧 |
 
 **存储与部署**
 
@@ -246,7 +247,7 @@ nebula2/
 │   ├── collector/       # Go 采集器
 │   ├── engine/          # Flink 计算作业(变量引擎 + 规则引擎)
 │   ├── console-api/     # 控制面 API(Spring Boot 3)
-│   └── console-web/     # 管理界面 —— 🚧 空目录,尚未开始
+│   └── console-web/     # 管理界面(React 19 + TS + Vite)
 ├── packages/
 │   ├── domain-schema/   # 领域模型 JSON Schema —— 单一真相源
 │   ├── reference-engine/# 参考引擎(零依赖,语义规格的可执行版本)

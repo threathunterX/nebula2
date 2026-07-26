@@ -48,3 +48,7 @@ __pycache__/
 venv/
 deploy/compose/.env
 console-api/target/
+
+# 管理界面的构建产物与依赖
+apps/console-web/dist/
+apps/console-web/node_modules/

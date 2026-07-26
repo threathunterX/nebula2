@@ -77,11 +77,27 @@
 | 方法 | 路径 | 权限 |
 |---|---|---|
 | GET | `/api/v2/strategies` | 任意角色。支持 `category` / `status` 过滤 |
-| GET | `/api/v2/strategies/{name}` | 任意角色 |
+| GET | `/api/v2/strategies/{name}` | 任意角色。返回**行版本**与定义 |
 | PUT | `/api/v2/strategies/{name}` | ADMIN / OPERATOR |
 | PUT | `/api/v2/strategies/{name}/status` | ADMIN / OPERATOR |
 | GET | `/api/v2/strategies/{name}/revisions` | 任意角色 |
 | GET | `/api/v2/strategies/{name}/revisions/{version}` | 任意角色 |
+
+详情响应把行元数据与定义分开:
+
+```json
+{
+  "name": "IP多次登录失败",
+  "version": 7,              // 行版本,写入时的乐观并发用它
+  "status": "test",
+  "requires_config": false,
+  "definition": { "version": "2.0", ... }   // 领域模型版本,与行版本无关
+}
+```
+
+> **这两个 `version` 不是一回事。** 早先详情接口直接返回 definition,客户端拿不到行版本,
+> 想做乐观并发只能去猜。第一个真实客户端(管理界面)一上来就把 `definition.version`
+> 的 `"2.0"` 当成行版本发了过去,PUT 稳定返回 409。接口让正确用法无法表达时,错的是接口。
 
 写入请求体:
 
