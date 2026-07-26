@@ -29,6 +29,9 @@ class Engine {
     this.notices = [];
     this.dedup = new Map();         // `${strategy}|${key}` -> 上次告警时间
     this.pendingDelays = [];        // 延迟求值队列
+    // 序列匹配状态:`${策略名}|${分组键}` -> 未完成匹配数组
+    // 每个未完成匹配是 { stepIndex, startedAt, events: [...] }
+    this.partials = new Map();
     this.now = now;
     this.watermark = -Infinity;     // 流级水位线
     this.eventModel = events && events.length ? new EventModel(events) : null;
@@ -42,10 +45,11 @@ class Engine {
         if (n.kind === 'variable' && n.variable) referenced.add(n.variable);
         for (const v of Object.values(n)) collect(v);
       };
-      for (const st of this.strategies) { collect(st.condition); collect(st.delay); }
+      for (const st of this.strategies) { collect(st.condition); collect(st.delay); collect(st.sequence); }
       if (referenced.size) this.graph = new VariableGraph(variables, referenced, this.eventModel);
     }
-    this.stats = { events: 0, evaluated: 0, hits: 0, deduped: 0, lateDropped: 0, lateAccepted: 0 };
+    this.stats = { events: 0, evaluated: 0, hits: 0, deduped: 0, lateDropped: 0, lateAccepted: 0,
+      sequencePartialDropped: 0 };
   }
 
   // ---------------------------------------------------------------- 内联计数器
@@ -166,6 +170,12 @@ class Engine {
     this.fireDueDelays(event.timestamp);
 
     for (const strategy of this.strategies) {
+      // 序列策略不走条件树 —— 它的判定跨多条事件,由 advanceSequence 推进。
+      // trigger.event 对它没有意义:序列的每一步各自声明自己要匹配的事件。
+      if (strategy.sequence) {
+        this.advanceSequence(strategy, event);
+        continue;
+      }
       if (strategy.trigger && strategy.trigger.event && !this.matchesEvent(event.name, strategy.trigger.event)) {
         continue;
       }
@@ -191,6 +201,88 @@ class Engine {
         continue;
       }
       this.emit(strategy, event, trace);
+    }
+  }
+
+  // ---------------------------------------------------------------- 多步序列
+
+  /** 分组键。by 为空时全局一组 —— schema 里写明了那通常不是想要的。 */
+  sequenceKey(strategy, event) {
+    const by = strategy.sequence.by || [];
+    if (!by.length) return `${strategy.name}|`;
+    return `${strategy.name}|` + by.map((f) => String(event[f] ?? '')).join('\u0001');
+  }
+
+  /**
+   * 用一条事件推进某条序列策略的匹配。
+   *
+   * 语义见 strategy.schema.json 的 sequence.description。几处值得单独说的:
+   *
+   * - **同一条事件只推进一个未完成匹配**,取进度最靠前的那个。否则一条 B 事件会
+   *   同时推进所有停在 A 的匹配,产出一堆重复告警。
+   * - **超窗的未完成匹配在这里清掉**,由事件时间驱动。流里长时间没有新事件时
+   *   它们不会被清 —— 这与延迟判定是同一个取舍:回放一致性优先于及时性。
+   * - **完整匹配产出后,构成它的事件不再参与后续匹配** —— 这个匹配被移除,
+   *   不会留在队列里继续推进。
+   */
+  advanceSequence(strategy, event) {
+    const seq = strategy.sequence;
+    const key = this.sequenceKey(strategy, event);
+    const windowMs = seq.within_seconds * 1000;
+    const cap = seq.max_partial_per_key === undefined ? 16 : seq.max_partial_per_key;
+
+    let list = this.partials.get(key) || [];
+    // 先按事件时间清掉超窗的
+    const before = list.length;
+    list = list.filter((p) => event.timestamp - p.startedAt <= windowMs);
+    if (list.length !== before) this.partials.set(key, list);
+
+    const stepMatches = (step) => {
+      if (!this.matchesEvent(event.name, step.event)) return false;
+      if (!step.condition) return true;
+      const ctx = { event, strategy, trace: [], variables: event.__variables };
+      return this.evalCondition(step.condition, ctx);
+    };
+
+    // 推进已有匹配:只推进进度最靠前的那个
+    const sorted = list.slice().sort((a, b) => b.stepIndex - a.stepIndex);
+    for (const p of sorted) {
+      const step = seq.steps[p.stepIndex];
+      // 严格晚于前一步 —— 同一毫秒的两条事件不构成先后
+      if (event.timestamp <= p.events[p.events.length - 1].timestamp) continue;
+      if (!stepMatches(step)) continue;
+      p.stepIndex += 1;
+      p.events.push(event);
+      if (p.stepIndex >= seq.steps.length) {
+        // 完整匹配:移出队列并产出
+        this.partials.set(key, list.filter((x) => x !== p));
+        // 字段名要与条件树留下的痕迹一致 —— emit 按 subject 归并,
+        // 用别的字段名会让三步被压成一条,而且不会报错
+        const trace = seq.steps.map((st, i) => ({
+          path: `seq[${i}]`,
+          kind: 'sequence_step',
+          subject: `第 ${i + 1} 步 ${st.event}`,
+          value: p.events[i].timestamp,
+          op: 'happened_at',
+          threshold: seq.within_seconds,
+          passed: true,
+        }));
+        this.emit(strategy, event, trace);
+      }
+      break;
+    }
+
+    // 起新匹配:事件匹配第一步时总是开启一个,即便刚推进过别的匹配 ——
+    // A A B 这种输入里,第二个 A 也应当能作为新序列的起点
+    if (stepMatches(seq.steps[0])) {
+      list = this.partials.get(key) || [];
+      if (list.length >= cap) {
+        // 不静默丢弃:高频主体下的漏检必须可观测
+        this.stats.sequencePartialDropped += 1;
+        list.shift();
+      }
+      list.push({ stepIndex: 1, startedAt: event.timestamp, events: [event] });
+      this.partials.set(key, list);
     }
   }
 

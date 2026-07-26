@@ -4,31 +4,64 @@
   "title": "Strategy",
   "description": "风控策略。策略由若干条款(term)组成,条款全部满足时触发处置动作。相比 1.x,2.0 支持嵌套布尔组合,并真正落地风险分与自动处置。",
   "type": "object",
-  "required": ["app", "name", "visible_name", "status", "category", "condition", "action"],
+  "required": [
+    "app",
+    "name",
+    "visible_name",
+    "status",
+    "category",
+    "action"
+  ],
   "additionalProperties": false,
   "properties": {
-    "app": { "type": "string", "const": "nebula" },
+    "app": {
+      "type": "string",
+      "const": "nebula"
+    },
     "name": {
       "type": "string",
       "pattern": "^[\\w.\\u4e00-\\u9fa5-](?:[\\w. \\u4e00-\\u9fa5-]*[\\w.\\u4e00-\\u9fa5-])?$",
       "description": "策略唯一标识。允许中英文、数字、下划线、连字符、点号与内部空格(1.x 存量策略中存在 `IP访问.asp文件`、`Java 用户代理` 这类命名),但不允许首尾空格。"
     },
-    "visible_name": { "type": "string" },
-    "remark": { "type": "string", "default": "", "description": "策略含义说明,会展示在告警详情中。" },
-    "version": { "type": "string", "default": "2.0" },
+    "visible_name": {
+      "type": "string"
+    },
+    "remark": {
+      "type": "string",
+      "default": "",
+      "description": "策略含义说明,会展示在告警详情中。"
+    },
+    "version": {
+      "type": "string",
+      "default": "2.0"
+    },
     "status": {
       "type": "string",
-      "enum": ["inedit", "test", "online", "outline"],
+      "enum": [
+        "inedit",
+        "test",
+        "online",
+        "outline"
+      ],
       "description": "只有 online 且处于生效时间窗内的策略参与计算。test 状态产生的告警会标记 test=true,不影响线上决策。"
     },
     "category": {
       "type": "string",
-      "enum": ["VISITOR", "ACCOUNT", "TRANSACTION", "ORDER", "MARKETING", "OTHER"],
+      "enum": [
+        "VISITOR",
+        "ACCOUNT",
+        "TRANSACTION",
+        "ORDER",
+        "MARKETING",
+        "OTHER"
+      ],
       "description": "风险场景。"
     },
     "tags": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "default": [],
       "description": "风险标签,用于告警聚合与报表下钻。取值参见 seeds/tags.json。"
     },
@@ -39,54 +72,145 @@
       "default": 0,
       "description": "策略权重,参与风险分计算。1.x 内置策略此值全为 0(风险分未落地),2.0 要求显式赋值。"
     },
-    "effective_from": { "type": ["integer", "null"], "default": null, "description": "生效起始时间(毫秒)。null 表示立即生效。" },
-    "effective_to": { "type": ["integer", "null"], "default": null, "description": "生效截止时间(毫秒)。null 表示长期有效。" },
-
+    "effective_from": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "default": null,
+      "description": "生效起始时间(毫秒)。null 表示立即生效。"
+    },
+    "effective_to": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "default": null,
+      "description": "生效截止时间(毫秒)。null 表示长期有效。"
+    },
     "trigger": {
       "type": "object",
-      "required": ["event"],
+      "required": [
+        "event"
+      ],
       "description": "触发事件。策略在该事件到达时求值。",
       "additionalProperties": false,
       "properties": {
-        "event": { "type": "string", "description": "事件名,如 ACCOUNT_LOGIN。" },
+        "event": {
+          "type": "string",
+          "description": "事件名,如 ACCOUNT_LOGIN。"
+        },
         "keys": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "触发键字段,需与被引用变量的 groupbykeys 类型一一对应。"
         }
       }
     },
-
     "condition": {
       "$ref": "#/$defs/condition",
-      "description": "判定条件。2.0 相比 1.x 的关键增强:支持任意嵌套的 and/or/not。1.x 策略迁移后表现为单层 and,语义完全等价。"
+      "description": "判定条件。2.0 相比 1.x 的关键增强:支持任意嵌套的 and/or/not。1.x 策略迁移后表现为单层 and,语义完全等价。\n\n序列策略(带 sequence)没有条件树,此字段可省略 —— 判定跨多条事件,由 sequence 表达。condition 与 sequence 至少要有一个。"
     },
-
     "delay": {
       "type": "object",
-      "required": ["duration_seconds", "condition"],
+      "required": [
+        "duration_seconds",
+        "condition"
+      ],
       "additionalProperties": false,
       "description": "延迟求值。用于检测「做了 A 之后一段时间内没有做 B」这类模式:condition 满足后并不立即命中,而是等待 duration_seconds,再对 delay.condition 求值,两者都成立才产出告警。对应 1.x 的 sleep 条款(内置资产中有 3 条策略使用)。",
       "properties": {
-        "duration_seconds": { "type": "integer", "minimum": 1 },
-        "condition": { "$ref": "#/$defs/condition" }
+        "duration_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "condition": {
+          "$ref": "#/$defs/condition"
+        }
       }
     },
-
+    "sequence": {
+      "type": "object",
+      "required": [
+        "steps",
+        "within_seconds"
+      ],
+      "additionalProperties": false,
+      "description": "多步序列。检测「同一主体依次做了 A、B、C」这类模式 —— 条件树表达不了它,因为条件树只对当下这条事件求值,而序列要跨多条事件。\n\n语义(两个引擎必须一致):\n1. 按 by 指定的字段分组,每组各自匹配。\n2. steps 必须**按顺序**出现,每一步的事件时间严格晚于前一步。\n3. 从第一步命中起算,全部步骤要在 within_seconds 内走完,否则这次匹配作废。\n4. 由**事件时间**驱动,不是挂钟时间 —— 回放历史数据必须与实时处理结果一致。\n5. 一次完整匹配产出一条告警,构成它的事件不再参与后续匹配。\n\n不支持分支(A 之后 B 或 C)。需要时写成多条策略 —— 那样每条的命中量还能分别看到。",
+      "properties": {
+        "steps": {
+          "type": "array",
+          "minItems": 2,
+          "description": "有序的步骤。至少两步 —— 一步的话条件树就够了。",
+          "items": {
+            "type": "object",
+            "required": [
+              "event"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "event": {
+                "type": "string",
+                "description": "该步骤要匹配的事件名。按事件模型的继承链匹配,与 trigger.event 一致。"
+              },
+              "condition": {
+                "$ref": "#/$defs/condition",
+                "description": "该步骤的附加条件。省略表示只要事件类型对就算命中。"
+              }
+            }
+          }
+        },
+        "within_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "从第一步命中起算的时间上限(秒)。"
+        },
+        "by": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "分组字段,如 [\"c_ip\"]。为空表示全局匹配 —— 那通常不是想要的,因为不同主体的事件会被串成一条序列。"
+        },
+        "max_partial_per_key": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 16,
+          "description": "单个分组同时保留的未完成匹配数上限。超出时丢弃最早的那个。\n\n这个上限是**有状态检测的固有代价**:每来一条第一步事件都可能开启一次新匹配,不设上限时高频主体会把状态撑爆。代价是极高频场景下可能漏掉匹配 —— 漏掉时引擎会计一次 sequence_partial_dropped 指标,不静默丢弃。"
+        }
+      }
+    },
     "action": {
       "type": "object",
-      "required": ["decision", "check_type", "check_value", "ttl"],
+      "required": [
+        "decision",
+        "check_type",
+        "check_value",
+        "ttl"
+      ],
       "additionalProperties": false,
       "description": "命中后的处置动作。",
       "properties": {
         "decision": {
           "type": "string",
-          "enum": ["accept", "review", "reject"],
+          "enum": [
+            "accept",
+            "review",
+            "reject"
+          ],
           "description": "决策结果。accept 白名单 / review 待审核 / reject 阻断。"
         },
         "check_type": {
           "type": "string",
-          "enum": ["IP", "USER", "DeviceID", "OrderID"],
+          "enum": [
+            "IP",
+            "USER",
+            "DeviceID",
+            "OrderID"
+          ],
           "description": "名单主体类型。"
         },
         "check_value": {
@@ -100,7 +224,9 @@
         },
         "checkpoints": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "生效检查点。为空表示全局生效。1.x 中此字段从未被使用。"
         },
@@ -110,141 +236,286 @@
           "description": "2.0 新增。命中后的额外处置动作(阻断、二次验证、限流、降级、通知等),由业务系统按需实现。",
           "items": {
             "type": "object",
-            "required": ["type"],
+            "required": [
+              "type"
+            ],
             "properties": {
-              "type": { "type": "string", "enum": ["block", "captcha", "throttle", "degrade", "notify", "webhook"] },
-              "config": { "type": "object", "default": {} }
+              "type": {
+                "type": "string",
+                "enum": [
+                  "block",
+                  "captcha",
+                  "throttle",
+                  "degrade",
+                  "notify",
+                  "webhook"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "default": {}
+              }
             }
           }
         }
       }
     },
-
     "dedup_window": {
       "type": "integer",
       "default": 300,
       "description": "同一主体同一策略的告警去重窗口(秒)。1.x 硬编码为 300 且与 ttl 无关,2.0 改为可配置。"
     },
-
     "source_1x": {
       "type": "object",
       "additionalProperties": true,
       "description": "从 1.x 迁移时保留的溯源信息(原始字段值、转换过程中的备注)。仅供审计与回溯,引擎不读取。",
       "properties": {
-        "group_id": { "type": "integer" },
-        "is_locked": { "type": "boolean" },
-        "notes": { "type": "array", "items": { "type": "string" } }
+        "group_id": {
+          "type": "integer"
+        },
+        "is_locked": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
-
     "explain": {
       "type": "boolean",
       "default": true,
       "description": "是否在告警中记录触发时的变量值快照。1.x 的 variable_values 字段恒为空,导致告警不可解释;2.0 默认开启。"
     }
   },
-
   "$defs": {
     "condition": {
       "oneOf": [
-        { "$ref": "#/$defs/comparison" },
-        { "$ref": "#/$defs/expression" },
-        { "$ref": "#/$defs/logical" }
+        {
+          "$ref": "#/$defs/comparison"
+        },
+        {
+          "$ref": "#/$defs/expression"
+        },
+        {
+          "$ref": "#/$defs/logical"
+        }
       ]
     },
-
     "logical": {
       "type": "object",
-      "required": ["op", "conditions"],
+      "required": [
+        "op",
+        "conditions"
+      ],
       "additionalProperties": false,
       "properties": {
-        "op": { "type": "string", "enum": ["and", "or", "not"] },
+        "op": {
+          "type": "string",
+          "enum": [
+            "and",
+            "or",
+            "not"
+          ]
+        },
         "conditions": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/condition" }
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
         }
       }
     },
-
     "comparison": {
       "type": "object",
-      "required": ["left", "op"],
+      "required": [
+        "left",
+        "op"
+      ],
       "additionalProperties": false,
       "description": "二元比较。left 可以是事件字段、变量引用或内联计数器。",
       "properties": {
-        "left": { "$ref": "#/$defs/operand" },
-        "op": { "type": "string", "enum": ["==", "!=", ">", "<", ">=", "<=", "contains", "!contains", "startwith", "!startwith", "endwith", "!endwith", "regex", "!regex", "in", "!in"] },
-        "right": { "$ref": "#/$defs/operand" }
+        "left": {
+          "$ref": "#/$defs/operand"
+        },
+        "op": {
+          "type": "string",
+          "enum": [
+            "==",
+            "!=",
+            ">",
+            "<",
+            ">=",
+            "<=",
+            "contains",
+            "!contains",
+            "startwith",
+            "!startwith",
+            "endwith",
+            "!endwith",
+            "regex",
+            "!regex",
+            "in",
+            "!in"
+          ]
+        },
+        "right": {
+          "$ref": "#/$defs/operand"
+        }
       }
     },
-
     "expression": {
       "type": "object",
-      "required": ["cel"],
+      "required": [
+        "cel"
+      ],
       "additionalProperties": false,
       "description": "CEL 表达式条件。取代 1.x 基于 IK Expression 的自研 SPL。表达式在沙箱中求值,必须返回 bool。可用变量与函数见 docs/guide/cel-reference.md。",
       "properties": {
-        "cel": { "type": "string", "minLength": 1 },
-        "remark": { "type": "string", "default": "" }
+        "cel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "remark": {
+          "type": "string",
+          "default": ""
+        }
       }
     },
-
     "operand": {
       "oneOf": [
         {
           "type": "object",
-          "required": ["kind", "value"],
+          "required": [
+            "kind",
+            "value"
+          ],
           "additionalProperties": false,
           "properties": {
-            "kind": { "const": "constant" },
+            "kind": {
+              "const": "constant"
+            },
             "value": {}
           }
         },
         {
           "type": "object",
-          "required": ["kind", "field"],
+          "required": [
+            "kind",
+            "field"
+          ],
           "additionalProperties": false,
           "description": "触发事件的字段值。",
           "properties": {
-            "kind": { "const": "event_field" },
-            "field": { "type": "string" }
+            "kind": {
+              "const": "event_field"
+            },
+            "field": {
+              "type": "string"
+            }
           }
         },
         {
           "type": "object",
-          "required": ["kind", "variable"],
+          "required": [
+            "kind",
+            "variable"
+          ],
           "additionalProperties": false,
           "description": "引用已定义的统计变量。",
           "properties": {
-            "kind": { "const": "variable" },
-            "variable": { "type": "string" },
-            "keys": { "type": "array", "items": { "type": "string" }, "default": [] }
+            "kind": {
+              "const": "variable"
+            },
+            "variable": {
+              "type": "string"
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            }
           }
         },
         {
           "type": "object",
-          "required": ["kind", "counter"],
+          "required": [
+            "kind",
+            "counter"
+          ],
           "additionalProperties": false,
           "description": "内联计数器 —— 在策略内现场定义一个窗口统计,等价于临时变量。",
           "properties": {
-            "kind": { "const": "counter" },
+            "kind": {
+              "const": "counter"
+            },
             "counter": {
               "type": "object",
-              "required": ["event", "window", "algorithm", "groupby"],
+              "required": [
+                "event",
+                "window",
+                "algorithm",
+                "groupby"
+              ],
               "additionalProperties": false,
               "properties": {
-                "event": { "type": "string" },
-                "window": { "type": "integer", "minimum": 1, "description": "统计窗口(秒)。" },
-                "algorithm": { "type": "string", "enum": ["count", "distinct_count", "sum"] },
-                "operand": { "type": "array", "items": { "type": "string" }, "default": [] },
-                "groupby": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-                "filter": { "type": "object", "description": "计数器自身的过滤条件,结构同 variable-model 的 filter。" }
+                "event": {
+                  "type": "string"
+                },
+                "window": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "统计窗口(秒)。"
+                },
+                "algorithm": {
+                  "type": "string",
+                  "enum": [
+                    "count",
+                    "distinct_count",
+                    "sum"
+                  ]
+                },
+                "operand": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "default": []
+                },
+                "groupby": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1
+                },
+                "filter": {
+                  "type": "object",
+                  "description": "计数器自身的过滤条件,结构同 variable-model 的 filter。"
+                }
               }
             }
           }
         }
       ]
     }
-  }
+  },
+  "anyOf": [
+    {
+      "required": [
+        "condition"
+      ]
+    },
+    {
+      "required": [
+        "sequence"
+      ]
+    }
+  ],
+  "$comment": ""
 }

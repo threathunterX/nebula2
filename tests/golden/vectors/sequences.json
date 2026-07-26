@@ -1,0 +1,568 @@
+{
+  "$comment": "多步序列的跨引擎对照向量。参考引擎(JS)与生产引擎(Java)跑同一批场景,产出的命中次数必须逐条一致。语义规定见 strategy.schema.json 的 sequence.description。",
+  "version": "1.0",
+  "base_timestamp": 1700000000000,
+  "cases": [
+    {
+      "name": "顺序完整",
+      "note": "按顺序走完三步命中一次",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          },
+          {
+            "event": "C"
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "C",
+          "offset_seconds": 2,
+          "c_ip": "198.51.100.1"
+        }
+      ],
+      "expect_hits": 1
+    },
+    {
+      "name": "顺序颠倒",
+      "note": "顺序不对不命中 —— 这是序列与「三个条件都满足」的根本区别",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          },
+          {
+            "event": "C"
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "C",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "A",
+          "offset_seconds": 2,
+          "c_ip": "198.51.100.1"
+        }
+      ],
+      "expect_hits": 0
+    },
+    {
+      "name": "缺一步",
+      "note": "缺一步不命中",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          },
+          {
+            "event": "C"
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "C",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.1"
+        }
+      ],
+      "expect_hits": 0
+    },
+    {
+      "name": "超窗",
+      "note": "第三步超窗,整次匹配作废",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          },
+          {
+            "event": "C"
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "C",
+          "offset_seconds": 61,
+          "c_ip": "198.51.100.1"
+        }
+      ],
+      "expect_hits": 0
+    },
+    {
+      "name": "边界闭区间",
+      "note": "恰好卡在边界上算命中",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          },
+          {
+            "event": "C"
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "C",
+          "offset_seconds": 60,
+          "c_ip": "198.51.100.1"
+        }
+      ],
+      "expect_hits": 1
+    },
+    {
+      "name": "跨主体不串",
+      "note": "by 分组必须真的隔开不同主体",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          },
+          {
+            "event": "C"
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.2"
+        },
+        {
+          "name": "C",
+          "offset_seconds": 2,
+          "c_ip": "198.51.100.3"
+        }
+      ],
+      "expect_hits": 0
+    },
+    {
+      "name": "同毫秒",
+      "note": "每一步必须严格晚于前一步",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          },
+          {
+            "event": "C"
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "C",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        }
+      ],
+      "expect_hits": 0
+    },
+    {
+      "name": "一条B只推进一个",
+      "note": "否则会产出一堆重复告警",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          },
+          {
+            "event": "C"
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "A",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 2,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "C",
+          "offset_seconds": 3,
+          "c_ip": "198.51.100.1"
+        }
+      ],
+      "expect_hits": 1
+    },
+    {
+      "name": "用过的不再参与",
+      "note": "构成一次匹配的事件不再参与后续匹配",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          },
+          {
+            "event": "C"
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "C",
+          "offset_seconds": 2,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "C",
+          "offset_seconds": 3,
+          "c_ip": "198.51.100.1"
+        }
+      ],
+      "expect_hits": 1
+    },
+    {
+      "name": "两条完整序列",
+      "note": "各产出一次",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          },
+          {
+            "event": "C"
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "C",
+          "offset_seconds": 2,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "A",
+          "offset_seconds": 10,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 11,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "C",
+          "offset_seconds": 12,
+          "c_ip": "198.51.100.1"
+        }
+      ],
+      "expect_hits": 2
+    },
+    {
+      "name": "晚到的起点",
+      "note": "只保留最早那个起点的话这里会漏",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          }
+        ],
+        "within_seconds": 5,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "A",
+          "offset_seconds": 6,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 8,
+          "c_ip": "198.51.100.1"
+        }
+      ],
+      "expect_hits": 1
+    },
+    {
+      "name": "步骤条件不满足",
+      "note": "B 的附加条件不满足,不推进",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B",
+            "condition": {
+              "left": {
+                "kind": "event_field",
+                "field": "status"
+              },
+              "op": "==",
+              "right": {
+                "kind": "constant",
+                "value": "500"
+              }
+            }
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.1",
+          "status": "200"
+        }
+      ],
+      "expect_hits": 0
+    },
+    {
+      "name": "步骤条件满足",
+      "note": "附加条件满足则推进",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B",
+            "condition": {
+              "left": {
+                "kind": "event_field",
+                "field": "status"
+              },
+              "op": "==",
+              "right": {
+                "kind": "constant",
+                "value": "500"
+              }
+            }
+          }
+        ],
+        "within_seconds": 60,
+        "by": [
+          "c_ip"
+        ]
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.1",
+          "status": "500"
+        }
+      ],
+      "expect_hits": 1
+    },
+    {
+      "name": "全局分组",
+      "note": "by 为空时不同主体会被串起来 —— 钉住行为,不是推荐这么用",
+      "sequence": {
+        "steps": [
+          {
+            "event": "A"
+          },
+          {
+            "event": "B"
+          }
+        ],
+        "within_seconds": 60,
+        "by": []
+      },
+      "events": [
+        {
+          "name": "A",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1"
+        },
+        {
+          "name": "B",
+          "offset_seconds": 1,
+          "c_ip": "198.51.100.2"
+        }
+      ],
+      "expect_hits": 1
+    }
+  ]
+}
