@@ -118,6 +118,75 @@ public final class VariableGraph {
         return List.copyOf(order);
     }
 
+    // ------------------------------------------------------------ Checkpoint
+
+    /**
+     * 导出全图状态,供 Flink Checkpoint 使用。
+     *
+     * <p>结构为 {@code 变量名 -> key -> 该 key 的状态}。聚合节点导出窗口快照,
+     * dual / top 导出结果值,sequence 导出上一次值。
+     */
+    public java.io.Serializable exportState() {
+        java.util.LinkedHashMap<String, Object> out = new java.util.LinkedHashMap<>();
+        for (Map.Entry<String, Node> e : nodes.entrySet()) {
+            Node n = e.getValue();
+            java.util.LinkedHashMap<String, Object> perKey = new java.util.LinkedHashMap<>();
+            for (Map.Entry<String, WindowedAggregate> a : n.aggs.entrySet()) {
+                perKey.put("a:" + a.getKey(), a.getValue().snapshot());
+            }
+            for (Map.Entry<String, Object> v : n.values.entrySet()) {
+                perKey.put("v:" + v.getKey(), v.getValue());
+            }
+            for (Map.Entry<String, Object> p : n.prev.entrySet()) {
+                perKey.put("p:" + p.getKey(), p.getValue());
+            }
+            if (!perKey.isEmpty()) {
+                out.put(e.getKey(), perKey);
+            }
+        }
+        out.put("__watermark__", watermark);
+        return out;
+    }
+
+    /** 从导出的状态恢复。图结构由构造函数决定,这里只填状态。 */
+    @SuppressWarnings("unchecked")
+    public void importState(java.io.Serializable state) {
+        if (state == null) {
+            return;
+        }
+        Map<String, Object> in = (Map<String, Object>) state;
+        Object wm = in.get("__watermark__");
+        if (wm instanceof Number num) {
+            watermark = num.longValue();
+        }
+        for (Map.Entry<String, Node> e : nodes.entrySet()) {
+            Node n = e.getValue();
+            n.aggs.clear();
+            n.values.clear();
+            n.prev.clear();
+            Object raw = in.get(e.getKey());
+            if (!(raw instanceof Map)) {
+                continue;
+            }
+            for (Map.Entry<String, Object> kv : ((Map<String, Object>) raw).entrySet()) {
+                String k = kv.getKey();
+                String key = k.substring(2);
+                switch (k.charAt(0)) {
+                    case 'a' -> {
+                        WindowedAggregate agg = new WindowedAggregate(n.def.method(),
+                                Period.parse(n.def.periodType(), n.def.periodValue()),
+                                n.def.functionConfig());
+                        agg.restore((java.io.Serializable) kv.getValue());
+                        n.aggs.put(key, agg);
+                    }
+                    case 'v' -> n.values.put(key, kv.getValue());
+                    case 'p' -> n.prev.put(key, kv.getValue());
+                    default -> throw new IllegalStateException("未知的状态前缀: " + k);
+                }
+            }
+        }
+    }
+
     // ---------------------------------------------------------------- 取值
 
     private String keyFor(VariableDef def, Map<String, Object> event) {

@@ -35,4 +35,15 @@ public interface Accumulator {
     default Map<String, Object> meta() {
         return Map.of();
     }
+
+    /**
+     * 导出算子的内部状态,用于 Flink Checkpoint。
+     *
+     * <p>返回值必须可序列化,且只含普通数据(数值、字符串、集合)—— 不允许把算子
+     * 对象本身塞进去,否则恢复时会依赖类的具体实现,重构即失效。
+     */
+    java.io.Serializable snapshot();
+
+    /** 从快照恢复内部状态。传入的必须是同一算子 {@link #snapshot()} 的产物。 */
+    void restore(java.io.Serializable state);
 }

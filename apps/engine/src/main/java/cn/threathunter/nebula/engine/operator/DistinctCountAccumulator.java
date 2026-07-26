@@ -74,4 +74,36 @@ public final class DistinctCountAccumulator extends AbstractAccumulator {
     public String name() {
         return "distinct_count";
     }
+
+    /**
+     * 快照。
+     *
+     * <p>降级为 HLL 之后无法还原出原始集合,因此快照里存的是 HLL 的 register 数组
+     * —— 这也意味着<b>恢复后的基数估计与降级前完全一致</b>,不会因为重启而改变。
+     */
+    @Override
+    public java.io.Serializable snapshot() {
+        java.util.ArrayList<Object> out = new java.util.ArrayList<>();
+        out.add(hll != null);
+        out.add(degraded);
+        out.add(hll != null ? hll.registersCopy() : new java.util.ArrayList<>(exact));
+        return out;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void restore(java.io.Serializable s) {
+        java.util.List<?> l = (java.util.List<?>) s;
+        boolean isHll = Boolean.TRUE.equals(l.get(0));
+        degraded = Boolean.TRUE.equals(l.get(1));
+        exact.clear();
+        hll = null;
+        if (isHll) {
+            hll = HyperLogLog.fromRegisters((java.util.List<Number>) l.get(2));
+        } else {
+            for (Object x : (java.util.List<Object>) l.get(2)) {
+                exact.add(String.valueOf(x));
+            }
+        }
+    }
 }

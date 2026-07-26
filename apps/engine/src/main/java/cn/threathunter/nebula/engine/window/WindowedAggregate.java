@@ -128,4 +128,66 @@ public final class WindowedAggregate {
     public long lateDropped() {
         return lateDropped;
     }
+
+    // ------------------------------------------------------------ Checkpoint
+
+    /**
+     * 导出窗口状态,供 Flink Checkpoint 使用。
+     *
+     * <p>滑动窗口导出的是<b>窗口内尚未过期的原始输入</b>(值 + 时间戳)。这样做保证
+     * 恢复后的语义与快照前完全一致 —— 代价是状态大小与窗口内事件数成正比。
+     *
+     * <p>高流量场景下可改为时间分桶的增量聚合以压缩状态,但那会把过期粒度从「精确到
+     * 事件」放宽到「精确到桶」,是可见的语义变化,需要先改规格。当前选择精确语义。
+     */
+    public java.io.Serializable snapshot() {
+        java.util.ArrayList<Object> out = new java.util.ArrayList<>();
+        out.add(period.kind().name());
+        out.add(currentWindowStart);
+        out.add(lateAccepted);
+        out.add(lateDropped);
+        if (period.kind() == Period.Kind.SLIDING) {
+            java.util.ArrayList<Object> vals = new java.util.ArrayList<>();
+            java.util.ArrayList<Object> tss = new java.util.ArrayList<>();
+            for (Entry e : events) {
+                vals.add(e.value());
+                tss.add(e.meta().timestamp());
+            }
+            out.add(vals);
+            out.add(tss);
+            out.add(null);
+        } else {
+            out.add(null);
+            out.add(null);
+            out.add(acc == null ? null : acc.snapshot());
+        }
+        return out;
+    }
+
+    /** 从快照恢复。传入的必须是同一算子与窗口类型的产物。 */
+    @SuppressWarnings("unchecked")
+    public void restore(java.io.Serializable state) {
+        java.util.List<?> l = (java.util.List<?>) state;
+        String kind = String.valueOf(l.get(0));
+        if (!kind.equals(period.kind().name())) {
+            throw new IllegalStateException(
+                    "窗口类型不匹配:快照为 " + kind + ",当前为 " + period.kind());
+        }
+        currentWindowStart = l.get(1) == null ? null : ((Number) l.get(1)).longValue();
+        lateAccepted = ((Number) l.get(2)).longValue();
+        lateDropped = ((Number) l.get(3)).longValue();
+        events.clear();
+        acc = null;
+        if (period.kind() == Period.Kind.SLIDING) {
+            java.util.List<Object> vals = (java.util.List<Object>) l.get(4);
+            java.util.List<Object> tss = (java.util.List<Object>) l.get(5);
+            for (int i = 0; i < vals.size(); i++) {
+                long ts = ((Number) tss.get(i)).longValue();
+                events.add(new Entry(vals.get(i), new EventMeta(ts, Long.MIN_VALUE, null)));
+            }
+        } else if (l.get(6) != null) {
+            acc = Operators.create(method, config);
+            acc.restore((java.io.Serializable) l.get(6));
+        }
+    }
 }

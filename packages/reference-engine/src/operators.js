@@ -174,12 +174,13 @@ const OPERATORS = {
 
   lastn: {
     outputType: (t) => `list<${t}>`,
-    init: (cfg = {}) => ({ n: parseInt(cfg.param, 10) || 10, items: [] }),
-    add: (s, v, meta) => { s.items.push({ v, ts: meta.timestamp }); },
-    // 规格:按时间倒序(最新在前),不足 N 条返回全部,不补位
+    init: (cfg = {}) => ({ n: parseInt(cfg.param, 10) || 10, items: [], seq: 0 }),
+    add: (s, v, meta) => { s.items.push({ v, ts: meta.timestamp, seq: s.seq++ }); },
+    // 规格:按时间倒序(最新在前),不足 N 条返回全部,不补位。
+    // 时间相同时按到达顺序倒序 —— 否则「最近 N 条」会退化成「最早 N 条」。
     value: (s) => s.items
       .slice()
-      .sort((a, b) => b.ts - a.ts)
+      .sort((a, b) => (b.ts - a.ts) || (b.seq - a.seq))
       .slice(0, s.n)
       .map((x) => x.v),
   },

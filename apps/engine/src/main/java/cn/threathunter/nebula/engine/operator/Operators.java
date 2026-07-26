@@ -1,5 +1,6 @@
 package cn.threathunter.nebula.engine.operator;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -18,13 +19,17 @@ import java.util.function.Function;
  * <p>每个算子的注释标注了它实现的是规格中的哪一条规定,尤其是空窗口的返回值 ——
  * 那是最容易被实现者按直觉猜错的地方(例如 {@code sum} 空窗口返回 0,而
  * {@code max} 返回 null)。
+ *
+ * <p>全部算子实现 {@link Accumulator#snapshot()} / {@link Accumulator#restore},
+ * 状态以普通数据形式导出,供 Flink Checkpoint 使用。快照里不含算子对象本身 ——
+ * 否则恢复会依赖类的具体实现,重构即失效。
  */
 public final class Operators {
 
     private Operators() {
     }
 
-    /** 算子工厂。config 目前只用到 param(如 lastn 的 N、top 的 N)。 */
+    /** 算子工厂。config 目前用到 param(如 lastn 的 N、top 的 N)与去重模式。 */
     public static Accumulator create(String method, Map<String, Object> config) {
         Function<Map<String, Object>, Accumulator> f = REGISTRY.get(method);
         if (f == null) {
@@ -58,139 +63,95 @@ public final class Operators {
     }
 
     static {
-        // ---------------- 计数类 ----------------
-        REGISTRY.put("count", cfg -> new AbstractAccumulator() {
-            private long n;
-
-            @Override
-            protected void doAdd(Object v, EventMeta m) {
-                n++;
-            }
-
-            @Override
-            public Object value() {
-                return n; // 规格 §2.1:空窗口返回 0
-            }
-
-            @Override
-            public String name() {
-                return "count";
-            }
-        });
-
-        REGISTRY.put("group_count", cfg -> new GroupAccumulator(false));
-        REGISTRY.put("group_sum", cfg -> new GroupAccumulator(true));
-
-        // ---------------- 数值类 ----------------
-        REGISTRY.put("sum", cfg -> new AbstractAccumulator() {
-            private double s;
-
-            @Override
-            protected void doAdd(Object v, EventMeta m) {
-                s += toDouble(v);
-            }
-
-            @Override
-            public Object value() {
-                return normalizeNumber(s); // 规格 §2.2:空窗口返回 0
-            }
-
-            @Override
-            public String name() {
-                return "sum";
-            }
-        });
-
+        REGISTRY.put("count", cfg -> new CountAccumulator());
+        REGISTRY.put("sum", cfg -> new SumAccumulator());
         REGISTRY.put("max", cfg -> new MinMaxAccumulator(true));
         REGISTRY.put("min", cfg -> new MinMaxAccumulator(false));
-
-        REGISTRY.put("avg", cfg -> new AbstractAccumulator() {
-            private long n;
-            private double s;
-
-            @Override
-            protected void doAdd(Object v, EventMeta m) {
-                n++;
-                s += toDouble(v);
-            }
-
-            @Override
-            public Object value() {
-                // 规格 §2.2:空窗口返回 null —— 0 条数据的平均值无定义
-                return n == 0 ? null : normalizeNumber(s / n);
-            }
-
-            @Override
-            public String name() {
-                return "avg";
-            }
-        });
-
+        REGISTRY.put("avg", cfg -> new MomentAccumulator("avg"));
         REGISTRY.put("variance", cfg -> new MomentAccumulator("variance"));
         REGISTRY.put("stddev", cfg -> new MomentAccumulator("stddev"));
         REGISTRY.put("cv", cfg -> new MomentAccumulator("cv"));
-
-        // ---------------- 去重计数 ----------------
         REGISTRY.put("distinct_count", DistinctCountAccumulator::new);
-
-        // ---------------- 取值类 ----------------
         REGISTRY.put("first", cfg -> new PickAccumulator("first"));
         REGISTRY.put("last", cfg -> new PickAccumulator("last"));
         REGISTRY.put("last_value", cfg -> new PickAccumulator("last_value"));
         REGISTRY.put("global_latest", cfg -> new PickAccumulator("global_latest"));
-
         REGISTRY.put("lastn", cfg -> new LastNAccumulator(intParam(cfg, 10)));
-
-        REGISTRY.put("distinct", cfg -> new AbstractAccumulator() {
-            private final LinkedHashSet<Object> seen = new LinkedHashSet<>();
-
-            @Override
-            protected void doAdd(Object v, EventMeta m) {
-                seen.add(v); // LinkedHashSet 保证「按首次出现顺序」
-            }
-
-            @Override
-            public Object value() {
-                return new ArrayList<>(seen);
-            }
-
-            @Override
-            public String name() {
-                return "distinct";
-            }
-        });
-
-        REGISTRY.put("collection", cfg -> new AbstractAccumulator() {
-            private final List<Object> items = new ArrayList<>();
-
-            @Override
-            protected void doAdd(Object v, EventMeta m) {
-                items.add(v); // 规格 §2.3:保持到达顺序,不去重
-            }
-
-            @Override
-            public Object value() {
-                return new ArrayList<>(items);
-            }
-
-            @Override
-            public String name() {
-                return "collection";
-            }
-        });
-
-        // ---------------- 合并类 ----------------
+        REGISTRY.put("distinct", cfg -> new DistinctAccumulator());
+        REGISTRY.put("collection", cfg -> new CollectionAccumulator());
+        REGISTRY.put("group_count", cfg -> new GroupAccumulator(false));
+        REGISTRY.put("group_sum", cfg -> new GroupAccumulator(true));
         REGISTRY.put("merge", cfg -> new MergeAccumulator(false));
         REGISTRY.put("merge_value", cfg -> new MergeAccumulator(true));
-
-        // ---------------- TopN ----------------
         REGISTRY.put("top", cfg -> new TopAccumulator(intParam(cfg, 100)));
         REGISTRY.put("topn", cfg -> new TopAccumulator(intParam(cfg, 100)));
     }
 
-    // ==================================================================== 实现
+    // ==================================================================== 计数
 
-    /** max / min:规格 §2.2 空窗口返回 null,不是 0。 */
+    /** 规格 §2.1:空窗口返回 0。 */
+    private static final class CountAccumulator extends AbstractAccumulator {
+        private long n;
+
+        @Override
+        protected void doAdd(Object v, EventMeta m) {
+            n++;
+        }
+
+        @Override
+        public Object value() {
+            return n;
+        }
+
+        @Override
+        public String name() {
+            return "count";
+        }
+
+        @Override
+        public Serializable snapshot() {
+            return n;
+        }
+
+        @Override
+        public void restore(Serializable s) {
+            n = ((Number) s).longValue();
+        }
+    }
+
+    /** 规格 §2.2:空窗口返回 0(与 max/min 返回 null 形成对比)。 */
+    private static final class SumAccumulator extends AbstractAccumulator {
+        private double s;
+
+        @Override
+        protected void doAdd(Object v, EventMeta m) {
+            s += toDouble(v);
+        }
+
+        @Override
+        public Object value() {
+            return normalizeNumber(s);
+        }
+
+        @Override
+        public String name() {
+            return "sum";
+        }
+
+        @Override
+        public Serializable snapshot() {
+            return s;
+        }
+
+        @Override
+        public void restore(Serializable st) {
+            s = ((Number) st).doubleValue();
+        }
+    }
+
+    // ==================================================================== 数值
+
+    /** 规格 §2.2:空窗口返回 null,不是 0。 */
     private static final class MinMaxAccumulator extends AbstractAccumulator {
         private final boolean max;
         private Double v;
@@ -216,10 +177,20 @@ public final class Operators {
         public String name() {
             return max ? "max" : "min";
         }
+
+        @Override
+        public Serializable snapshot() {
+            return v;
+        }
+
+        @Override
+        public void restore(Serializable s) {
+            v = s == null ? null : ((Number) s).doubleValue();
+        }
     }
 
     /**
-     * variance / stddev / cv —— 共用一份中间统计量。
+     * avg / variance / stddev / cv —— 共用一份中间统计量(n, sum, 平方和)。
      *
      * <p><b>与 1.x 的关键差异</b>:1.x 中名为 stddev 的算子实际返回<b>方差</b>,
      * 没有开平方;而 cv 内部才做了 sqrt。2.0 更正:stddev 返回真正的标准差,
@@ -254,6 +225,9 @@ public final class Operators {
         @Override
         public Object value() {
             switch (kind) {
+                case "avg":
+                    // 规格 §2.2:空窗口返回 null —— 0 条数据的平均值无定义
+                    return n == 0 ? null : normalizeNumber(sum / n);
                 case "variance":
                     return sampleVariance();
                 case "stddev":
@@ -264,7 +238,7 @@ public final class Operators {
                     }
                     double mean = sum / n;
                     if (mean == 0.0) {
-                        return null; // 规格 §2.2:均值为 0 返回 null,不是 Infinity
+                        return null; // 规格:均值为 0 返回 null,不是 Infinity
                     }
                     return Math.sqrt(sampleVariance()) / mean;
                 }
@@ -277,7 +251,22 @@ public final class Operators {
         public String name() {
             return kind;
         }
+
+        @Override
+        public Serializable snapshot() {
+            return new ArrayList<>(List.of(n, sum, sq));
+        }
+
+        @Override
+        public void restore(Serializable s) {
+            List<?> l = (List<?>) s;
+            n = ((Number) l.get(0)).longValue();
+            sum = ((Number) l.get(1)).doubleValue();
+            sq = ((Number) l.get(2)).doubleValue();
+        }
     }
+
+    // ==================================================================== 取值
 
     /** first / last / last_value / global_latest —— 依据<b>事件时间</b>而非到达顺序。 */
     private static final class PickAccumulator extends AbstractAccumulator {
@@ -309,15 +298,29 @@ public final class Operators {
         public String name() {
             return kind;
         }
-    }
 
-    /** lastn:规格 §2.3 按时间倒序(最新在前),不足 N 条返回全部、不补位。 */
-    private static final class LastNAccumulator extends AbstractAccumulator {
-        private record Item(Object v, long ts, long seq) {
+        @Override
+        public Serializable snapshot() {
+            ArrayList<Object> out = new ArrayList<>();
+            out.add(v);
+            out.add(ts);
+            return out;
         }
 
+        @Override
+        public void restore(Serializable s) {
+            List<?> l = (List<?>) s;
+            v = l.get(0);
+            ts = l.get(1) == null ? null : ((Number) l.get(1)).longValue();
+        }
+    }
+
+    /** 规格 §2.3:按时间倒序(最新在前),不足 N 条返回全部、不补位。 */
+    private static final class LastNAccumulator extends AbstractAccumulator {
         private final int n;
-        private final List<Item> items = new ArrayList<>();
+        private final List<Object> values = new ArrayList<>();
+        private final List<Long> times = new ArrayList<>();
+        private final List<Long> seqs = new ArrayList<>();
         private long seq;
 
         LastNAccumulator(int n) {
@@ -326,20 +329,25 @@ public final class Operators {
 
         @Override
         protected void doAdd(Object value, EventMeta m) {
-            items.add(new Item(value, m.timestamp(), seq++));
+            values.add(value);
+            times.add(m.timestamp());
+            seqs.add(seq++);
         }
 
         @Override
         public Object value() {
-            List<Item> sorted = new ArrayList<>(items);
+            List<Integer> idx = new ArrayList<>();
+            for (int i = 0; i < values.size(); i++) {
+                idx.add(i);
+            }
             // 时间相同时按到达顺序倒序,保证结果稳定可比
-            sorted.sort((a, b) -> {
-                int c = Long.compare(b.ts(), a.ts());
-                return c != 0 ? c : Long.compare(b.seq(), a.seq());
+            idx.sort((a, b) -> {
+                int c = Long.compare(times.get(b), times.get(a));
+                return c != 0 ? c : Long.compare(seqs.get(b), seqs.get(a));
             });
             List<Object> out = new ArrayList<>();
-            for (int i = 0; i < Math.min(n, sorted.size()); i++) {
-                out.add(sorted.get(i).v());
+            for (int i = 0; i < Math.min(n, idx.size()); i++) {
+                out.add(values.get(idx.get(i)));
             }
             return out;
         }
@@ -348,9 +356,102 @@ public final class Operators {
         public String name() {
             return "lastn";
         }
+
+        @Override
+        public Serializable snapshot() {
+            ArrayList<Object> out = new ArrayList<>();
+            out.add(new ArrayList<>(values));
+            out.add(new ArrayList<>(times));
+            out.add(new ArrayList<>(seqs));
+            out.add(seq);
+            return out;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void restore(Serializable s) {
+            List<?> l = (List<?>) s;
+            values.clear();
+            values.addAll((List<Object>) l.get(0));
+            times.clear();
+            for (Object t : (List<Object>) l.get(1)) {
+                times.add(((Number) t).longValue());
+            }
+            seqs.clear();
+            for (Object t : (List<Object>) l.get(2)) {
+                seqs.add(((Number) t).longValue());
+            }
+            seq = ((Number) l.get(3)).longValue();
+        }
     }
 
-    /** group_count / group_sum:按分组字段再分组。分组值为 null 时跳过。 */
+    /** 规格 §2.3:按首次出现顺序去重。 */
+    private static final class DistinctAccumulator extends AbstractAccumulator {
+        private final LinkedHashSet<Object> seen = new LinkedHashSet<>();
+
+        @Override
+        protected void doAdd(Object v, EventMeta m) {
+            seen.add(v);
+        }
+
+        @Override
+        public Object value() {
+            return new ArrayList<>(seen);
+        }
+
+        @Override
+        public String name() {
+            return "distinct";
+        }
+
+        @Override
+        public Serializable snapshot() {
+            return new ArrayList<>(seen);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void restore(Serializable s) {
+            seen.clear();
+            seen.addAll((List<Object>) s);
+        }
+    }
+
+    /** 规格 §2.3:保持到达顺序,不去重。 */
+    private static final class CollectionAccumulator extends AbstractAccumulator {
+        private final List<Object> items = new ArrayList<>();
+
+        @Override
+        protected void doAdd(Object v, EventMeta m) {
+            items.add(v);
+        }
+
+        @Override
+        public Object value() {
+            return new ArrayList<>(items);
+        }
+
+        @Override
+        public String name() {
+            return "collection";
+        }
+
+        @Override
+        public Serializable snapshot() {
+            return new ArrayList<>(items);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void restore(Serializable s) {
+            items.clear();
+            items.addAll((List<Object>) s);
+        }
+    }
+
+    // ==================================================================== 分组
+
+    /** group_count / group_sum。分组值为 null 时跳过。空窗口返回空 map。 */
     private static final class GroupAccumulator extends AbstractAccumulator {
         private final boolean sum;
         private final Map<String, Double> m = new TreeMap<>();
@@ -365,24 +466,37 @@ public final class Operators {
             if (g == null) {
                 return;
             }
-            double delta = sum ? toDouble(value) : 1.0;
-            m.merge(String.valueOf(g), delta, Double::sum);
+            m.merge(String.valueOf(g), sum ? toDouble(value) : 1.0, Double::sum);
         }
 
         @Override
         public Object value() {
             Map<String, Object> out = new LinkedHashMap<>();
             m.forEach((k, v) -> out.put(k, normalizeNumber(v)));
-            return out; // 规格 §2.1:空窗口返回空 map
+            return out;
         }
 
         @Override
         public String name() {
             return sum ? "group_sum" : "group_count";
         }
+
+        @Override
+        public Serializable snapshot() {
+            return new HashMap<>(m);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void restore(Serializable s) {
+            m.clear();
+            ((Map<String, Object>) s).forEach((k, v) -> m.put(k, ((Number) v).doubleValue()));
+        }
     }
 
-    /** merge / merge_value:键冲突时前者取较新的值,后者对值求和。 */
+    // ==================================================================== 合并
+
+    /** merge 键冲突取较新的值;merge_value 键冲突对值求和。 */
     private static final class MergeAccumulator extends AbstractAccumulator {
         private final boolean sumValues;
         private final Map<String, Object> m = new TreeMap<>();
@@ -425,9 +539,29 @@ public final class Operators {
         public String name() {
             return sumValues ? "merge_value" : "merge";
         }
+
+        @Override
+        public Serializable snapshot() {
+            ArrayList<Object> out = new ArrayList<>();
+            out.add(new HashMap<>(m));
+            out.add(new HashMap<>(ts));
+            return out;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void restore(Serializable s) {
+            List<?> l = (List<?>) s;
+            m.clear();
+            m.putAll((Map<String, Object>) l.get(0));
+            ts.clear();
+            ((Map<String, Object>) l.get(1)).forEach((k, v) -> ts.put(k, ((Number) v).longValue()));
+        }
     }
 
-    /** top / topn:规格 §1.6 按值降序;值相等时按 key 字典序升序,保证结果稳定。 */
+    // ==================================================================== TopN
+
+    /** 规格 §1.6:按值降序;值相等时按 key 字典序升序,保证结果稳定。 */
     private static final class TopAccumulator extends AbstractAccumulator {
         private final int n;
         private final Map<String, Double> m = new TreeMap<>();
@@ -457,7 +591,8 @@ public final class Operators {
             for (int i = 0; i < Math.min(n, rows.size()); i++) {
                 Map<String, Object> row = new LinkedHashMap<>();
                 row.put("key", rows.get(i).getKey());
-                row.put("value", normalizeNumber(rows.get(i).getValue()));
+                double val = rows.get(i).getValue();
+                row.put("value", normalizeNumber(val));
                 out.add(row);
             }
             return out;
@@ -466,6 +601,18 @@ public final class Operators {
         @Override
         public String name() {
             return "top";
+        }
+
+        @Override
+        public Serializable snapshot() {
+            return new HashMap<>(m);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void restore(Serializable s) {
+            m.clear();
+            ((Map<String, Object>) s).forEach((k, v) -> m.put(k, ((Number) v).doubleValue()));
         }
     }
 }

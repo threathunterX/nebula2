@@ -118,6 +118,26 @@ public final class HyperLogLog {
         return Math.round(est);
     }
 
+    /** 导出 register 数组,供 Checkpoint 使用。 */
+    public java.util.ArrayList<Number> registersCopy() {
+        java.util.ArrayList<Number> out = new java.util.ArrayList<>(registers.length + 1);
+        out.add(log2m);
+        for (byte b : registers) {
+            out.add(b);
+        }
+        return out;
+    }
+
+    /** 从 register 数组恢复。恢复后的基数估计与快照时完全一致。 */
+    public static HyperLogLog fromRegisters(java.util.List<Number> data) {
+        int log2m = data.get(0).intValue();
+        HyperLogLog h = new HyperLogLog(log2m);
+        for (int i = 1; i < data.size(); i++) {
+            h.registers[i - 1] = data.get(i).byteValue();
+        }
+        return h;
+    }
+
     public HyperLogLog merge(HyperLogLog other) {
         if (other.log2m != this.log2m) {
             throw new IllegalArgumentException("log2m 不同的 HLL 不能合并");
