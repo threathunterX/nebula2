@@ -14,8 +14,9 @@
 | 审计日志 | ✅ |
 | 认证与授权(Argon2id 口令 + 角色 + 服务令牌) | ✅ |
 | OIDC 对接企业身份源 | 🚧 |
+| 告警查询与趋势(ClickHouse) | ✅ |
+| 账号管理(建号、列表) | ✅ |
 | 策略创建与编辑(需接 schema 校验) | 🚧 |
-| 告警查询与报表(需接 ClickHouse) | 🚧 |
 
 所有接口默认拒绝。未认证请求返回 401,认证但越权返回 403,只有 `/actuator/health` 匿名可读。
 
@@ -104,6 +105,40 @@ curl -XPOST localhost:8080/checkRisk -H 'Content-Type: application/json' \
 | GET | `/api/v2/variables` | 变量列表,可按 `module` / `sensitivity` 过滤 |
 | GET | `/api/v2/variables/{name}` | 变量完整定义 |
 | POST | `/api/v2/tokens` | 签发服务令牌,仅 ADMIN,记审计 |
+| GET | `/api/v2/users` | 账号清单(不含口令哈希),仅 ADMIN |
+| POST | `/api/v2/users` | 建号,口令由服务端生成且只返回一次,仅 ADMIN |
+| GET | `/api/v2/alerts` | 告警查询,必须带时间范围 |
+| GET | `/api/v2/alerts/trend` | 按小时的告警趋势 |
+
+### 告警查询
+
+```bash
+curl -u admin:<口令> -G localhost:8080/api/v2/alerts \
+  --data-urlencode 'from=2026-07-25T00:00:00Z' \
+  --data-urlencode 'to=2026-07-26T00:00:00Z' \
+  --data-urlencode 'scene=ACCOUNT' \
+  --data-urlencode 'decision=reject'
+```
+
+引擎产出的告警此前只写进 ClickHouse 和 Redis,没有读取入口 —— 系统在报什么,
+运营看不到。`/checkRisk` 回答的是「这个主体现在有没有风险」,回答不了「昨天哪条
+策略在报、报了多少、依据是什么」。返回里的 `variable_values` 就是判定依据
+(1.x 该字段被写死为空字符串)。
+
+几条硬约束:
+
+- **必须带时间范围**,且不超过 90 天。`notices` 表按 `toDate(notice_time)` 分区,
+  不给范围就是全表扫描,一个手滑的请求能把线上写入拖垮
+- **主体值按角色分级**:`VIEWER` 看掩码值,`OPERATOR` / `ADMIN` 看原值。响应里的
+  `subject_masked` 标明当前是哪种
+- **按主体精确查询单独记审计** —— 那是「查某个人」,与浏览列表不是一回事。审计里
+  存的是掩码值:要能回答「谁在什么时候查了谁」,不需要把标识再抄一份到保留期
+  更长的表里
+- 查询条件全部走 ClickHouse 的 `{name:Type}` 参数化,排序列走白名单。会话开
+  `readonly=1`,即便 SQL 被构造错了也执行不了写操作
+
+`/trend` 读的是物化视图维护的 `notices_hourly`,不是明细表 —— 跨天按小时汇总在
+明细表上要扫全部分区。
 
 ## 元数据为什么用 JSONB
 

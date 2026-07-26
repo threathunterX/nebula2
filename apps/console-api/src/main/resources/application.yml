@@ -22,6 +22,11 @@ nebula:
     password: ${REDIS_PASSWORD}
   # 名单键前缀。与引擎写入侧约定一致。
   notice-key-prefix: "nebula:notice:"
+  clickhouse:
+    # 告警查询的数据源。未配置凭据时,告警接口返回 503 而不是降级为匿名连接。
+    url: ${NEBULA_CLICKHOUSE_URL:http://127.0.0.1:8123}
+    user: ${NEBULA_CLICKHOUSE_USER:${CLICKHOUSE_USER:}}
+    password: ${NEBULA_CLICKHOUSE_PASSWORD:${CLICKHOUSE_PASSWORD:}}
 
 management:
   endpoints:

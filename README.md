@@ -29,6 +29,7 @@
 | [控制面 API](apps/console-api/)(策略管理、/checkRisk、审计) | ✅ 可用 |
 | PostgreSQL 元数据(JSONB + 约束 + 审计分区) | ✅ 可用 |
 | [认证授权](apps/console-api/#认证)(Argon2id 口令、角色、服务令牌 + 网段绑定) | ✅ 可用 |
+| [告警查询与趋势](apps/console-api/#告警查询)(ClickHouse,分级脱敏) | ✅ 可用 |
 | 管理前端、CEP 序列检测 | 🚧 未开始 |
 | 采集器的 Kafka / syslog / Zeek 数据源 | 🚧 未开始 |
 | 部署编排(compose / Helm) | 🚧 未开始 |

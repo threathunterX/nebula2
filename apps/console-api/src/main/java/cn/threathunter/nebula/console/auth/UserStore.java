@@ -3,7 +3,9 @@ package cn.threathunter.nebula.console.auth;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -49,6 +51,29 @@ public class UserStore {
                             rs.getString("display_name"), roles, rs.getBoolean("enabled"));
                 }, username);
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+    }
+
+    /** 账号清单。<b>不返回 password_hash</b> —— 哈希没有任何展示用途,泄露只有坏处。 */
+    public List<Map<String, Object>> list() {
+        return jdbc.query(
+                "SELECT username, display_name, roles, enabled, created_at "
+                        + "FROM users ORDER BY created_at",
+                (rs, i) -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("username", rs.getString("username"));
+                    m.put("display_name", rs.getString("display_name"));
+                    List<String> roles = new ArrayList<>();
+                    java.sql.Array arr = rs.getArray("roles");
+                    if (arr != null) {
+                        for (Object o : (Object[]) arr.getArray()) {
+                            roles.add(String.valueOf(o));
+                        }
+                    }
+                    m.put("roles", roles);
+                    m.put("enabled", rs.getBoolean("enabled"));
+                    m.put("created_at", String.valueOf(rs.getTimestamp("created_at")));
+                    return m;
+                });
     }
 
     public long count() {
