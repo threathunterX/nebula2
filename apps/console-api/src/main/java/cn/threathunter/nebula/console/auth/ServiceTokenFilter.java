@@ -17,9 +17,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * 服务令牌认证。业务系统用 {@code Authorization: Bearer <token>} 调用
  * {@code /checkRisk}。
  *
- * <p><b>令牌与来源 IP 是 AND 关系。</b>1.x 的鉴权逻辑是「来源 IP 在白名单
- * <b>或</b> token 匹配」—— 拿到 token 就能从任意来源冒充内部身份。这里改为:
- * 令牌有效 <b>且</b> 来源在允许网段内(未配置网段则不限制来源)。
+ * <p><b>令牌与来源 IP 是 AND 关系:</b>令牌有效 <b>且</b> 来源在允许网段内
+ * (未配置网段则不限制来源)。
+ *
+ * <p>写成「来源在白名单 <b>或</b> 令牌匹配」是常见的写法,但那样两道防线各自都能被
+ * 单独绕过 —— 等于只有一道,而看起来像有两道。
  */
 @Component
 public class ServiceTokenFilter extends OncePerRequestFilter {
