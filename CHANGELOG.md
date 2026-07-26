@@ -10,6 +10,38 @@
 
 尚无。
 
+## [0.2.0] - 2026-07-26
+
+新增管理界面。**含一处破坏性变更**,见下方 Breaking。
+
+### Breaking
+
+- **`GET /api/v2/strategies/{name}` 的响应结构变了。** 原本直接返回 definition,现在是
+  `{name, version, status, requires_config, definition}` —— 顶层的 `version` 是**行版本**,
+  写入时的乐观并发用它;`definition.version` 是领域模型版本(恒为 `"2.0"`),两者无关。
+
+  **迁移动作**:读定义的地方从 `resp` 改为 `resp.definition`;做乐观并发的地方用
+  `resp.version`(此前根本拿不到,只能退回列表接口再查一次)。
+
+  改的理由:该端点原本的形状使得**正确使用它不可能**。管理界面作为第一个真实客户端,
+  一上来就把 `definition.version` 的 `"2.0"` 当成行版本发过去,PUT 稳定返回 409。
+  接口让正确用法无法表达时,错的是接口。
+
+### Added
+
+- **管理界面**(`apps/console-web/`,React 19 + TypeScript + Vite):登录、概览
+  (资产统计 + 告警趋势)、策略列表与详情、状态切换、定义编辑、修订历史、告警查询、
+  变量浏览。1.x 有 `nebula_fe`,2.0 此前一直没有 —— 在这一点上是相对 1.x 的倒退。
+  控制面 API 早已完整,缺的只是界面;而风控运营不会用 curl 改策略,没有界面时
+  「开箱即用的风控知识」与「策略可编辑」基本落不了地。
+
+  几个刻意的选择:不引入 UI 框架(全部生产依赖只有 React 与 react-router,与采集器、
+  参考引擎的零依赖标准一致);凭据只保存在内存不写 localStorage(代价是刷新即登出);
+  登录时先验证凭据再放行;401 与 403 分开提示;空状态说清楚「为什么空」而不是
+  「暂无数据」。
+
+- CI 新增「管理界面(TypeScript)」栏:类型检查 + 构建。
+
 ## [0.1.3] - 2026-07-26
 
 README 的准确性修正与可读性改造。**只改文档,没有代码行为变更。**
@@ -319,7 +351,8 @@ README 的准确性修正与可读性改造。**只改文档,没有代码行为�
 - 另有页面路径写成字面量、备注与实际条件不符等 4 类数据问题,逐条记录在
   `seeds/INVENTORY.md`。
 
-[Unreleased]: https://github.com/threathunterX/nebula2/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/threathunterX/nebula2/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/threathunterX/nebula2/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/threathunterX/nebula2/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/threathunterX/nebula2/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/threathunterX/nebula2/compare/v0.1.0...v0.1.1
