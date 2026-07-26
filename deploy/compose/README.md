@@ -170,3 +170,21 @@ docker compose exec -e NEBULA_CONSOLE_TOKEN='svc_xxx.yyy' jobmanager \
 
 **建表脚本打进镜像,不从宿主 bind mount。** bind mount 让「能不能起来」取决于仓库
 在宿主上的位置和 Docker 的文件共享配置,失败表现为目录为空而不是报错。
+
+## 生产部署
+
+`docker-compose.yml` 是**开发配置** —— 它把 5432 / 8123 / 6379 / 9092 映射到宿主机,
+方便用本机工具连上去排查。生产环境叠加覆盖文件:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+覆盖文件用 `!reset` 关掉那四个端口,并把没有认证的 Flink Web UI 绑到回环。组件之间
+仍然互通 —— compose 的默认网络内部可达,不需要端口映射。
+
+叠加之后确认一遍,只应剩下 8080 与绑在 `127.0.0.1` 的 8081:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml config | grep published
+```

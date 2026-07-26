@@ -112,8 +112,25 @@ docker network inspect nebula_default -f '{{(index .IPAM.Config 0).Subnet}}'
 | 8081 | Flink Web UI | **不应对外**。无认证,能看到作业详情与部分数据 |
 | 5432 / 8123 / 6379 / 9092 | 存储与消息 | **不应对外** |
 
-Lite 模式的 compose 为了本地调试把这些端口都映射了出来。**放到任何非本机环境前,
-先删掉不需要的 `ports` 映射**,或用防火墙限制。
+Lite 模式的 `docker-compose.yml` 为了本地调试把这些端口都映射了出来。**放到任何非本机
+环境前叠加生产覆盖文件:**
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+它关掉四个存储端口,并把 Flink Web UI 绑到回环。叠加之后确认一遍:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml config | grep published
+```
+
+只应剩下 8080(控制面)与 8081(Flink UI,绑在 `127.0.0.1`)。
+
+> **为什么必须用 `!reset` 而不是 `ports: []`。** compose 对 ports 这类列表的合并规则
+> 是**追加**:写 `ports: []` 什么也不会发生,写别的值只会多映射一个端口 —— 两种写法
+> 都会让人以为端口关了,而数据库仍然对外可达。覆盖文件里用的是 `!reset`(需要
+> Compose v2.24 以上)。
 
 Flink Web UI 没有认证,这是 Flink 自身的默认行为,不是本项目的配置疏漏 —— 但结果一样,
 所以单独提醒。
