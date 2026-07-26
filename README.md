@@ -55,7 +55,26 @@ sequenceDiagram
     R-->>W: review + 判定依据
 ```
 
-脱敏发生在**数据离开你的网络边界之前**,不是"先收上来再说" —— 这一点见
+脱敏发生在**数据离开你的网络边界之前**,不是「先收上来再说」。实际效果:
+
+```bash
+echo '{"name":"ACCOUNT_LOGIN","timestamp":1784944800000,"c_ip":"198.51.100.1",
+       "uid":"alice","password":"hunter2","cookie":"sid=abc123","result":"F"}' \
+  | nebula-collector -events seeds/events
+```
+
+```json
+{
+  "name": "ACCOUNT_LOGIN",  "timestamp": 1784944800000,
+  "c_ip": "198.51.100.1",   "uid": "alice",      ← 保留原值
+  "password": "<REDACTED>", "cookie": "<REDACTED>",  ← 就地脱敏
+  "result": "F"
+}
+```
+
+口令和 Cookie 被抹掉,IP 和账号保留 —— 这不是疏漏。`c_ip` 一旦在采集端哈希,地理
+定位、IP 信誉、跨维度关联就全部失效,风控直接废掉。所以分成两条界限:`sensitive`
+在采集端就地脱敏(原文不出边界),`pii` 保持原值、由存储层加密保护。完整论证见
 [隐私设计](docs/security/privacy.md)。
 
 内置 17 类事件模型、253 个统计变量、170 条策略模板 —— 这些是从
@@ -257,6 +276,36 @@ nebula2/
 | 策略模板 | 170 | 订单 70 / 账号 60 / 访客 40,按 IP、设备、账号三维度镜像设计 |
 | 风险标签 | 15 | 撞库、盗号、刷单、羊毛党、恶意扫描、爬虫等 |
 
+**一条策略长什么样** —— 以 `IP多次登录失败` 为例(已简化):
+
+```jsonc
+{
+  "name": "IP多次登录失败",
+  "category": "ACCOUNT",
+  "condition": {                          // 条件树,支持任意嵌套的 and / or / not
+    "conditions": [
+      { "left": { "kind": "event_field", "field": "result" },
+        "op": "==", "right": { "kind": "constant", "value": "F" } },
+
+      { "left": { "kind": "counter", "counter": {
+            "algorithm": "count",         // 算子语义由规范性文档定义
+            "event": "ACCOUNT_LOGIN",
+            "groupby": ["c_ip"],          // 按 IP 维度聚合
+            "window": 600,                // 10 分钟滑动窗口
+            "filter": { "object": "result", "operation": "==", "value": "F" } } },
+        "op": ">", "right": { "kind": "constant", "value": "5" } }
+    ]
+  },
+  "action": {
+    "check_type": "IP", "check_value": "c_ip",   // 风险主体:从哪个字段取
+    "decision": "review", "ttl": 300             // 处置动作与名单有效期
+  }
+}
+```
+
+同一个风险模式通常有 IP / 设备 / 账号三条镜像策略 —— 攻击者能绕开其中任何一个维度,
+三个同时绕开的成本高得多。详见[策略开发指南](docs/guide/strategy.md)。
+
 > **数据来源声明**:这些资产源自 1.x 的出厂配置。迁移过程中已剔除全部真实客户与个人信息,所有示例数据均为合成数据。详见 [`seeds/INVENTORY.md`](seeds/INVENTORY.md)。
 
 ---
@@ -273,12 +322,55 @@ cd nebula2/packages/reference-engine
 node run.js
 ```
 
-用[参考引擎](packages/reference-engine/)跑一次撞库攻击模拟:160 条合成事件里,2 个
-攻击 IP 被准确挑出,并给出**为什么判定为风险**的完整依据(哪个指标、当前值多少、
-超了什么阈值)。
+会看到:
+
+```
+场景 credential-stuffing:策略 170 条、变量 253 个、事件 160 条,耗时 21ms
+变量图节点 49 个(按策略引用的依赖闭包构建)
+求值 12320 次,命中 114 条,去重抑制 1486 条
+
+告警分布:
+   42 条  IP请求登录前未访问必要资源
+         主体: 198.51.100.77, 198.51.100.78, 198.51.100.35 等 42 个
+   42 条  设备请求登录前未访问必要资源
+    2 条  IP多次登录失败
+         主体: 198.51.100.77, 198.51.100.78
+    2 条  IP关联多个用户
+    2 条  IP大量请求登录接口
+   ...
+```
+
+160 条合成事件里,`IP多次登录失败` 恰好挑出了 2 个攻击 IP,40 个正常用户一个没碰。
+
+排在最前面那两条各命中 42 次的策略**把所有主体都打中了** —— 这不是 bug,而是内置模板
+的已知问题:它们含未配置的占位符,判定条件退化成恒真。这正是「内置模板不能直接上
+生产」最直观的例证,见 [`seeds/PLACEHOLDERS.md`](seeds/PLACEHOLDERS.md)。
+
+**每条告警都带判定依据** —— 这是 2.0 相对 1.x 的实质改进(1.x 设计了这个字段,但代码
+里被写死为空字符串,运营看到告警却看不到依据):
 
 ```bash
-node run.js --scenario crawler    # 换成爬虫场景:6 条策略交叉印证同一个 IP
+node run.js --strategy "IP多次登录失败" --json
+```
+
+```json
+{
+  "key": "198.51.100.77",
+  "check_type": "IP",
+  "strategy_name": "IP多次登录失败",
+  "decision": "review",
+  "expire": 1784945120144,
+  "variable_values": {
+    "result":                     { "value": "F", "operator": "==", "threshold": "F" },
+    "count(c_ip) by c_ip in 600s": { "value": 6,  "operator": ">",  "threshold": "5" }
+  }
+}
+```
+
+读作:**因为本次登录失败,且该 IP 在过去 10 分钟内已失败 6 次,超过阈值 5。**
+
+```bash
+node run.js --scenario crawler    # 爬虫场景:6 条策略交叉印证同一个 IP
 node --test 'test/*.test.js'      # 139 个规格符合性与端到端测试
 ```
 
