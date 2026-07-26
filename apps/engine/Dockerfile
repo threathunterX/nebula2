@@ -10,7 +10,7 @@ RUN cd apps/engine && mvn -B -q -DskipTests package
 
 # 基于官方 Flink 镜像:作业 jar 放进 usrlib,JobManager 以 application 模式启动它。
 # 不自己拼 Flink 运行时 —— 版本错配的排查成本远高于多一层基础镜像。
-FROM flink:1.20-java17
+FROM flink:2.3-java17
 COPY --from=build /src/apps/engine/target/nebula-engine-*.jar /opt/flink/usrlib/nebula-engine.jar
 
 # checkpoint 目录必须在镜像里就存在并归 flink 所有。命名卷首次挂载时会沿用
