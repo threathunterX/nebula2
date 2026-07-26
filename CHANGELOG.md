@@ -8,6 +8,25 @@
 
 ## [Unreleased]
 
+### 新增
+
+- **生产用的 compose 覆盖文件** `deploy/compose/docker-compose.prod.yml`。
+
+  威胁模型把「默认 compose 把四个数据库端口映射到宿主机」列为已知未缓解,处理方写的
+  是「部署方」。但只写在文档里不够 —— 出问题的部署几乎都是照抄了示例然后没读那段
+  文字。现在给一份能直接叠加的:
+
+  ```bash
+  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+  ```
+
+  **必须用 `!reset` 而不是 `ports: []`** —— compose 对列表的合并规则是**追加**,
+  写空列表什么也不会发生,写别的值只会多映射一个端口。两种写法都会让人以为端口关了,
+  而数据库仍然对外可达。这条是实测确认的:第一版我写的就是 `ports: []`,
+  `docker compose config` 显示端口原样还在。
+
+  同时把没有认证的 Flink Web UI 绑到回环。
+
 ### 性能
 
 - **引擎热路径两处优化,单线程吞吐提升约 20%**(170 条策略下 6.2 千 → 7.4 千条/秒)。
