@@ -19,8 +19,8 @@
 | [参考引擎](packages/reference-engine/)(零依赖,可跑通策略判定) | ✅ 可用 |
 | [采集器](apps/collector/)(Go,含脱敏引擎) | ✅ 可用(stdin/file/http 三种数据源) |
 | 文档体系(概念 / 规格 / 迁移 / 隐私 / ADR) | ✅ 主体完成 |
-| [引擎算子层](apps/engine/)(Java,与参考引擎共享测试向量) | ✅ 可用 |
-| 引擎的窗口层、变量图、规则引擎、Flink 封装 | 🚧 未开始 |
+| [计算引擎](apps/engine/)(Java:算子、条件、窗口、变量图、规则引擎) | ✅ 可用(库形态) |
+| 引擎的 Flink 封装与 CEP 序列检测 | 🚧 未开始 |
 | 采集器的 Kafka / syslog / Zeek 数据源 | 🚧 未开始 |
 | 控制面 API 与管理界面 | 🚧 未开始 |
 | 部署编排(compose / Helm) | 🚧 未开始 |

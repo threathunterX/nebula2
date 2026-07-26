@@ -1,0 +1,124 @@
+{
+  "$comment": "端到端告警对照的期望值。由参考引擎生成后固化,Java 引擎读同一份比对。重新生成:node packages/reference-engine/tools/export-notice-snapshot.js",
+  "version": "1.0",
+  "count": 13,
+  "notices": [
+    {
+      "strategy": "IP关联多个用户",
+      "key": "198.51.100.77",
+      "check_type": "IP",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "IP关联多用户请求登录",
+      "key": "198.51.100.77",
+      "check_type": "IP",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "IP多次登录失败",
+      "key": "198.51.100.77",
+      "check_type": "IP",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "IP大量请求登录接口",
+      "key": "198.51.100.77",
+      "check_type": "IP",
+      "scene": "VISITOR",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "IP请求登录前未访问必要资源",
+      "key": "198.51.100.10",
+      "check_type": "IP",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "IP请求登录前未访问必要资源",
+      "key": "198.51.100.77",
+      "check_type": "IP",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "IP集中请求登录",
+      "key": "d1",
+      "check_type": "DeviceID",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "设备关联多个用户",
+      "key": "d1",
+      "check_type": "DeviceID",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "设备多次登录失败",
+      "key": "d1",
+      "check_type": "DeviceID",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "设备多用户请求登录",
+      "key": "d1",
+      "check_type": "DeviceID",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "设备请求登录前未访问必要资源",
+      "key": "d1",
+      "check_type": "DeviceID",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "设备请求登录前未访问必要资源",
+      "key": "d9",
+      "check_type": "DeviceID",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    },
+    {
+      "strategy": "设备集中请求登录",
+      "key": "198.51.100.77",
+      "check_type": "IP",
+      "scene": "ACCOUNT",
+      "decision": "review",
+      "test": true,
+      "ttl_ms": 300000
+    }
+  ]
+}

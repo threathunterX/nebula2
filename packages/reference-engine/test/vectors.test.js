@@ -124,3 +124,13 @@ test('变量图计算结果与固化快照一致(跨语言对照的 JS 侧)', ()
   const want = JSON.parse(fs.readFileSync(expectPath, 'utf8'));
   assert.deepStrictEqual(got.values, want.values);
 });
+
+test('全量策略告警与固化快照一致(端到端对照的 JS 侧)', () => {
+  const { execFileSync } = require('node:child_process');
+  const script = path.resolve(__dirname, '..', 'tools', 'export-notice-snapshot.js');
+  const got = JSON.parse(execFileSync(process.execPath, [script], { encoding: 'utf8' }));
+  const expectPath = path.resolve(__dirname, '..', '..', '..', 'tests', 'golden', 'vectors', 'notice-expected.json');
+  const want = JSON.parse(fs.readFileSync(expectPath, 'utf8'));
+  assert.strictEqual(got.count, want.count, '告警条数');
+  assert.deepStrictEqual(got.notices, want.notices);
+});

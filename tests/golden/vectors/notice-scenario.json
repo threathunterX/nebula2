@@ -1,0 +1,14 @@
+{
+  "$comment": "端到端告警对照场景。两个引擎加载全部 170 条策略与 253 个变量,跑同一批事件,产出的告警必须逐条一致。这是最高层级的对照:覆盖变量图、条件求值、内联计数器、告警去重与可解释性的全链路。",
+  "version": "1.0",
+  "events": [
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000000000, "c_ip": "198.51.100.77", "uid": "v1", "did": "d1", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "result": "F", "status": 401 },
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000010000, "c_ip": "198.51.100.77", "uid": "v2", "did": "d1", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "result": "F", "status": 401 },
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000020000, "c_ip": "198.51.100.77", "uid": "v3", "did": "d1", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "result": "F", "status": 401 },
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000030000, "c_ip": "198.51.100.77", "uid": "v4", "did": "d1", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "result": "F", "status": 401 },
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000040000, "c_ip": "198.51.100.77", "uid": "v5", "did": "d1", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "result": "F", "status": 401 },
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000050000, "c_ip": "198.51.100.77", "uid": "v6", "did": "d1", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "result": "F", "status": 401 },
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000060000, "c_ip": "198.51.100.77", "uid": "v7", "did": "d1", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "result": "F", "status": 401 },
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000070000, "c_ip": "198.51.100.10", "uid": "u1", "did": "d9", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "result": "T", "status": 200 }
+  ]
+}
