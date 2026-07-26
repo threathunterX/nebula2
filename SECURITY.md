@@ -67,7 +67,10 @@
 
 当前已生效:
 
-- 采集器零外部依赖(仅 Go 标准库),参考引擎零外部依赖(仅 Node 内置模块)—— 依赖面本身极小
+- 采集器仅 1 个直接依赖(`franz-go`,Kafka 输出用,连传递依赖共 5 个模块),参考引擎零外部
+  依赖(仅 Node 内置模块)—— 依赖面仍然很小
+  - 采集器此前是零外部依赖的。引入 Kafka 客户端是明确的项目决定,理由与代价见
+    [`internal/sink/kafka.go`](apps/collector/internal/sink/kafka.go) 的说明
 - CI 强制凭据扫描(gitleaks)
 
 🚧 规划中,尚未生效:每次构建生成 SBOM、依赖与镜像扫描(Trivy / Grype)接入 CI、依赖版本锁定与自动升级。

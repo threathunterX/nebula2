@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -51,9 +52,14 @@ func run() error {
 		// shell 历史与容器的 inspect 里。空表示不校验,启动时会打印警告。
 		tokenEnv = "NEBULA_COLLECTOR_TOKEN"
 		outPath  = flag.String("out", "", "输出文件路径,缺省写 stdout")
-		strict   = flag.Bool("strict", false, "事件类型不在模型中时丢弃")
-		showVer  = flag.Bool("version", false, "显示版本")
-		quiet    = flag.Bool("quiet", false, "不输出运行摘要")
+		// Kafka 输出。设了 -kafka 即切到 Kafka —— 与 -out 互斥,后设的生效。
+		kafkaAddr  = flag.String("kafka", "", "Kafka broker 地址,逗号分隔。设了即用 Kafka 输出")
+		kafkaTopic = flag.String("kafka-topic", "nebula-events", "Kafka 主题")
+		kafkaAcks  = flag.String("kafka-acks", "all", "投递确认: all(默认)| leader | none")
+		kafkaComp  = flag.String("kafka-compression", "lz4", "压缩: none | gzip | snappy | lz4 | zstd")
+		strict     = flag.Bool("strict", false, "事件类型不在模型中时丢弃")
+		showVer    = flag.Bool("version", false, "显示版本")
+		quiet      = flag.Bool("quiet", false, "不输出运行摘要")
 		// 独立于接入端口:接入端口通常只对业务网段开放,而指标要给监控系统抓
 		metricsAddr = flag.String("metrics-addr", "", "Prometheus 指标监听地址,如 127.0.0.1:9100")
 	)
@@ -92,6 +98,13 @@ func run() error {
 	}
 	if *outPath != "" {
 		cfg.Sink.Type, cfg.Sink.Path = "file", *outPath
+	}
+	if *kafkaAddr != "" {
+		cfg.Sink.Type = "kafka"
+		cfg.Sink.Brokers = *kafkaAddr
+		cfg.Sink.Topic = *kafkaTopic
+		cfg.Sink.Acks = *kafkaAcks
+		cfg.Sink.Compression = *kafkaComp
 	}
 
 	var registry *event.Registry
@@ -141,6 +154,23 @@ func run() error {
 
 	var sk sink.Sink
 	switch cfg.Sink.Type {
+	case "kafka":
+		// acks=none 时 broker 拒收采集器不会知道 —— 风控链路上少一段数据不会报错,
+		// 只会让策略不命中。选了它就得看到这行。
+		if !*quiet && strings.EqualFold(cfg.Sink.Acks, "none") {
+			fmt.Fprintln(os.Stderr,
+				"警告:kafka-acks=none,不等待 broker 确认。投递失败不会被发现。")
+		}
+		sk, err = sink.NewKafka(sink.KafkaOptions{
+			Brokers:     cfg.Sink.Brokers,
+			Topic:       cfg.Sink.Topic,
+			ClientID:    cfg.Sink.ClientID,
+			Acks:        cfg.Sink.Acks,
+			Compression: cfg.Sink.Compression,
+		})
+		if err != nil {
+			return err
+		}
 	case "stdout":
 		sk = sink.NewStdout()
 	case "file":

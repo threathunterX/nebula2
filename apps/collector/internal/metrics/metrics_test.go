@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// 渲染出来的东西必须能被 Prometheus 解析。这里不引入解析库(会破坏零依赖),
+// 渲染出来的东西必须能被 Prometheus 解析。这里不引入解析库(为它多一个依赖不值),
 // 改为断言格式契约本身:每个指标要有 HELP 与 TYPE,值行要能被拆成「名字 值」。
 func render(t *testing.T, s Snapshot) string {
 	t.Helper()
