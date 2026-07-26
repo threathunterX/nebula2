@@ -23,6 +23,41 @@
 它通过**旁路采集**业务流量或日志,还原成标准化的业务事件,在事件流上做实时统计与
 策略判定,产出风险名单和处置决策,再由业务系统消费。
 
+整套系统围绕四层模型运转:
+
+```mermaid
+flowchart LR
+    A["<b>事件 Event</b><br/>业务行为<br/><br/><code>ACCOUNT_LOGIN</code><br/>c_ip · uid · result=F"]
+    B["<b>变量 Variable</b><br/>统计特征<br/><br/>该 IP 10 分钟内<br/>登录失败 6 次"]
+    C["<b>策略 Strategy</b><br/>判定规则<br/><br/>失败次数 &gt; 5<br/>且本次失败"]
+    D["<b>名单 Notice</b><br/>风险结论<br/><br/>IP 标记 review<br/>有效期 5 分钟"]
+    A --> B --> C --> D
+```
+
+**一条告警是怎么产生的** —— 以撞库为例:
+
+```mermaid
+sequenceDiagram
+    participant U as 攻击者
+    participant W as 业务系统
+    participant C as collector
+    participant E as Flink 引擎
+    participant R as Redis 名单
+
+    U->>W: 登录请求(第 6 次失败)
+    W->>C: 上报 ACCOUNT_LOGIN<br/>c_ip=198.51.100.77, result=F
+    Note over C: 口令 / Cookie 就地脱敏<br/>IP / 账号保留原值
+    C->>E: 事件进入 Kafka
+    Note over E: 变量:该 IP 10 分钟内<br/>失败次数 = 6
+    Note over E: 策略「IP多次登录失败」<br/>6 > 5 且 result == F
+    E->>R: 写入名单<br/>key=198.51.100.77, review, TTL 5min
+    W->>R: 下一次请求前查询 /checkRisk
+    R-->>W: review + 判定依据
+```
+
+脱敏发生在**数据离开你的网络边界之前**,不是"先收上来再说" —— 这一点见
+[隐私设计](docs/security/privacy.md)。
+
 内置 17 类事件模型、253 个统计变量、170 条策略模板 —— 这些是从
 [Nebula 1.x](https://github.com/threathunterX/nebula)(2019 年开源,1098 star)
 继承并经过审计的风控知识沉淀。**技术栈完全重写,只继承领域资产,不继承代码。**
@@ -113,36 +148,57 @@
 
 ## 架构
 
-下图是**目标形态**,不是当前状态。图中尚未实现的部分:
+虚线框 = **尚未实现**,逐项状态见上方[项目状态](#-项目状态)。
 
-- `console-web`(管理界面)
-- 规则引擎的 **CEP 序列检测**、**画像更新**
-- 采集侧的 **Kafka / syslog / Zeek** 数据源
+```mermaid
+flowchart TB
+    subgraph src["数据来源"]
+        T["业务流量 / 日志"]
+        Z["Zeek 旁路 · syslog"]
+    end
 
-逐项状态见上方的[项目状态](#项目状态)表。
+    C["collector<br/>Go 单二进制<br/>采集端脱敏"]
+    K["Kafka / Redpanda"]
 
+    subgraph flink["Flink 计算作业"]
+        V["① 变量引擎<br/>DAG 算子 · 有状态"]
+        R["② 规则引擎<br/>条件树 · CEL"]
+        P["③ 画像更新"]
+    end
+
+    subgraph ctrl["控制面"]
+        API["console-api<br/>策略管理 · 认证 · 审计"]
+        WEB["console-web<br/>管理界面"]
+    end
+
+    PG[("PostgreSQL<br/>元数据")]
+    CH[("ClickHouse<br/>事件明细 · 告警 · 聚合")]
+    RD[("Redis<br/>风险名单")]
+    BIZ["业务系统"]
+
+    T --> C
+    Z -.-> C
+    C --> K
+    K --> V
+    V --> R
+    R -.-> P
+    R --> CH
+    R --> RD
+    V --> CH
+    API -- "元数据下发" --> flink
+    API --- PG
+    API -- "告警查询" --> CH
+    WEB -.- API
+    BIZ -- "/checkRisk" --> API
+    API --> RD
+
+    classDef todo stroke-dasharray: 5 5,color:#888
+    class Z,P,WEB todo
 ```
-                    ┌──────────────── 控制面 ─────────────────┐
-                    │  console-web    策略/变量/名单/报表 UI   │
-                    │  console-api    元数据管理 · RBAC · 审计 │
-                    └───────┬────────────────────┬────────────┘
-                            │ 元数据下发          │ 查询
-                            ▼                    ▼
-业务流量/日志           ┌──────────┐        ┌──────────────┐
-   │                   │PostgreSQL│        │  ClickHouse  │
-   ▼                   │  元数据   │        │ 事件+聚合结果 │
-┌───────────┐  Kafka   └──────────┘        └──────▲───────┘
-│ collector │────┐                                 │
-│   (Go)    │    │    ┌─────────────────────────┐  │
-└───────────┘    ├───▶│      Flink 计算作业      │──┘
- SDK / HTTP ─────┤    │  ① 变量引擎(DAG 算子)  │
- Kafka / syslog ─┤    │  ② 规则引擎(CEL + CEP) │──▶ Kafka: notice
- Zeek(可选)─────┘    │  ③ 画像更新              │        │
-                      └─────────────────────────┘        ▼
-                                                  Redis 名单 + 处置动作
-                                                         │
-                                            /checkRisk ◀─┘  业务系统同步查询
-```
+
+**元数据只有一个事实来源。** 策略与变量存在 PostgreSQL,引擎启动时从控制面拉取 ——
+而不是各自读一份本地文件。这是 1.x 领域模型漂移的直接教训,见
+[ADR-0005](docs/adr/0005-schema-single-source-of-truth.md)。
 
 ### 技术选型
 
@@ -236,7 +292,20 @@ cd nebula2/deploy/compose
 docker compose up -d
 ```
 
-依次完成:建表 → 导入 170 条策略与 253 个变量 → 启动控制面 → 启动 Flink 集群。
+启动顺序是有依赖的:
+
+```mermaid
+flowchart LR
+    I["PostgreSQL · ClickHouse<br/>Redis · Redpanda"] --> S["schema-init<br/>建表"]
+    S --> D["seed-load<br/>导入 17 事件 / 253 变量 / 170 策略"]
+    D --> A["console-api<br/>控制面"]
+    A --> F["jobmanager + taskmanager<br/>Flink 集群"]
+```
+
+`console-api` 等的是 `seed-load` **执行完成**,不是"已启动" —— 库空着的时候控制面
+能起来、能通过健康检查、能登录,然后每个管理请求都返回空。「服务健康但什么也管不了」
+是最难判断的一种状态。
+
 管理员口令只在首次启动时打印一次:
 
 ```bash

@@ -126,11 +126,25 @@ curl -u admin:<口令> -G localhost:8080/api/v2/alerts/trend \
 
 ## 6. 生命周期
 
-```
-inedit  →  test  →  online
-草稿       计算但不决策   生效
-                ↓
-             outline(下线)
+```mermaid
+stateDiagram-v2
+    [*] --> inedit: 新建
+    inedit --> test: 写完,用真实流量验证
+    test --> online: 命中量符合预期
+    online --> outline: 下线
+    outline --> test: 调整后重新验证
+    online --> test: 需要改阈值时先退回
+
+    note right of inedit
+        草稿。不下发给引擎
+    end note
+    note right of test
+        照常计算并产出告警
+        但不参与线上决策
+    end note
+    note right of online
+        生效
+    end note
 ```
 
 **不要从 `inedit` 直接跳到 `online`。** `test` 阶段的意义是用真实流量验证命中量,跳过

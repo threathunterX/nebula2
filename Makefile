@@ -11,7 +11,7 @@ help: ## 显示本帮助
 # ---------- 校验 ----------
 
 .PHONY: validate
-validate: validate-schema validate-seeds docs-check links test-tools privacy-check check-env-untracked secrets-scan test-reference test-engine test-console lint ## 跑全部校验(等同 CI 的检查项)
+validate: validate-schema validate-seeds docs-check links diagrams test-tools privacy-check check-env-untracked secrets-scan test-reference test-engine test-console lint ## 跑全部校验(等同 CI 的检查项)
 
 .PHONY: validate-schema
 validate-schema: ## 校验 JSON Schema 自身合法
@@ -28,6 +28,10 @@ validate-seeds: ## 校验 seeds 资产符合 schema、引用完整、隐私标�
 .PHONY: links
 links: ## 校验文档内部链接可达
 	@$(PYTHON) tools/check_doc_links.py
+
+.PHONY: diagrams
+diagrams: ## 校验文档中的 Mermaid 图能否渲染(需 mermaid-cli)
+	@$(PYTHON) tools/check_mermaid.py
 
 .PHONY: test-tools
 test-tools: ## 校验工具自身的测试(隐私检查器等)

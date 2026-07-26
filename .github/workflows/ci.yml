@@ -169,6 +169,24 @@ jobs:
       - name: 工具自测
         run: python3 -m unittest discover -s tools/test -v
 
+  diagrams:
+    name: 文档图渲染
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+      # GitHub 原生渲染 Mermaid,但语法错误不会以任何方式告诉作者 —— 页面上只是
+      # 一块红色错误区,而写文档的人通常不会再回去看渲染结果。这里真正编译一遍。
+      - name: 安装 mermaid-cli
+        run: npm i -g @mermaid-js/mermaid-cli
+      - name: 渲染校验
+        run: python3 tools/check_mermaid.py
+
   images:
     name: 容器镜像构建
     runs-on: ubuntu-latest

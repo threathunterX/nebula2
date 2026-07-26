@@ -32,13 +32,21 @@
 
 解法是**按维度拆链路,再按事件 ID 汇聚**:
 
+```mermaid
+flowchart LR
+    E["事件流"] --> KI["keyBy(c_ip)"]
+    E --> KU["keyBy(uid)"]
+    E --> KD["keyBy(did)"]
+    KI --> VI["IP 维度<br/>变量与计数器"]
+    KU --> VU["账号维度"]
+    KD --> VD["设备维度"]
+    VI --> G["keyBy(eventId)<br/>汇聚"]
+    VU --> G
+    VD --> G
+    G --> S["策略判定"]
+    S --> N["keyBy(策略+主体)<br/>告警去重"]
 ```
-events ─┬─ keyBy(c_ip) → IP 维度的变量与计数器 ─┐
-        ├─ keyBy(uid)  → 账号维度            ─┼→ keyBy(eventId) → 汇聚 → 判定
-        └─ keyBy(did)  → 设备维度            ─┘
-                                                        ↓
-                                          keyBy(策略|主体) → 去重 → 告警
-```
+
 
 三个设计要点:
 
