@@ -10,71 +10,104 @@
 
 ---
 
-## ⚠️ 项目状态
-
-**当前版本 [v0.1.0](https://github.com/threathunterX/nebula2/releases/latest),处于 0.x 早期阶段 —— 可以起完整系统做评估,但不能承接生产级流量。**
-
-| | 状态 |
-|---|---|
-| 领域模型定义(JSON Schema)与强制校验 | ✅ 完成 |
-| 风控资产:17 事件 / 253 变量 / 170 策略 / 15 标签 | ✅ 完成,已审计 |
-| [参考引擎](packages/reference-engine/)(零依赖,可跑通策略判定) | ✅ 可用 |
-| [采集器](apps/collector/)(Go,含脱敏引擎) | ✅ 可用(stdin/file/http 三种数据源) |
-| 文档体系(概念 / 规格 / 迁移 / 隐私 / ADR) | ✅ 主体完成 |
-| [计算引擎](apps/engine/)(Java:算子、条件、窗口、变量图、规则引擎) | ✅ 可用 |
-| 引擎的 Flink 接入(单并行度,MiniCluster 实跑验证) | ✅ 可用 |
-| [Lite 部署](deploy/compose/)(Redpanda / PostgreSQL / ClickHouse / Redis) | ✅ 可用 |
-| Kafka 端到端链路(采集器 → Kafka → 引擎 → 告警) | ✅ 已实跑验证 |
-| [多维度分区并行拓扑](apps/engine/#并行化)(并行度 1/2/4 结果一致) | ✅ 可用 |
-| Checkpoint(算子与窗口快照恢复) | ✅ 可用 |
-| [ClickHouse 落库](deploy/schema/)(事件、告警、物化视图小时聚合、TTL) | ✅ 可用 |
-| [控制面 API](apps/console-api/)(策略管理、/checkRisk、审计) | ✅ 可用 |
-| PostgreSQL 元数据(JSONB + 约束 + 审计分区) | ✅ 可用 |
-| [认证授权](apps/console-api/#认证)(Argon2id 口令、角色、服务令牌 + 网段绑定) | ✅ 可用 |
-| [告警查询与趋势](apps/console-api/#告警查询)(ClickHouse,分级脱敏) | ✅ 可用 |
-| [策略编辑](apps/console-api/#策略编辑)(schema 校验、乐观并发、修订历史) | ✅ 可用 |
-| [元数据下发](apps/console-api/#元数据下发)(引擎从控制面加载,单一事实来源) | ✅ 可用 |
-| 策略热更新(改完无需重启作业)、管理前端、CEP 序列检测 | 🚧 未开始 |
-| 采集器的 Kafka / syslog / Zeek 数据源 | 🚧 未开始 |
-| [部署编排](deploy/compose/)(三个组件容器化,compose 一键起全栈) | ✅ 可用 |
-| Helm / Kubernetes 编排 | 🚧 未开始 |
-
-**能做什么**:`docker compose up` 起一套完整系统(采集 → Kafka → Flink → 告警 →
-控制面),接入自己的流量做评估,在控制面管理策略与账号、查告警。
-
-**不能做什么**:承接生产级流量。Lite 模式全部组件单节点、无高可用,策略改动需要
-重启作业才生效;Helm / Kubernetes 编排尚未开始。
-
-如果你现在就需要一个完整实现,可以参考 [Nebula 1.x](https://github.com/threathunterX/nebula) —— 但它已于 2019 年停止维护,依赖的技术栈(Python 2、OpenResty 1.11、Esper 6、commons-collections 3.2.1)均已 EOL 且存在已知漏洞,**不建议用于生产环境**。
-
----
-
 ## 这是什么
 
-星云是一套**业务风控**系统 —— 重心不是"这个请求有没有 SQL 注入",而是:
+星云是一套**业务风控**系统 —— 重心不是「这个请求有没有 SQL 注入」,而是:
 
-- 同一个 IP 在 10 分钟内登录失败了 50 次 → 撞库
+- 同一个 IP 在 10 分钟内登录失败 50 次 → 撞库
 - 一个账号同时在 5 个城市登录 → 盗号
 - 500 个新注册账号用了同一个设备指纹 → 批量注册
 - 一批订单下单后从不支付 → 恶意占库存
 - 活动开始 3 秒内被领走 80% 的券 → 薅羊毛
 
-它通过**旁路采集**业务流量或日志,还原成标准化的业务事件,在事件流上做实时统计与策略判定,产出风险名单和处置决策,再由业务系统消费。
+它通过**旁路采集**业务流量或日志,还原成标准化的业务事件,在事件流上做实时统计与
+策略判定,产出风险名单和处置决策,再由业务系统消费。
 
-> 内置策略中也有 19 条基于特征匹配的 WAF 类规则(SQL 注入、XSS、目录遍历、恶意扫描等),但它们是补充而非重点 —— 星云不能替代专业 WAF,它的价值在于**跨事件、跨时间窗、跨主体维度**的行为分析,这正是 WAF 做不到的。
+内置 17 类事件模型、253 个统计变量、170 条策略模板 —— 这些是从
+[Nebula 1.x](https://github.com/threathunterX/nebula)(2019 年开源,1098 star)
+继承并经过审计的风控知识沉淀。**技术栈完全重写,只继承领域资产,不继承代码。**
 
-### 核心特点
+> 内置策略中也有 19 条基于特征匹配的 WAF 类规则(SQL 注入、XSS、目录遍历、恶意扫描
+> 等),但它们是补充而非重点 —— 星云不能替代专业 WAF,它的价值在于**跨事件、跨时间
+> 窗、跨主体维度**的行为分析,这正是 WAF 做不到的。
 
-| 特点 | 说明 |
+---
+
+## ⚠️ 项目状态
+
+**0.x 早期阶段。可以起一套完整系统做评估,但不能承接生产级流量。**
+
+| | |
 |---|---|
-| **开箱即用的风控知识** ✅ | 内置 17 类业务事件、253 个统计变量、170 条策略模板,覆盖访客、账号、支付、订单、营销、其他六大场景 |
-| **告警可解释** ✅ | 每条告警附带判定依据:哪个指标、当前值多少、超了什么阈值 |
-| **无埋点接入** 🚧 | 旁路镜像流量或消费已有日志即可,不要求业务系统改代码 |
-| **策略热生效** 🚧 | 策略可经 API 编辑(含 schema 校验与修订历史),但当前需重启作业才生效;可视化编辑与热更新 🚧 |
-| **两种部署形态** ✅ Lite 已实现 | Lite 单机模式 `docker compose up` 一条命令起;Cluster(Helm / K8s)🚧 |
-| **隐私优先** ✅ 采集端已实现 | 敏感字段在采集端就地脱敏(39 个字段已分级),标识符加密存储与保留期 🚧 |
+| **能做什么** | `docker compose up` 起完整链路(采集 → Kafka → Flink → 告警 → 控制面),接入自己的流量评估效果,在控制面管理策略与账号、查告警 |
+| **不能做什么** | 承接生产流量。全部组件单节点、无高可用;策略改动需重启作业才生效;没有管理界面 |
 
-> ✅ 已实现 / 🚧 设计完成,实现中。特性表按实际状态标注,不做超前宣传。
+<details>
+<summary><b>逐项实现状态</b>(点击展开)</summary>
+
+**数据与模型**
+
+| | |
+|---|---|
+| 领域模型定义(JSON Schema)与强制校验 | ✅ |
+| 风控资产:17 事件 / 253 变量 / 170 策略 / 15 标签 | ✅ 已审计 |
+
+**采集**
+
+| | |
+|---|---|
+| [采集器](apps/collector/)(Go 单二进制,含脱敏引擎) | ✅ stdin / 文件 / HTTP |
+| Kafka / syslog / Zeek 旁路数据源 | 🚧 |
+
+**计算**
+
+| | |
+|---|---|
+| [参考引擎](packages/reference-engine/)(零依赖,验证语义规格) | ✅ |
+| [计算引擎](apps/engine/)(算子、条件、窗口、变量图、规则引擎) | ✅ |
+| Flink 接入、[多维度并行拓扑](apps/engine/#并行化)(并行度 1/2/4 结果一致)、Checkpoint | ✅ |
+| CEP 序列检测 | 🚧 |
+
+**控制面**
+
+| | |
+|---|---|
+| [策略管理与 `/checkRisk`](apps/console-api/)、审计日志 | ✅ |
+| [认证授权](apps/console-api/#认证)(Argon2id、角色、服务令牌 + 网段绑定) | ✅ |
+| [告警查询与趋势](apps/console-api/#告警查询)(分级脱敏) | ✅ |
+| [策略编辑](apps/console-api/#策略编辑)(schema 校验、乐观并发、修订历史) | ✅ |
+| [元数据下发](apps/console-api/#元数据下发)(引擎从控制面加载,单一事实来源) | ✅ |
+| 管理界面、策略热更新(改完无需重启作业) | 🚧 |
+
+**存储与部署**
+
+| | |
+|---|---|
+| [ClickHouse 落库](deploy/schema/)(明细、告警、物化视图小时聚合、TTL) | ✅ |
+| PostgreSQL 元数据(JSONB + 约束 + 审计分区) | ✅ |
+| [Lite 部署](deploy/compose/)(三个组件容器化,compose 一键起全栈) | ✅ |
+| Helm / Kubernetes 编排 | 🚧 |
+
+</details>
+
+如果你现在就需要一个经过生产检验的完整实现,可以参考
+[Nebula 1.x](https://github.com/threathunterX/nebula) —— 但它已于 2019 年停止维护,
+依赖的技术栈(Python 2、OpenResty 1.11、Esper 6、commons-collections 3.2.1)均已 EOL
+且存在公开的已知漏洞,**不建议用于生产环境**。
+
+---
+
+## 设计取向
+
+这几条是这个项目在取舍时反复回到的判断,也是它与「再写一个规则引擎」的区别所在。
+
+| | |
+|---|---|
+| **告警必须可解释** | 每条告警附带判定依据:哪个指标、当前值多少、超了什么阈值。运营看到告警却看不到依据,就只能靠猜 |
+| **领域模型只有一份** | 事件、变量、策略的结构由 JSON Schema 定义,引擎与控制面共读同一份,CI 强制校验。同一个模型在两处各写一份,迟早会漂移 |
+| **隐私是采集端的事** | 敏感字段在数据离开客户网络边界之前就地脱敏,而不是「先收上来再说」。事件模型的 184 个字段全部分级,漏标会导致校验失败 |
+| **不把计划写成现状** | 文档里标 ✅ 的每一项,读者都能自己验证;没实现的一律标 🚧。这条看起来是废话,但它是本项目返工最多的一条 |
+| **语义变更必须被证明** | 参考引擎与生产引擎读同一批测试向量、跑同一批用例,两套实现之间的语义漂移在结构上不可能发生 |
 
 ---
 
@@ -138,12 +171,16 @@ nebula2/
 │   ├── collector/       # Go 采集器
 │   ├── engine/          # Flink 计算作业(变量引擎 + 规则引擎)
 │   ├── console-api/     # 控制面 API(Spring Boot 3)
-│   └── console-web/     # 管理界面(React 19 + TS)
+│   └── console-web/     # 管理界面 —— 🚧 空目录,尚未开始
 ├── packages/
 │   ├── domain-schema/   # 领域模型 JSON Schema —— 单一真相源
-│   └── cel-functions/   # CEL 业务扩展函数
+│   ├── reference-engine/# 参考引擎(零依赖,语义规格的可执行版本)
+│   └── cel-functions/   # CEL 扩展函数的规范定义(🚧 仅有语义文档)
 ├── seeds/               # 内置风控资产:事件/变量/策略/标签
-├── deploy/              # compose(Lite) / helm(Cluster)
+├── deploy/
+│   ├── compose/         # Lite 部署(可用)
+│   ├── schema/          # 建表脚本
+│   └── helm/            # Cluster 部署 —— 🚧 空目录,尚未开始
 ├── docs/                # 文档站
 ├── tests/golden/        # 新旧引擎语义回归测试
 └── tools/               # 迁移与开发工具
@@ -170,7 +207,9 @@ nebula2/
 
 ## 快速开始
 
-**现在就能跑。** 只需要 Node.js 18+,不需要 Docker、数据库或消息队列:
+两条路径,按你想验证什么来选。
+
+### 看判定逻辑(2 分钟,只需 Node.js 18+)
 
 ```bash
 git clone https://github.com/threathunterX/nebula2.git
@@ -178,16 +217,36 @@ cd nebula2/packages/reference-engine
 node run.js
 ```
 
-这会用[参考引擎](packages/reference-engine/)跑一次撞库攻击模拟:160 条合成事件里,2 个攻击 IP 被准确挑出,并给出**为什么判定为风险**的完整依据(哪个指标、当前值多少、超了什么阈值)。
+用[参考引擎](packages/reference-engine/)跑一次撞库攻击模拟:160 条合成事件里,2 个
+攻击 IP 被准确挑出,并给出**为什么判定为风险**的完整依据(哪个指标、当前值多少、
+超了什么阈值)。
 
 ```bash
 node run.js --scenario crawler    # 换成爬虫场景:6 条策略交叉印证同一个 IP
-node --test 'test/*.test.js'      # 52 个规格符合性与端到端测试
+node --test 'test/*.test.js'      # 139 个规格符合性与端到端测试
 ```
 
-完整步骤与结果解读见[快速开始](docs/guide/quickstart.md)。
+> 参考引擎是零依赖的最小实现,用于验证语义规格、作为回归基线,**不用于生产**。
 
-> 参考引擎是零依赖的最小实现,用于验证语义规格、作为回归基线,**不用于生产**。生产引擎(Flink)与 `docker compose` 部署仍在开发中。
+### 跑完整系统(10 分钟,需要 Docker)
+
+```bash
+cd nebula2/deploy/compose
+./gen-env.sh          # 生成随机凭据,不含任何默认口令
+docker compose up -d
+```
+
+依次完成:建表 → 导入 170 条策略与 253 个变量 → 启动控制面 → 启动 Flink 集群。
+管理员口令只在首次启动时打印一次:
+
+```bash
+docker compose logs console-api | grep -A4 已创建初始管理员账号
+```
+
+系统里没有默认口令,也不从配置文件读口令。提交引擎作业、灌入事件、查看告警的完整
+步骤(以及错过口令怎么重置)见 [Lite 部署说明](deploy/compose/)。
+
+完整步骤与结果解读见[快速开始](docs/guide/quickstart.md)。
 
 ---
 
@@ -197,10 +256,15 @@ node --test 'test/*.test.js'      # 52 个规格符合性与端到端测试
 |---|---|
 | [风控数据模型](docs/concepts/data-model.md) | **建议第一篇**。事件 → 变量 → 策略 → 名单 |
 | [系统架构](docs/concepts/architecture.md) | 组件职责、数据流、两种部署形态 |
+| [接入指南](docs/guide/integration.md) | 数据源、字段映射、脱敏配置、`/checkRisk`、接入后验证 |
+| [策略开发](docs/guide/strategy.md) | 条件三形式、三维度镜像、阈值校准、生命周期 |
 | [算子语义规格](docs/reference/operators.md) | **规范性文档**。每个算子的精确定义与 1.x 差异对照 |
 | [类型推导规则](docs/reference/type-inference.md) | 窗口 × 类型 × 算子的合法组合 |
 | [变量参考](docs/reference/variables.md) | 253 个内置变量 + 画像变量详解(自动生成) |
 | [策略模板参考](docs/reference/strategies.md) | 170 条内置策略逐条说明(自动生成) |
+| [API 参考](docs/reference/api.md) | 全部接口、权限矩阵、错误码 |
+| [配置项参考](docs/reference/configuration.md) | 三个组件的全部配置项与默认值 |
+| [部署](docs/operations/deployment.md) | 形态选择、凭据注入、暴露面、升级 |
 | [隐私设计与合规](docs/security/privacy.md) | 数据分级、脱敏、保留期、主体权利、法规对齐 |
 | [1.x → 2.0 迁移](docs/migration/from-1x.md) | 资产迁移与 **6 处语义差异** |
 | [架构决策记录](docs/adr/) | 每个关键选型背后的推理与代价 |
