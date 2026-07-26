@@ -38,7 +38,7 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @WebMvcTest(controllers = {MetadataController.class, TokenController.class,
         CheckRiskController.class})
-@Import({SecurityConfig.class, ServiceTokenFilter.class})
+@Import({SecurityConfig.class, ServiceTokenFilter.class, LoginThrottleFilter.class})
 class AuthorizationMatrixTest {
 
     @Autowired
@@ -55,6 +55,8 @@ class AuthorizationMatrixTest {
     @MockitoBean
     private StrategyValidator validator;
     @MockitoBean
+    private LoginThrottle throttle;
+    @MockitoBean
     private NoticeStore notices;
     @MockitoBean
     private AuditLog audit;
@@ -64,6 +66,10 @@ class AuthorizationMatrixTest {
     @BeforeEach
     void setUp() {
         when(users.count()).thenReturn(1L);
+        // 默认不锁定 —— 这组测试关心的是授权矩阵,节流单独测
+        when(throttle.locked(anyString(), anyString())).thenReturn(false);
+        when(throttle.maxFailures()).thenReturn(5);
+        when(throttle.lockout()).thenReturn(java.time.Duration.ofMinutes(15));
         for (String role : List.of("ADMIN", "OPERATOR", "VIEWER")) {
             when(users.find(role.toLowerCase())).thenReturn(Optional.of(
                     new UserStore.User(role.toLowerCase(), encoder.encode("pw"),

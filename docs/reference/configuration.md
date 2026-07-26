@@ -97,6 +97,9 @@ Flink 自身的配置(并行度、状态后端、Checkpoint 间隔)走 Flink 的
 | `REDIS_PASSWORD` | — | **必填** |
 | `NEBULA_CLICKHOUSE_URL` | `http://127.0.0.1:8123` | |
 | `NEBULA_CLICKHOUSE_USER` / `_PASSWORD` | 回落到 `CLICKHOUSE_USER` / `_PASSWORD` | 不给则告警查询返回 503 |
+| `NEBULA_MAX_LOGIN_FAILURES` | `5` | 单个「来源 IP + 账号」组合的连续失败上限 |
+| `NEBULA_LOCKOUT_SECONDS` | `900` | 达到上限后的锁定时长 |
+| `NEBULA_FAILURE_WINDOW_SECONDS` | `900` | 失败计数的窗口 |
 
 只有 `/actuator/health` 匿名可读,其余全部需要认证。
 
