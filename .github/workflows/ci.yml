@@ -155,6 +155,20 @@ jobs:
       - name: 编译与测试(认证与授权矩阵)
         run: mvn -B verify
 
+  tools:
+    name: 校验工具自测
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      # 隐私检查器是 CI 门禁,它自己出错没有别的东西会发现。门禁静默失效比没有
+      # 门禁更糟 —— 它让人相信已经检查过了。发布前复审时就在这个脚本里发现了一处
+      # 可绕过:邮箱白名单用子串匹配,把允许域名嵌进自己的域名里就能放行。
+      - name: 工具自测
+        run: python3 -m unittest discover -s tools/test -v
+
   images:
     name: 容器镜像构建
     runs-on: ubuntu-latest

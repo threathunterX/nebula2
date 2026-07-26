@@ -99,6 +99,7 @@ node run.js --strategy "IP多次登录失败" --json
   "decision": "review",
   "expire": 1784945120144,
   "variable_values": {
+    "page": { "value": "/api/login", "operator": "!regex", "threshold": "^\\s*$" },
     "result": { "value": "F", "operator": "==", "threshold": "F" },
     "count(c_ip) by c_ip in 600s": { "value": 6, "operator": ">", "threshold": "5" }
   }
@@ -166,7 +167,9 @@ node run.js --scenario crawler
 node --test 'test/*.test.js'
 ```
 
-52 个测试,分两类:**算子规格符合性**(每条断言对应[算子语义规格](../reference/operators.md)中的一条明文规定)和**端到端行为**。
+139 个测试,分两类:**算子规格符合性**(每条断言对应[算子语义规格](../reference/operators.md)中的一条明文规定)和**端到端行为**。
+
+整个项目的测试分布:参考引擎 139、计算引擎 135、控制面 24、采集器 3 个包。`make test` 全部跑一遍。
 
 其中几个测试固化了「跑起来才发现」的事实,比如:
 

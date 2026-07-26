@@ -16,7 +16,9 @@
 
 当前可编译、可测试,能加载仓库里真实的 170 条策略与 253 个变量,把事件流跑成风险告警,并已能作为 Flink 作业在 MiniCluster 中实际运行。
 
-**但还不能上生产**:只支持单并行度,没有接 Kafka / ClickHouse,没有 Checkpoint 配置。原因见下文的「并行化」一节。
+**能力边界**:Kafka 接入、ClickHouse 落库、Checkpoint、多维度并行拓扑都已实现(上表)。
+仍不建议上生产的原因是别的:CEP 序列检测未实现;策略改动需重启作业才生效;
+`NebulaJob` 固定单并行度,要并行需用 `NebulaParallelJob`(见下文「并行化」)。
 
 ## Flink 接入
 

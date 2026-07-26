@@ -73,7 +73,9 @@ curl -s "http://127.0.0.1:8123/?user=$CLICKHOUSE_USER&password=$CLICKHOUSE_PASSW
 
 ## 已知限制
 
-- **引擎并行度必须为 1**。变量按不同维度分组,一次 keyBy 无法同时满足,见 [engine README](../../apps/engine/README.md#并行化--这套架构最实质的工程难点)。
+- **`NebulaJob` 固定单并行度**。变量按不同维度分组,一次 `keyBy` 无法同时满足。
+  需要并行时用 `NebulaParallelJob`(按维度拆链路再汇聚,并行度 1/2/4 结果一致),
+  见 [engine README](../../apps/engine/README.md#并行化)。
 - **Flink 未容器化**。当前用宿主机 JVM 直接跑作业,尚未提供 JobManager / TaskManager 容器。
 - **控制面与前端尚未实现**,因此 PostgreSQL 目前是空库 —— 它已就位但还没有表结构。
 - **Flink 未容器化**,当前用宿主机 JVM 直接跑作业。
