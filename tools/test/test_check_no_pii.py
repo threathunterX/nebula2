@@ -106,10 +106,44 @@ class TestPublicIP(unittest.TestCase):
 
 
 class TestVersionHeuristic(unittest.TestCase):
+    @staticmethod
+    def _first_ip_match(line):
+        pat = next(p for name, p, _ in chk.CHECKS if name == "公网 IP 字面量")
+        return pat.search(line)
+
     def test_user_agent_version_not_treated_as_ip(self):
         line = "Mozilla/5.0 Chrome/120.0.0.0 Safari/537.36"
-        m = next(p.search(line) for name, p, _ in chk.CHECKS if name == "公网 IP 字面量")
-        self.assertTrue(chk._looks_like_version(m, line))
+        self.assertTrue(chk._looks_like_version(self._first_ip_match(line), line))
+
+    def test_product_name_then_version(self):
+        """「OpenResty 1.31.1.1」这类文档里的版本号。
+
+        写 OpenResty 埋点文档时撞出来的:版本号被判成公网 IP。
+        空格、斜杠、半角与全角括号都要认。"""
+        for line in [
+            "用官方镜像的真实 OpenResty 1.31.1.1 验证",
+            "用官方镜像的真实 OpenResty(1.31.1.1)验证",
+            "OpenResty (1.31.1.1)",
+            "Redis 7.2.1.0 已发布",
+            "nginx version: openresty/1.31.1.1",
+        ]:
+            m = self._first_ip_match(line)
+            self.assertIsNotNone(m, line)
+            self.assertTrue(chk._looks_like_version(m, line), line)
+
+    def test_version_heuristic_does_not_swallow_real_ips(self):
+        """反向断言:放宽不能宽到把真 IP 一起放过。
+
+        软件名与 IP 之间隔了别的词时,那就是个 IP 而不是版本号 ——
+        这正是「OpenResty 部署在 8.8.4.4 上」这类句子。"""
+        for line in [
+            "OpenResty 部署在 " + "8.8" + ".4.4 上",
+            "客户端 IP 是 " + "223.255" + ".255.255",
+            "上游地址 " + "1.1" + ".1.1",
+        ]:
+            m = self._first_ip_match(line)
+            self.assertIsNotNone(m, line)
+            self.assertFalse(chk._looks_like_version(m, line), line)
 
 
 if __name__ == "__main__":

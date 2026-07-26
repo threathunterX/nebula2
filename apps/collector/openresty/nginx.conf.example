@@ -1,0 +1,57 @@
+# 星云埋点的最小 nginx 配置示例。
+#
+# 三处必需的声明:
+#   1. lua_shared_dict —— 缓冲与统计跨 worker 共享
+#   2. lua_package_path —— 让 require "nebula" 找得到模块
+#   3. resolver —— resty.http 解析 endpoint 的域名时需要;endpoint 用 IP 时可省
+
+worker_processes auto;
+error_log /dev/stderr warn;
+
+# nginx **默认不把环境变量传给 worker 进程** —— 不声明的话 init_worker 里
+# os.getenv 一律返回 nil,而表现是「埋点静默不生效」。
+# 这一条是实跑时撞出来的,只读文档不会发现。
+env NEBULA_ENDPOINT;
+env NEBULA_COLLECTOR_TOKEN;
+
+events { worker_connections 1024; }
+
+http {
+    lua_shared_dict nebula_buffer 32m;
+    lua_shared_dict nebula_stats   1m;
+    lua_package_path "/usr/local/openresty/nebula/?.lua;;";
+
+    resolver 127.0.0.11 ipv6=off;   # Docker 内置 DNS;裸机上改成你的 resolver
+
+    init_worker_by_lua_block {
+        require("nebula").setup{
+            endpoint = os.getenv("NEBULA_ENDPOINT"),
+            token    = os.getenv("NEBULA_COLLECTOR_TOKEN"),
+            -- 网关前面还有 LB 时才打开,否则客户端可以伪造自己的 IP
+            trust_xff = false,
+            batch_size = 20,
+            flush_interval = 1,
+        }
+    }
+
+    server {
+        listen 8080;
+
+        # 埋点挂在 log 阶段:响应发出之后才执行,拿得到状态码,
+        # 而且埋点失败不会影响业务请求
+        log_by_lua_block { require("nebula").log() }
+
+        location / {
+            return 200 "ok\n";
+        }
+
+        # 运行统计。**不要暴露到可信网络之外** —— 它会告诉外面这个网关的流量量级
+        location = /nebula-status {
+            log_by_lua_block { ; }   # 状态查询本身不埋点
+            content_by_lua_block {
+                ngx.header["Content-Type"] = "application/json"
+                ngx.say(require("cjson.safe").encode(require("nebula").stats()))
+            }
+        }
+    }
+}

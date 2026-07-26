@@ -96,16 +96,30 @@ def _domain_allowed(email):
     return False
 
 
+# 「产品名 + 空格 + 四段数字」形态的版本号,如 `OpenResty 1.31.1.1`。
+# 只认软件名后面紧跟的那个 —— 不放宽成「任何空格之后」,否则
+# 「客户端 IP 是 203.0.113.5」这类句子里的真 IP 会被一起放过。
+_VERSION_AFTER_NAME = re.compile(
+    r"(?i)\b(openresty|nginx|redis|clickhouse|flink|kafka|redpanda|postgres(?:ql)?"
+    r"|node|python|java|go|docker|compose|lua(?:jit)?)[\s/v(（\[]+$")
+
+
 def _looks_like_version(m, line):
     """排除版本号误报。
 
     User-Agent 里的 Chrome/120.0.0.0、Safari/537.36 这类版本号形态上与 IP
     无法区分,但它们前面必然紧跟斜杠;另外四段版本号常以 .0.0 结尾。
+
+    还有一类是文档里写的「OpenResty 1.31.1.1」或「OpenResty(1.31.1.1)」——
+    前面是软件名,中间隔的是空格、斜杠或括号(含全角)。这条是写 OpenResty 埋点
+    文档时撞出来的:版本号被判成公网 IP。
     """
     start = m.start()
     if start > 0 and line[start - 1] in "/-":
         return True
     if m.group(0).endswith(".0.0"):
+        return True
+    if _VERSION_AFTER_NAME.search(line[:start]):
         return True
     return False
 
