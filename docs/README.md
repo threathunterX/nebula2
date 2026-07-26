@@ -58,6 +58,7 @@
 | [贡献指南](../CONTRIBUTING.md) | 参与方式、提交要求、本地检查 |
 | [行为准则](../CODE_OF_CONDUCT.md) | Contributor Covenant 2.1 |
 | [更新日志](../CHANGELOG.md) | 按 Keep a Changelog 维护 |
+| [路线图](development/roadmap.md) | 下一个版本做什么、为什么、代价与风险 |
 | [发布流程](development/release-process.md) | 版本号规则、发布前检查清单、打 tag |
 | [发布就绪度审查](development/release-readiness.md) | **诚实列出当前的不足**,含待处理项清单 |
 

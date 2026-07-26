@@ -430,6 +430,7 @@ docker compose logs console-api | grep -A4 已创建初始管理员账号
 | [隐私设计与合规](docs/security/privacy.md) | 数据分级、脱敏、保留期、主体权利、法规对齐 |
 | [1.x → 2.0 迁移](docs/migration/from-1x.md) | 资产迁移与 **6 处语义差异** |
 | [架构决策记录](docs/adr/) | 每个关键选型背后的推理与代价 |
+| [路线图](docs/development/roadmap.md) | 下一个版本做什么、为什么、代价与风险 |
 | [Golden 回归测试](tests/golden/) | 如何证明语义继承是正确的 |
 | [全部文档](docs/) | 文档索引(含尚未编写文档的提纲) |
 
