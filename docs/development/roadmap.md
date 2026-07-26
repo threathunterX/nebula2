@@ -176,15 +176,14 @@ Flink CEP。也就是说无论如何都要手写一份,引入 CEP 只是多一�
 分别看到,而分支写法看不到。重复(A 出现 3 次以上)用内联计数器就能表达,不需要
 序列构造。
 
-### 8. 采集器的 OpenResty Lua 接入
+### 8. 接入方式 —— 已完成
 
-syslog 已完成(RFC 3164 / 5424,UDP 与 TCP),HTTP 入口的共享令牌校验也一并做了 ——
-当时的判断是「分两次做意味着中间那段时间新增的接入方式同样没有认证」,事实证明该
-一起做:syslog 协议本身没有认证的位置,只有把这件事摊开写清楚,部署方才知道那个
-端口必须靠网络策略保护。
+syslog(RFC 3164 / 5424,UDP 与 TCP)、HTTP 入口的共享令牌校验、
+[OpenResty 埋点](../../apps/collector/openresty/)都已落地。
 
-Zeek 不需要单独的驱动:它配成 JSON 日志后走 `-source file` 或 `-source syslog` 即可。
-剩下的是 1.x `sniffer` 里的 OpenResty Lua 埋点。
+Zeek 不需要单独的驱动:配成 JSON 日志后走 `-source file` 或 `-source syslog` 即可。
+
+剩下的是把 **Kafka 当输入**(见上一条)。
 
 ---
 

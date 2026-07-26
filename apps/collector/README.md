@@ -25,6 +25,7 @@ Go 编写,单二进制部署 —— 采集器要装到客户环境里,依赖越�
 | 输出:Kafka(franz-go,按主体分区) | ✅ |
 | 运行指标与脱敏统计 | ✅ |
 | Prometheus 指标端点(标准库实现,未引入 client_golang) | ✅ |
+| [OpenResty 埋点](openresty/)(网关侧,log 阶段) | ✅ |
 | 数据源:Kafka | 🚧 |
 | 配置热加载 | 🚧 |
 
