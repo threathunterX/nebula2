@@ -110,9 +110,28 @@ public final class NebulaJob {
                 + " / 变量 " + meta.variables().size()
                 + " / 策略 " + meta.strategies().size() + ")");
 
-        DataStream<StrategyEngine.Notice> notices = events.process(
-                new RiskDetectionFunction(
-                        meta.strategies(), meta.variables(), meta.events()));
+        RiskDetectionFunction detector = new RiskDetectionFunction(
+                meta.strategies(), meta.variables(), meta.events());
+
+        DataStream<StrategyEngine.Notice> notices;
+        if (consoleUrl != null && !consoleUrl.isBlank()) {
+            // 元数据来自控制面 —— 接上热更新:轮询版本号,变了才广播全量。
+            // 改完策略不必重启作业,而且已累积的窗口状态不会丢。
+            long pollMs = Long.parseLong(opts.getOrDefault("metadata-poll-seconds", "30")) * 1000L;
+            DataStream<cn.threathunter.nebula.engine.meta.MetadataClient.Bundle> updates =
+                    env.addSource(new MetadataPollSource(
+                                    consoleUrl, System.getenv("NEBULA_CONSOLE_TOKEN"), pollMs))
+                            .name("metadata-poll")
+                            .setParallelism(1);   // 只需一个实例轮询,再广播出去
+            notices = events
+                    .connect(updates.broadcast(HotReloadFunction.UNUSED))
+                    .process(new HotReloadFunction(detector))
+                    .name("risk-detection");
+            System.out.println("策略热更新已启用,轮询间隔 " + (pollMs / 1000) + " 秒");
+        } else {
+            // 从本地 seeds 加载时没有热更新的来源 —— 文件变了没人通知我们
+            notices = events.process(detector).name("risk-detection");
+        }
 
         if (toClickHouse) {
             notices.addSink(new ClickHouseSink<StrategyEngine.Notice>(
