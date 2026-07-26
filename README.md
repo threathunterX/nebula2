@@ -21,7 +21,9 @@
 | 文档体系(概念 / 规格 / 迁移 / 隐私 / ADR) | ✅ 主体完成 |
 | [计算引擎](apps/engine/)(Java:算子、条件、窗口、变量图、规则引擎) | ✅ 可用 |
 | 引擎的 Flink 接入(单并行度,MiniCluster 实跑验证) | ✅ 可用 |
-| Flink 多维度分区、CEP 序列检测、Kafka/ClickHouse 接入 | 🚧 未开始 |
+| [Lite 部署](deploy/compose/)(Redpanda / PostgreSQL / ClickHouse / Redis) | ✅ 可用 |
+| Kafka 端到端链路(采集器 → Kafka → 引擎 → 告警) | ✅ 已实跑验证 |
+| Flink 多维度分区、CEP 序列检测、ClickHouse 写入 | 🚧 未开始 |
 | 采集器的 Kafka / syslog / Zeek 数据源 | 🚧 未开始 |
 | 控制面 API 与管理界面 | 🚧 未开始 |
 | 部署编排(compose / Helm) | 🚧 未开始 |

@@ -1,0 +1,107 @@
+# 星云 Nebula 2.0 —— Lite 模式
+#
+# 面向中小规模与本地评估。全部组件单节点,资源占用约 6~8GB 内存。
+# 生产环境请用 Cluster 模式(deploy/helm,🚧)。
+#
+# 用法:
+#   cp .env.example .env      # 生成随机凭据,见下方说明
+#   docker compose up -d
+#   docker compose ps
+#
+# 凭据一律从 .env 注入,本文件中不出现任何可用凭据 —— 这是硬性要求,见 SECURITY.md。
+
+name: nebula
+
+services:
+  # ---------------------------------------------------------------- 消息总线
+  # Redpanda 与 Kafka 协议兼容,单节点资源占用远低于 Kafka + ZooKeeper。
+  redpanda:
+    image: redpandadata/redpanda:v24.2.7
+    command:
+      - redpanda
+      - start
+      - --smp=1
+      - --memory=1G
+      - --overprovisioned
+      - --node-id=0
+      - --check=false
+      - --kafka-addr=PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr=PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -q 'Healthy:.*true'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+
+  # ---------------------------------------------------------------- 元数据
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: nebula
+      POSTGRES_USER: ${POSTGRES_USER:?请在 .env 中设置 POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?请在 .env 中设置 POSTGRES_PASSWORD}
+      # 强制 scram-sha-256,不接受 md5
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d nebula"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  # ---------------------------------------------------------------- 分析存储
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8-alpine
+    environment:
+      CLICKHOUSE_DB: nebula
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:?请在 .env 中设置 CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?请在 .env 中设置 CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    ulimits:
+      nofile: { soft: 262144, hard: 262144 }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8123/ping | grep -q Ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+
+  # ---------------------------------------------------------------- 名单与热状态
+  redis:
+    image: redis:7-alpine
+    environment:
+      # 健康检查脚本在容器内执行,需要能读到口令 —— 只在 command 里用是不够的
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?请在 .env 中设置 REDIS_PASSWORD}
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD:?请在 .env 中设置 REDIS_PASSWORD}
+      - --save
+      - "60"
+      - "1"
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a $${REDIS_PASSWORD} ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redpanda-data:
+  postgres-data:
+  clickhouse-data:
+  redis-data:

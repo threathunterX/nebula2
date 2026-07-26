@@ -45,3 +45,4 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+deploy/compose/.env
