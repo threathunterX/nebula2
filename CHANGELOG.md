@@ -71,6 +71,46 @@
 - **协作与治理文件**:行为准则(Contributor Covenant 2.1)、issue 模板
   (缺陷报告 / 功能建议 / 策略模板贡献)、Pull Request 模板、本更新日志、
   发布流程文档、发布就绪度审查报告、PR 标题的 Conventional Commits 检查。
+- **控制面认证与授权**(`apps/console-api/auth/`):此前控制面完全没有认证,任何能连到
+  端口的人都能改策略、查名单。现在人与服务分成两类主体且权限不重叠 —— 管理员不能调
+  `/checkRisk`,服务令牌碰不到任何管理接口。针对性修复 1.x 的三处失败:口令由无盐单次
+  SHA1 改为 **Argon2id**;服务令牌只存 SHA-256 哈希、明文仅在签发响应中出现一次
+  (1.x 的 5 个 token 明文写在配置文件里,泄露后既无从察觉也无法轮换);令牌与来源网段
+  是 **AND** 关系(1.x 是「来源 IP 在白名单 **或** token 匹配」,拿到 token 即可从任意
+  来源冒充内部身份)。零默认口令:首次启动生成随机管理员口令并只打印一次。
+  令牌校验的全部失败路径返回同一个 401,不透露失败原因,密文比对走常量时间。
+- **账号管理**(`GET`/`POST /api/v2/users`):没有这个接口时系统里永远只有引导阶段那一个
+  管理员,角色划分写在配置里却没人能被赋予,「最小权限」只是一句话。接口不接受调用方
+  指定口令 —— 口令由服务端生成并只返回一次。
+- **告警查询与趋势**(`GET /api/v2/alerts`、`/alerts/trend`):引擎产出的告警此前只写进
+  ClickHouse 和 Redis,没有任何读取入口 —— 系统在报什么,运营看不到。`/checkRisk` 回答的是
+  「这个主体现在有没有风险」,回答不了「昨天哪条策略在报、报了多少、依据是什么」。
+  主体值按角色分级:`VIEWER` 看掩码值,`OPERATOR` / `ADMIN` 看原值;按主体精确查询单独
+  记审计,且审计里存的是掩码值。查询条件全部走 ClickHouse 的 `{name:Type}` 参数化,
+  排序列走白名单,会话开 `readonly=1`。强制带时间范围且不超过 90 天 —— 告警表按
+  `toDate(notice_time)` 分区,不给范围就是全表扫描。
+- **策略编辑**(`PUT /api/v2/strategies/{name}`):170 条策略此前是只读的,系统没法适应
+  业务变化。校验分两层:结构按 `packages/domain-schema/strategy.schema.json` 校验(schema
+  随构建打进 jar);引用则是 schema 管不了的那层 —— `counter.event` 指向的事件、`groupby`
+  / `operand` / `filter.object` 用到的字段必须真实存在,因为 `"event": "ORDER_SUBMITT"`
+  结构上完全合法、能保存能上线,然后永远不命中也永远不报错。`expected_version` 必填,
+  版本冲突返回 409 而不是静默覆盖。
+- **策略修订历史**(`strategy_revisions` 表):每次写入存一份改动后的完整快照,回滚表现为
+  一个新版本,历史只增不改。没有历史时「昨天这条策略为什么突然报了十倍」查不出来 ——
+  定义表里只有当前值;审计日志记得了「发生过修改」,记不下改前改后的完整定义。
+- **元数据下发**(`GET /api/v2/metadata/bundle`、`/version`):引擎带 `--console-url` 即从
+  控制面加载事件、变量与策略。令牌从环境变量 `NEBULA_CONSOLE_TOKEN` 取,不走命令行参数
+  (`ps aux` 对同机所有用户可见)。`/bundle` 默认只下发 `online` 与 `test` 状态的策略 ——
+  `inedit` 是没写完的草稿,发给引擎等于让草稿直接影响线上判定。
+- **容器化与部署编排**:三个组件此前一个 Dockerfile 都没有,全靠手工启动。现在
+  `docker compose up -d` 依次完成建表 → 导入 170 条策略 → 启动控制面 → 启动 Flink 集群,
+  提交作业即产出告警(已从 `down -v` 全新验证)。采集器用 distroless(14MB,镜像里没有
+  shell 也没有包管理器);引擎基于官方 `flink:1.20` 镜像;建表与种子导入打进镜像而不是
+  bind mount 宿主目录 —— 后者让「能不能起来」取决于仓库在宿主上的位置和 Docker 的文件
+  共享配置,而失败表现为目录为空、不是报错。
+- **CI 新增两栏**:控制面测试(认证与授权矩阵)、容器镜像构建。后者还断言了四件事:
+  作业 jar 是 Java 17 字节码、自带 KafkaSource 与 Jackson、checkpoint 目录属主是 flink、
+  采集器镜像里不存在 shell。
 
 ### Changed
 
@@ -104,6 +144,26 @@
   明确写出当前能做什么、不能做什么,不做超前宣传。
 - **策略参考文档适配 2.0 结构**:解析层重写以读取条件树,支持任意嵌套的
   and / or / not 渲染,新增「延迟求值(delay)策略」一节。
+- **引擎的编译目标由 Java 21 改为 17**:作业 jar 要提交给 Flink 执行,而 Flink 1.20 官方
+  镜像最高只到 Java 17 —— 用 21 编出来的 class 文件(版本 65)在上面根本加载不了,而且
+  报错发生在提交作业时、不是构建时。这是运行环境施加的约束。控制面是独立进程,仍用 21。
+- **Kafka 连接器与 Jackson 由 `provided` 改为打进作业 jar**:Flink 发行版只含运行时,
+  连接器是单独发布的构件,Jackson 被重定位到 `org.apache.flink.shaded.jackson2.*`。
+  用 `provided` 时本地测试(依赖都在 classpath 上)一路绿灯,提交到集群才
+  `ClassNotFoundException`。
+- **元数据的事实来源收敛到数据库**:控制面把策略写进 PostgreSQL、引擎从本地 `seeds/`
+  目录加载,是同一份领域模型的两个事实来源 —— 运营改完策略引擎毫无察觉,而两边的分歧
+  不会有任何报错。这正是 1.x 走过的路。现在 `seeds/` 退回它本来的角色:首次导入的种子
+  数据。拉取失败即启动失败,**不回落到本地文件** —— 回落会让作业带着一份不知多旧的策略
+  跑起来,且没有任何迹象表明它没连上控制面。
+- **审计日志记录真实操作者**:此前 `MetadataController` 硬编码 `"admin"`、
+  `CheckRiskController` 硬编码 `"system"`。审计的意义就在于能追溯到人。
+- **`load_seeds_to_postgres.py` 与 `apply_postgres.py` 改为直连数据库**:此前走
+  `docker compose exec psql`,只在宿主机上、且容器叫特定名字时成立,放进初始化容器里就
+  找不到 docker 命令。前者同时把手写字符串转义拼 SQL 改为参数化语句 —— 这里的输入是仓库
+  内经过校验的种子文件,手写转义恰好安全,但它是一种会被照抄到别处的写法。
+- **`check_no_pii.py` 补上 RFC 5737 的 `192.0.2.0/24`**(TEST-NET-1):此前会把文档段地址
+  判成真实公网 IP,而脚本自己的提示又在推荐用文档段地址。
 
 ### Fixed
 
@@ -112,6 +172,27 @@
   结尾的四段数字视为版本号。已用负例验证判别未被削弱(植入 `一个真实公网 IP` 仍会被拦截)。
 - **迁移指南中关于策略 score 的失实表述**:原文称 1.x 策略的 `score`「全部是 0」,
   实际是 169/170 为 0,`设备请求下单行为单一` 为 1。已按数据修正。
+- **凭据扫描其实一直没跑起来**:`.gitleaks.toml` 中一条规则用了否定先行断言 `(?!...)`,
+  而 gitleaks 用 go-re2 编译正则、RE2 不支持该语法 —— 结果不是配置被拒绝,而是进程直接
+  panic。gitleaks-action 在崩溃后仍会去上传 `results.sarif`,日志末尾变成
+  `File results.sarif does not exist`,真正的原因埋在几十行 Go 栈里,整个失败看起来像是
+  action 的环境问题。也就是说:门禁在 CI 上是红的,但红的原因看着与凭据无关,而扫描本身
+  一次也没执行过。排除项已从正则移到 allowlist,CI 改用 gitleaks CLI。
+- **`make secrets-scan` 吞掉失败**:写成 `gitleaks detect ... || echo "未安装,跳过"`,
+  发现泄露时会走进 `||` 分支 echo 一句然后返回成功。装没装 gitleaks,这个目标都永远是绿的。
+- **`/error` 转发未放行导致状态码被改写**:容器把 403 / 404 / 500 转发到 `/error` 时会再走
+  一遍安全链,此时上下文已清空,`denyAll` 把真实状态码统统改写成 401 并附上 Basic 挑战。
+  表现是「已认证但越权」返回 401 而不是 403,404 也变成 401。这是靠「MockMvc 测出 403、
+  线上 curl 得到 401」的不一致发现的 —— MockMvc 默认不走 ERROR 分派,两边正好各露一半。
+- **`bootstrapAdmin` 在测试中执行并打印口令**:授权测试需要导入 `SecurityConfig`,而
+  `@WebMvcTest` 切片会执行 `ApplicationRunner` —— 每跑一次测试就走一遍建号流程,把一个随机
+  口令打进测试输出。那行日志出现在 CI 日志里,和真的凭据泄露看不出区别。已拆分为
+  `BootstrapConfig`。
+- **ClickHouse 查询中的别名遮蔽**:`SELECT toString(notice_time) AS notice_time` 会让别名在
+  `WHERE` 里覆盖同名原列,时间比较变成「String 与 DateTime64 比大小」直接报错。
+- **Flink checkpoint 目录属主**:命名卷首次挂载沿用镜像中该路径的属主,镜像里没有该目录
+  时 Docker 新建一个 root 的空目录,而 Flink 以 flink 用户运行 —— 作业能提交、能进
+  RUNNING,第一次 checkpoint 时才失败。
 
 ### 已知问题(从 1.x 继承,保留原样仅标注)
 

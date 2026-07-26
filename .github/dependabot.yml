@@ -1,0 +1,33 @@
+# 依赖更新。
+#
+# 1.x 的教训:依赖一旦停止更新就会静默腐化 —— commons-collections 3.2.1 的反序列化
+# 漏洞、jackson 1.9 的一系列 CVE,都是在项目停更后才公开的,而没有任何机制会提醒。
+# 每周一次的 PR 比"想起来的时候看一眼"可靠。
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /apps/engine
+    schedule: {interval: weekly}
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: maven
+    directory: /apps/console-api
+    schedule: {interval: weekly}
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: gomod
+    directory: /apps/collector
+    schedule: {interval: weekly}
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: {interval: weekly}
+
+  - package-ecosystem: docker
+    directories:
+      - /apps/collector
+      - /apps/console-api
+      - /apps/engine
+      - /deploy/schema
+      - /deploy/seed
+    schedule: {interval: weekly}

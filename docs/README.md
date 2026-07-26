@@ -14,9 +14,9 @@
 
 | | |
 |---|---|
-| [接入指南](guide/integration.md) 🚧 | 旁路流量、Nginx 日志、Kafka、SDK 埋点、同步查询 |
-| [策略开发](guide/strategy.md) 🚧 | 内置模板详解、自定义策略 |
-| [CEL 表达式参考](guide/cel-reference.md) 🚧 | 语法、内置函数、示例 |
+| [接入指南](guide/integration.md) | 数据源、字段映射、脱敏配置、`/checkRisk`、接入后验证 |
+| [策略开发](guide/strategy.md) | 条件三形式、三维度镜像、阈值校准、生命周期 |
+| [CEL 表达式参考](guide/cel-reference.md) | 已实现的函数与求值语义 |
 
 ## 参考
 
@@ -26,14 +26,14 @@
 | [算子语义规格](reference/operators.md) | **规范性文档**。每个算子的精确定义与 1.x 差异对照 |
 | [类型推导规则](reference/type-inference.md) | 窗口 × 类型 × 算子的合法组合与输出类型 |
 | [策略模板参考](reference/strategies.md) | 170 条内置策略(自动生成) |
-| [API 参考](reference/api.md) 🚧 | OpenAPI(自动生成) |
-| [配置项](reference/configuration.md) 🚧 | 全部配置项及默认值 |
+| [API 参考](reference/api.md) | 全部接口、权限、错误码(手工维护,OpenAPI 生成 🚧) |
+| [配置项](reference/configuration.md) | 三个组件的全部配置项与默认值 |
 
 ## 运维
 
 | | |
 |---|---|
-| [部署](operations/deployment.md) 🚧 | Lite 单机 / Cluster 集群 |
+| [部署](operations/deployment.md) | Lite 模式、凭据注入、暴露面、升级(Cluster 🚧) |
 | [容量规划](operations/capacity.md) 🚧 | 按流量估算资源 |
 | [监控告警](operations/monitoring.md) 🚧 | 指标、告警项、故障排查 |
 
