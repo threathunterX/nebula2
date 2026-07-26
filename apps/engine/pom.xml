@@ -92,7 +92,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.2</version>
+        <version>3.5.6</version>
         <configuration>
           <!-- Flink MiniCluster 在 JDK 17+ 需要开放这些模块 -->
           <argLine>
