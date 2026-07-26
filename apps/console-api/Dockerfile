@@ -1,5 +1,5 @@
 # 控制面 —— Java 21 + Spring Boot
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3-eclipse-temurin-26 AS build
 WORKDIR /src
 # 先只拷 pom 拉依赖:改代码不改依赖时这一层能命中缓存
 COPY apps/console-api/pom.xml apps/console-api/pom.xml
