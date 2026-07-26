@@ -76,6 +76,39 @@ public class UserStore {
                 });
     }
 
+    /**
+     * 停用或启用账号。
+     *
+     * <p>停用而不是删除:账号名会出现在审计日志的 {@code actor} 列里,删掉行会让
+     * 那些记录指向一个查不到的人。而追查「当时是谁做的」这件事,通常正发生在这个人
+     * 的账号被停用之后。
+     *
+     * <p>{@code UserDetailsService} 已经过滤 {@code enabled},置位即刻生效 ——
+     * Basic 认证不签发会话,不存在「已登录的会话还能继续用」的窗口。
+     *
+     * @return 是否确实改到了一行
+     */
+    public boolean setEnabled(String username, boolean enabled) {
+        return jdbc.update("UPDATE users SET enabled = ? WHERE username = ? AND enabled <> ?",
+                enabled, username, enabled) > 0;
+    }
+
+    /**
+     * 重置口令,返回新的明文。
+     *
+     * <p>不接受调用方指定口令 —— 那意味着它会出现在请求体、反向代理日志、shell 历史
+     * 和 CI 变量里。与建账号时同一条理由。
+     */
+    public String resetPassword(String username) {
+        String password = randomPassword();
+        int n = jdbc.update("UPDATE users SET password_hash = ? WHERE username = ?",
+                encoder.encode(password), username);
+        if (n == 0) {
+            throw new IllegalArgumentException("账号不存在: " + username);
+        }
+        return password;
+    }
+
     public long count() {
         Long n = jdbc.queryForObject("SELECT count(*) FROM users", Long.class);
         return n == null ? 0 : n;

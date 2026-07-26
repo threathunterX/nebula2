@@ -7,6 +7,7 @@ import Strategies from './pages/Strategies';
 import StrategyDetail from './pages/StrategyDetail';
 import Alerts from './pages/Alerts';
 import Variables from './pages/Variables';
+import Accounts from './pages/Accounts';
 
 export default function App() {
   const [authed, setAuthed] = useState(isAuthenticated());
@@ -21,6 +22,7 @@ export default function App() {
           <NavLink to="/strategies">策略</NavLink>
           <NavLink to="/alerts">告警</NavLink>
           <NavLink to="/variables">变量</NavLink>
+          <NavLink to="/accounts">账号</NavLink>
         </nav>
         <div className="foot">
           <button
@@ -41,6 +43,7 @@ export default function App() {
           <Route path="/strategies/:name" element={<StrategyDetail />} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/variables" element={<Variables />} />
+          <Route path="/accounts" element={<Accounts />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

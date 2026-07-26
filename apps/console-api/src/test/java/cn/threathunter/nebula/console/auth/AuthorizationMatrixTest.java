@@ -15,6 +15,7 @@ import cn.threathunter.nebula.console.api.TokenController;
 import cn.threathunter.nebula.console.audit.AuditLog;
 import cn.threathunter.nebula.console.risk.CheckRiskController;
 import cn.threathunter.nebula.console.risk.NoticeStore;
+import cn.threathunter.nebula.console.api.UserController;
 import cn.threathunter.nebula.console.privacy.EventFieldResolver;
 import cn.threathunter.nebula.console.privacy.NoticePurger;
 import cn.threathunter.nebula.console.privacy.SubjectHasher;
@@ -44,7 +45,8 @@ import org.springframework.test.web.servlet.MockMvc;
  * 变成匿名可写。这份测试把矩阵钉死,任何放宽都必须先改测试。
  */
 @WebMvcTest(controllers = {MetadataController.class, TokenController.class,
-        CheckRiskController.class, SubjectRightsController.class})
+        CheckRiskController.class, SubjectRightsController.class,
+        UserController.class})
 @Import({SecurityConfig.class, ServiceTokenFilter.class, LoginThrottleFilter.class})
 class AuthorizationMatrixTest {
 
@@ -200,6 +202,50 @@ class AuthorizationMatrixTest {
     void serviceTokenCannotEraseSubjects() throws Exception {
         mvc.perform(delete("/api/v2/privacy/subject/USER/u-1")
                 .header("Authorization", "Bearer " + SVC))
+                .andExpect(status().isForbidden());
+    }
+
+    /**
+     * 账号与令牌的管理动作仅 ADMIN。
+     *
+     * <p>OPERATOR 能改策略,那是业务操作;能停用别人的账号、能吊销线上服务正在用的
+     * 令牌,则是另一回事 —— 后者可以让整条链路瞬间开始返回 401。
+     */
+    @Test
+    @DisplayName("账号与令牌的管理动作仅 ADMIN")
+    void accountManagementIsAdminOnly() throws Exception {
+        for (String who : new String[] {"operator", "viewer"}) {
+            mvc.perform(get("/api/v2/users").with(httpBasic(who, "pw")))
+                    .andExpect(status().isForbidden());
+            mvc.perform(get("/api/v2/tokens").with(httpBasic(who, "pw")))
+                    .andExpect(status().isForbidden());
+            mvc.perform(delete("/api/v2/tokens/t-1").with(httpBasic(who, "pw")))
+                    .andExpect(status().isForbidden());
+            mvc.perform(put("/api/v2/users/x/enabled").with(httpBasic(who, "pw"))
+                    .contentType("application/json").content("{\"enabled\":false}"))
+                    .andExpect(status().isForbidden());
+            mvc.perform(post("/api/v2/users/x/password").with(httpBasic(who, "pw"))
+                    .contentType("application/json").content("{}"))
+                    .andExpect(status().isForbidden());
+        }
+    }
+
+    /**
+     * 但「我是谁」对每种角色都开放 —— 界面靠它决定显示什么。
+     *
+     * <p>如果这条也要 ADMIN,非管理员登录后前端就只能靠一串注定 403 的试探请求
+     * 推断自己的角色。
+     */
+    @Test
+    @DisplayName("/users/me 对每种已认证角色开放,但服务令牌不行")
+    void whoAmIIsOpenToAllHumanRoles() throws Exception {
+        for (String who : new String[] {"admin", "operator", "viewer"}) {
+            mvc.perform(get("/api/v2/users/me").with(httpBasic(who, "pw")))
+                    .andExpect(status().isOk());
+        }
+        mvc.perform(get("/api/v2/users/me")).andExpect(status().isUnauthorized());
+        // 服务令牌不是人,拿不到角色列表 —— 它也不该有界面
+        mvc.perform(get("/api/v2/users/me").header("Authorization", "Bearer " + SVC))
                 .andExpect(status().isForbidden());
     }
 }
