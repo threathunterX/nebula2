@@ -1,0 +1,26 @@
+{
+  "$comment": "变量图跨语言对照的期望值。由参考引擎生成后固化,Java 侧读同一份比对。重新生成:node packages/reference-engine/tools/export-graph-snapshot.js",
+  "version": "1.0",
+  "values": {
+    "ip__visit_dynamic_count__5m__rt": {
+      "attacker": 6,
+      "normal": 2,
+      "unseen": 0
+    },
+    "ip__visit_count__5m__rt": {
+      "attacker": 7,
+      "normal": 2,
+      "unseen": null
+    },
+    "ip__visit_dynamic_distinct_count_page__5m__rt": {
+      "attacker": 4,
+      "normal": 2,
+      "unseen": 0
+    },
+    "ip__account_login_distinct_count_uid__5m__rt": {
+      "attacker": 3,
+      "normal": 1,
+      "unseen": 0
+    }
+  }
+}

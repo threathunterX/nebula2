@@ -15,6 +15,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createAccumulator } = require('../src/operators');
 const { HyperLogLog } = require('../src/hll');
+const { CONDITIONS, setLocationResolver } = require('../src/conditions');
+const { WindowedAggregate, parsePeriod } = require('../src/windows');
 
 const VECTORS = path.resolve(__dirname, '..', '..', '..', 'tests', 'golden', 'vectors', 'operators.json');
 const suite = JSON.parse(fs.readFileSync(VECTORS, 'utf8'));
@@ -61,4 +63,64 @@ test('MurmurHash3 与共享向量一致 —— HLL 的跨语言可对照性依�
     assert.strictEqual(HyperLogLog.hash(c.input), c.expect,
       `输入 ${JSON.stringify(c.input)}${c.note ? `(${c.note})` : ''}`);
   }
+});
+
+// ---------------------------------------------------------------- 条件算子
+
+const COND_VECTORS = path.resolve(__dirname, '..', '..', '..', 'tests', 'golden', 'vectors', 'conditions.json');
+const condSuite = JSON.parse(fs.readFileSync(COND_VECTORS, 'utf8'));
+
+for (const c of condSuite.cases) {
+  test(`条件向量 ${c.id}(规格 ${c.spec}):${c.note || c.op}`, () => {
+    const fn = CONDITIONS[c.op];
+    assert.ok(fn, `未实现的条件算子: ${c.op}`);
+    assert.strictEqual(!!fn(c.left, c.right), c.expect);
+  });
+}
+
+test('条件向量覆盖了全部已实现的算子', () => {
+  const covered = new Set(condSuite.cases.map((c) => c.op));
+  const missing = Object.keys(CONDITIONS).filter((op) => !covered.has(op));
+  assert.deepStrictEqual(missing, [],
+    `以下条件算子没有向量覆盖,请补充 tests/golden/vectors/conditions.json: ${missing}`);
+});
+
+// ---------------------------------------------------------------- 窗口模型
+
+const WIN_VECTORS = path.resolve(__dirname, '..', '..', '..', 'tests', 'golden', 'vectors', 'windows.json');
+const winSuite = JSON.parse(fs.readFileSync(WIN_VECTORS, 'utf8'));
+
+for (const c of winSuite.cases) {
+  test(`窗口向量 ${c.id}(规格 ${c.spec}):${c.note || ''}`, () => {
+    const agg = new WindowedAggregate({
+      method: c.operator,
+      period: c.period,
+      config: {},
+      allowedLatenessMs: c.allowedLatenessMs === undefined ? 60000 : c.allowedLatenessMs,
+    });
+    const outcomes = [];
+    for (const e of c.events) {
+      const r = agg.add(e.v, {
+        timestamp: e.ts,
+        watermark: e.wm === undefined ? -Infinity : e.wm,
+      });
+      outcomes.push(r === 'accepted' ? 'ACCEPTED'
+        : r === 'late-accepted' ? 'LATE_ACCEPTED' : 'LATE_DROPPED');
+    }
+    assert.strictEqual(agg.value(c.probeTs), c.expect, '窗口聚合值');
+    if (c.expectOutcomes) {
+      assert.deepStrictEqual(outcomes, c.expectOutcomes, '迟到处置结果');
+    }
+  });
+}
+
+// ---------------------------------------------------------------- 变量图快照
+
+test('变量图计算结果与固化快照一致(跨语言对照的 JS 侧)', () => {
+  const { execFileSync } = require('node:child_process');
+  const script = path.resolve(__dirname, '..', 'tools', 'export-graph-snapshot.js');
+  const got = JSON.parse(execFileSync(process.execPath, [script], { encoding: 'utf8' }));
+  const expectPath = path.resolve(__dirname, '..', '..', '..', 'tests', 'golden', 'vectors', 'graph-expected.json');
+  const want = JSON.parse(fs.readFileSync(expectPath, 'utf8'));
+  assert.deepStrictEqual(got.values, want.values);
 });

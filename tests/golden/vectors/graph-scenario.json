@@ -1,0 +1,27 @@
+{
+  "$comment": "变量图的跨语言对照场景。两个引擎读同一批事件、跑同一批变量,逐 key 比对最终值 —— 这比逐算子对照更进一步,能覆盖图的传播、剪枝、按 key 分槽与继承链匹配。",
+  "version": "1.0",
+  "probeTs": 1700000300000,
+  "variables": [
+    "ip__visit_dynamic_count__5m__rt",
+    "ip__visit_count__5m__rt",
+    "ip__visit_dynamic_distinct_count_page__5m__rt",
+    "ip__account_login_distinct_count_uid__5m__rt"
+  ],
+  "probes": [
+    { "__label": "attacker", "c_ip": "198.51.100.77" },
+    { "__label": "normal", "c_ip": "198.51.100.10" },
+    { "__label": "unseen", "c_ip": "198.51.100.250" }
+  ],
+  "events": [
+    { "name": "HTTP_DYNAMIC", "timestamp": 1700000000000, "c_ip": "198.51.100.77", "page": "/p/1", "uri_stem": "/p/1", "method": "GET" },
+    { "name": "HTTP_DYNAMIC", "timestamp": 1700000010000, "c_ip": "198.51.100.77", "page": "/p/2", "uri_stem": "/p/2", "method": "GET" },
+    { "name": "HTTP_DYNAMIC", "timestamp": 1700000020000, "c_ip": "198.51.100.77", "page": "/p/1", "uri_stem": "/p/1", "method": "GET" },
+    { "name": "HTTP_DYNAMIC", "timestamp": 1700000030000, "c_ip": "198.51.100.77", "page": "/p/3", "uri_stem": "/p/3", "method": "GET" },
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000040000, "c_ip": "198.51.100.77", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "uid": "victim_1", "did": "d1", "result": "F" },
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000050000, "c_ip": "198.51.100.77", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "uid": "victim_2", "did": "d1", "result": "F" },
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000060000, "c_ip": "198.51.100.77", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "uid": "victim_3", "did": "d1", "result": "F" },
+    { "name": "HTTP_DYNAMIC", "timestamp": 1700000070000, "c_ip": "198.51.100.10", "page": "/p/1", "uri_stem": "/p/1", "method": "GET" },
+    { "name": "ACCOUNT_LOGIN", "timestamp": 1700000080000, "c_ip": "198.51.100.10", "page": "/api/login", "uri_stem": "/api/login", "method": "POST", "uid": "user_1", "did": "d9", "result": "T" }
+  ]
+}

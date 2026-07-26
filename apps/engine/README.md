@@ -5,12 +5,13 @@
 | 层 | 状态 |
 |---|---|
 | **算子层**(聚合算子、HLL、事件元信息) | ✅ 已实现,与参考引擎共享测试向量 |
-| 窗口层(滑动 / 滚动 / 无界、迟到处理) | 🚧 |
-| 变量计算图(DAG 构建与调度) | 🚧 |
+| **条件算子**(24 个,含类型严格与短路求值) | ✅ 已实现,共享向量 |
+| **窗口层**(滑动 / 滚动 / 无界、迟到处理) | ✅ 已实现,共享向量 |
+| **变量计算图**(依赖闭包、拓扑排序、六类节点、事件继承) | ✅ 已实现,跨语言快照对照 |
 | 规则引擎(CEL + CEP) | 🚧 |
 | Flink 作业封装 | 🚧 |
 
-当前可编译、可测试,但**还不是一个能跑的引擎** —— 它只有算子层。
+当前可编译、可测试,能直接跑仓库里真实的 253 个变量资产。**还缺规则引擎与 Flink 封装**,因此还不是一个能独立运行的服务。
 
 ## 为什么先做算子层,而且不依赖 Flink
 
@@ -31,11 +32,18 @@ Flink 的 `AggregateFunction` / `KeyedProcessFunction` 封装在上层,只做状
 Java 实现与 JS 参考实现读**同一份**测试向量:
 
 ```
-tests/golden/vectors/operators.json   35 个算子行为向量
-tests/golden/vectors/murmur3.json      8 个哈希向量
-        ↓                    ↓
-  Java: SharedVectorTest   JS: vectors.test.js
+tests/golden/vectors/
+├── operators.json        34 个算子行为向量
+├── conditions.json       38 个条件算子向量
+├── windows.json           9 个窗口与迟到处置向量
+├── murmur3.json           8 个哈希向量
+├── graph-scenario.json    变量图对照场景(事件序列 + 探针)
+└── graph-expected.json    参考引擎固化的期望值
+              ↓                          ↓
+    Java: *VectorTest / GraphSnapshotTest    JS: vectors.test.js
 ```
+
+其中 **graph-scenario / graph-expected 是端到端对照**:两个引擎读同一批事件、跑同一批真实变量资产,逐 key 比对最终值。这比逐算子对照更进一步 —— 它覆盖图的传播与剪枝、按 key 分槽、事件继承链匹配,以及 dual 与 aggregate 不同的时间语义。
 
 两套实现之间的语义漂移因此在结构上不可能发生:任何一方改了算子行为,共享向量立刻会在另一方失败。
 

@@ -1,0 +1,321 @@
+{
+  "$comment": "条件算子的跨语言测试向量,对应 docs/reference/operators.md §3。规格要求全部声明的算子都有实现 —— 1.x 声明多于实现,用户配得出来的变量跑不了,这是 2.0 引入强制校验的直接动因。本文件同时充当「已实现算子」的清单:两侧都有测试断言每个算子至少被一个向量覆盖。",
+  "version": "1.0",
+  "cases": [
+    {
+      "id": "eq-string",
+      "spec": "§3.1",
+      "op": "==",
+      "left": "abc",
+      "right": "abc",
+      "expect": true
+    },
+    {
+      "id": "eq-string-diff",
+      "spec": "§3.1",
+      "op": "==",
+      "left": "abc",
+      "right": "abd",
+      "expect": false
+    },
+    {
+      "id": "eq-number-vs-string-constant",
+      "spec": "§3.1",
+      "op": "==",
+      "left": 5,
+      "right": "5",
+      "expect": true,
+      "note": "1.x 常量一律以字符串存储,比较时按左值类型对齐 —— 迁移工具不做类型推断的前提"
+    },
+    {
+      "id": "eq-null-left",
+      "spec": "阅读约定",
+      "op": "==",
+      "left": null,
+      "right": "abc",
+      "expect": false,
+      "note": "null 一律不通过"
+    },
+    {
+      "id": "ne-basic",
+      "spec": "§3.1",
+      "op": "!=",
+      "left": "abc",
+      "right": "abd",
+      "expect": true
+    },
+    {
+      "id": "empty-on-empty-string",
+      "spec": "§3.1",
+      "op": "empty",
+      "left": "",
+      "right": null,
+      "expect": true
+    },
+    {
+      "id": "empty-on-null",
+      "spec": "§3.1",
+      "op": "empty",
+      "left": null,
+      "right": null,
+      "expect": true,
+      "note": "empty / !empty 是唯一允许对 null 求值的算子"
+    },
+    {
+      "id": "empty-on-value",
+      "spec": "§3.1",
+      "op": "empty",
+      "left": "x",
+      "right": null,
+      "expect": false
+    },
+    {
+      "id": "not-empty",
+      "spec": "§3.1",
+      "op": "!empty",
+      "left": "x",
+      "right": null,
+      "expect": true
+    },
+    {
+      "id": "gt-true",
+      "spec": "§3.2",
+      "op": ">",
+      "left": 10,
+      "right": "5",
+      "expect": true
+    },
+    {
+      "id": "gt-false",
+      "spec": "§3.2",
+      "op": ">",
+      "left": 3,
+      "right": "5",
+      "expect": false
+    },
+    {
+      "id": "gte-boundary",
+      "spec": "§3.2",
+      "op": ">=",
+      "left": 5,
+      "right": "5",
+      "expect": true
+    },
+    {
+      "id": "lt-true",
+      "spec": "§3.2",
+      "op": "<",
+      "left": 3,
+      "right": "5",
+      "expect": true
+    },
+    {
+      "id": "lte-boundary",
+      "spec": "§3.2",
+      "op": "<=",
+      "left": 5,
+      "right": "5",
+      "expect": true
+    },
+    {
+      "id": "numeric-op-on-string-left",
+      "spec": "§3.2",
+      "op": ">",
+      "left": "10",
+      "right": "5",
+      "expect": false,
+      "note": "类型严格:左值是字符串时数值比较不通过,不做隐式转换"
+    },
+    {
+      "id": "numeric-op-on-null",
+      "spec": "§3.2",
+      "op": ">",
+      "left": null,
+      "right": "5",
+      "expect": false
+    },
+    {
+      "id": "contains-true",
+      "spec": "§3.3",
+      "op": "contains",
+      "left": "/api/login",
+      "right": "login",
+      "expect": true
+    },
+    {
+      "id": "contains-false",
+      "spec": "§3.3",
+      "op": "contains",
+      "left": "/api/login",
+      "right": "logout",
+      "expect": false
+    },
+    {
+      "id": "contains-is-substring-not-regex",
+      "spec": "§3.3",
+      "op": "contains",
+      "left": "/api/login",
+      "right": "^\\s*$",
+      "expect": false,
+      "note": "实证 1.x 缺陷 5:6 条策略把 contains 当正则用,条件永不成立,策略永不命中"
+    },
+    {
+      "id": "not-contains",
+      "spec": "§3.3",
+      "op": "!contains",
+      "left": "/api/login",
+      "right": "logout",
+      "expect": true
+    },
+    {
+      "id": "startwith-true",
+      "spec": "§3.3",
+      "op": "startwith",
+      "left": "/api/login",
+      "right": "/api",
+      "expect": true
+    },
+    {
+      "id": "not-startwith",
+      "spec": "§3.3",
+      "op": "!startwith",
+      "left": "/api/login",
+      "right": "/web",
+      "expect": true
+    },
+    {
+      "id": "endwith-true",
+      "spec": "§3.3",
+      "op": "endwith",
+      "left": "file.asp",
+      "right": ".asp",
+      "expect": true
+    },
+    {
+      "id": "not-endwith",
+      "spec": "§3.3",
+      "op": "!endwith",
+      "left": "file.asp",
+      "right": ".php",
+      "expect": true
+    },
+    {
+      "id": "regex-whole-string-match",
+      "spec": "§3.3",
+      "op": "regex",
+      "left": "   ",
+      "right": "^\\s*$",
+      "expect": true,
+      "note": "整串匹配语义"
+    },
+    {
+      "id": "regex-no-match",
+      "spec": "§3.3",
+      "op": "regex",
+      "left": "/api/login",
+      "right": "^\\s*$",
+      "expect": false
+    },
+    {
+      "id": "not-regex-nonblank-page",
+      "spec": "§3.3",
+      "op": "!regex",
+      "left": "/api/login",
+      "right": "^\\s*$",
+      "expect": true,
+      "note": "内置策略中最常见的写法:页面路径非空"
+    },
+    {
+      "id": "regex-partial-must-not-match",
+      "spec": "§3.3",
+      "op": "regex",
+      "left": "abcdef",
+      "right": "abc",
+      "expect": false,
+      "note": "整串匹配:部分匹配不算命中"
+    },
+    {
+      "id": "containsby-true",
+      "spec": "§3.3",
+      "op": "containsby",
+      "left": "GET",
+      "right": "GET,POST,PUT",
+      "expect": true,
+      "note": "反向包含:字段值是给定值的子串"
+    },
+    {
+      "id": "in-true",
+      "spec": "§3.3",
+      "op": "in",
+      "left": "POST",
+      "right": "GET,POST",
+      "expect": true
+    },
+    {
+      "id": "in-false",
+      "spec": "§3.3",
+      "op": "in",
+      "left": "DELETE",
+      "right": "GET,POST",
+      "expect": false
+    },
+    {
+      "id": "not-in-true",
+      "spec": "§3.3",
+      "op": "!in",
+      "left": "DELETE",
+      "right": "GET,POST",
+      "expect": true
+    },
+    {
+      "id": "in-trims-whitespace",
+      "spec": "§3.3",
+      "op": "in",
+      "left": "POST",
+      "right": "GET, POST , PUT",
+      "expect": true
+    },
+    {
+      "id": "location-unknown-when-unresolvable",
+      "spec": "§3.4",
+      "op": "locationequals",
+      "left": "198.51.100.1",
+      "right": "unknown",
+      "expect": true,
+      "note": "地理库查询失败时按 unknown 参与比较,不使条件报错"
+    },
+    {
+      "id": "location-not-equals",
+      "spec": "§3.4",
+      "op": "!locationequals",
+      "left": "198.51.100.1",
+      "right": "上海市",
+      "expect": true
+    },
+    {
+      "id": "location-containsby",
+      "spec": "§3.4",
+      "op": "locationcontainsby",
+      "left": "198.51.100.1",
+      "right": "unknown,上海市",
+      "expect": true
+    },
+    {
+      "id": "location-not-containsby",
+      "spec": "§3.4",
+      "op": "!locationcontainsby",
+      "left": "198.51.100.1",
+      "right": "上海市,北京市",
+      "expect": true
+    },
+    {
+      "id": "not-containsby",
+      "spec": "§3.3",
+      "op": "!containsby",
+      "left": "DELETE",
+      "right": "GET,POST,PUT",
+      "expect": true,
+      "note": "反向包含取反:字段值不是给定值的子串"
+    }
+  ]
+}

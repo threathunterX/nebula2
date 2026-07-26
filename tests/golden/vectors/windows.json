@@ -1,0 +1,248 @@
+{
+  "$comment": "窗口模型的跨语言测试向量,对应 docs/reference/operators.md §4。覆盖滑动/滚动窗口的边界、迟到事件的三种处置、以及水位线必须是流级属性这一条 —— 后者若按 key 维护,攻击者用不断变化的 IP 或设备号即可绕过迟到检测。",
+  "version": "1.0",
+  "cases": [
+    {
+      "id": "sliding-within-window",
+      "spec": "§4.1",
+      "period": {
+        "type": "last_n_seconds",
+        "value": "300"
+      },
+      "operator": "count",
+      "events": [
+        {
+          "v": 1,
+          "ts": 1000000
+        },
+        {
+          "v": 1,
+          "ts": 1100000
+        },
+        {
+          "v": 1,
+          "ts": 1200000
+        }
+      ],
+      "probeTs": 1200000,
+      "expect": 3,
+      "note": "全部落在 5 分钟窗口内"
+    },
+    {
+      "id": "sliding-expires-old-events",
+      "spec": "§4.1",
+      "period": {
+        "type": "last_n_seconds",
+        "value": "300"
+      },
+      "operator": "count",
+      "events": [
+        {
+          "v": 1,
+          "ts": 1000000
+        },
+        {
+          "v": 1,
+          "ts": 1150000
+        },
+        {
+          "v": 1,
+          "ts": 1400000
+        }
+      ],
+      "probeTs": 1400000,
+      "expect": 2,
+      "note": "cutoff = 1400000 - 300000 = 1100000;ts=1000000 已过期,1150000 与 1400000 仍在窗口内"
+    },
+    {
+      "id": "sliding-boundary-exclusive",
+      "spec": "§4.1",
+      "period": {
+        "type": "last_n_seconds",
+        "value": "300"
+      },
+      "operator": "count",
+      "events": [
+        {
+          "v": 1,
+          "ts": 1000000
+        }
+      ],
+      "probeTs": 1300000,
+      "expect": 0,
+      "note": "恰好等于窗口长度的事件已过期 —— 窗口内定义为 ts > now - size"
+    },
+    {
+      "id": "tumbling-same-hour",
+      "spec": "§4.1",
+      "period": {
+        "type": "hourly",
+        "value": "1"
+      },
+      "operator": "count",
+      "events": [
+        {
+          "v": 1,
+          "ts": 3600000
+        },
+        {
+          "v": 1,
+          "ts": 5000000
+        },
+        {
+          "v": 1,
+          "ts": 7100000
+        }
+      ],
+      "probeTs": 7100000,
+      "expect": 3,
+      "note": "三条都在同一个整点小时窗口内"
+    },
+    {
+      "id": "tumbling-resets-on-window-switch",
+      "spec": "§4.1",
+      "period": {
+        "type": "hourly",
+        "value": "1"
+      },
+      "operator": "count",
+      "events": [
+        {
+          "v": 1,
+          "ts": 3600000
+        },
+        {
+          "v": 1,
+          "ts": 5000000
+        },
+        {
+          "v": 1,
+          "ts": 7200001
+        }
+      ],
+      "probeTs": 7200001,
+      "expect": 1,
+      "note": "跨过整点后状态重置,滚动窗口不重叠"
+    },
+    {
+      "id": "unbounded-never-expires",
+      "spec": "§4.1",
+      "period": {
+        "type": "ever",
+        "value": ""
+      },
+      "operator": "count",
+      "events": [
+        {
+          "v": 1,
+          "ts": 1000
+        },
+        {
+          "v": 1,
+          "ts": 999999999
+        }
+      ],
+      "probeTs": 999999999,
+      "expect": 2
+    },
+    {
+      "id": "late-within-tolerance-is-counted",
+      "spec": "§4.2",
+      "period": {
+        "type": "last_n_seconds",
+        "value": "300"
+      },
+      "operator": "count",
+      "allowedLatenessMs": 60000,
+      "events": [
+        {
+          "v": 1,
+          "ts": 1000000,
+          "wm": 1000000
+        },
+        {
+          "v": 1,
+          "ts": 1100000,
+          "wm": 1100000
+        },
+        {
+          "v": 1,
+          "ts": 1070000,
+          "wm": 1100000
+        }
+      ],
+      "probeTs": 1100000,
+      "expect": 3,
+      "expectOutcomes": [
+        "ACCEPTED",
+        "ACCEPTED",
+        "LATE_ACCEPTED"
+      ],
+      "note": "迟到 30 秒,在 60 秒容忍度内,仍计入"
+    },
+    {
+      "id": "late-beyond-tolerance-goes-to-side-output",
+      "spec": "§4.2",
+      "period": {
+        "type": "last_n_seconds",
+        "value": "300"
+      },
+      "operator": "count",
+      "allowedLatenessMs": 60000,
+      "events": [
+        {
+          "v": 1,
+          "ts": 1000000,
+          "wm": 1000000
+        },
+        {
+          "v": 1,
+          "ts": 1200000,
+          "wm": 1200000
+        },
+        {
+          "v": 1,
+          "ts": 1100000,
+          "wm": 1200000
+        }
+      ],
+      "probeTs": 1200000,
+      "expect": 2,
+      "expectOutcomes": [
+        "ACCEPTED",
+        "ACCEPTED",
+        "LATE_DROPPED"
+      ],
+      "note": "迟到 100 秒,超出容忍度,进侧输出并计数 —— 不是静默丢弃"
+    },
+    {
+      "id": "watermark-is-stream-level-not-per-key",
+      "spec": "§4.2",
+      "period": {
+        "type": "last_n_seconds",
+        "value": "300"
+      },
+      "operator": "count",
+      "allowedLatenessMs": 60000,
+      "events": [
+        {
+          "v": 1,
+          "ts": 1200000,
+          "wm": 1200000
+        },
+        {
+          "v": 1,
+          "ts": 1000000,
+          "wm": 1200000
+        }
+      ],
+      "probeTs": 1200000,
+      "expect": 1,
+      "expectOutcomes": [
+        "ACCEPTED",
+        "LATE_DROPPED"
+      ],
+      "note": "第二条是该 key 上的首个事件也照样判为迟到 —— 水位线属于流,不属于 key。若按 key 维护,攻击者用不断变化的 IP 或设备号即可绕过迟到检测"
+    }
+  ]
+}
