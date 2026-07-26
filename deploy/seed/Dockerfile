@@ -5,7 +5,7 @@
 # 「起来了」和「能用」才是同一件事。
 #
 # 幂等:全部 ON CONFLICT DO UPDATE,重复执行安全。
-FROM python:3.12-slim
+FROM python:3.14-slim
 RUN pip install --no-cache-dir "psycopg[binary]"
 WORKDIR /app
 COPY tools/load_seeds_to_postgres.py /app/tools/
