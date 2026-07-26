@@ -242,6 +242,9 @@ export const api = {
 
   me: () => request<Me>('/api/v2/users/me'),
 
+  /** 领域 schema,原样下发。界面从它派生取值,不在前端另抄一份。 */
+  schema: (which: string) => request<Record<string, unknown>>(`/api/v2/schema/${which}`),
+
   users: () => request<{ users: UserRow[] }>('/api/v2/users'),
 
   createUser: (username: string, displayName: string, roles: string[]) =>
