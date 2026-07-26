@@ -1,0 +1,15 @@
+{
+  "$comment": "MurmurHash3 x86 32-bit 的跨语言测试向量。HLL 的去重计数结果依赖哈希逐位一致 —— 两种语言的实现哪怕差一位,同一批数据的基数估计就会不同,golden 对照失去意义。输出为无符号 32 位整数。",
+  "algorithm": "murmurhash3_x86_32",
+  "seed": 0,
+  "vectors": [
+    { "input": "", "expect": 0 },
+    { "input": "a", "expect": 1009084850 },
+    { "input": "abc", "expect": 3017643002 },
+    { "input": "hello world", "expect": 1586663183 },
+    { "input": "item-12345", "expect": 308835736 },
+    { "input": "设备指纹", "expect": 778938793, "note": "UTF-8 多字节,验证按字节而非按字符处理" },
+    { "input": "ab", "expect": 2613040991, "note": "长度 2,覆盖 tail 分支" },
+    { "input": "abcd", "expect": 1139631978, "note": "长度 4,恰好一个完整 block、无 tail" }
+  ]
+}

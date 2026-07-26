@@ -1,0 +1,280 @@
+{
+  "$comment": "算子语义的跨语言测试向量。参考引擎(JS)与生产引擎(Java)读同一份文件跑同一批用例 —— 两套实现之间的语义漂移因此在结构上不可能发生。每个用例的 spec 字段指向 docs/reference/operators.md 中对应的规定。",
+  "version": "1.0",
+  "cases": [
+    {
+      "id": "count-basic",
+      "spec": "§2.1",
+      "operator": "count",
+      "inputs": [{"v": 1}, {"v": 2}, {"v": 3}],
+      "expect": 3,
+      "note": "统计有效输入条数"
+    },
+    {
+      "id": "count-empty-window",
+      "spec": "§2.1",
+      "operator": "count",
+      "inputs": [],
+      "expect": 0,
+      "note": "空窗口返回 0,不是 null"
+    },
+    {
+      "id": "count-skips-null",
+      "spec": "阅读约定",
+      "operator": "count",
+      "inputs": [{"v": 1}, {"v": null}, {"v": 2}, {"v": null}, {"v": 3}],
+      "expect": 3,
+      "note": "null 输入一律跳过,不当作 0 计入"
+    },
+    {
+      "id": "sum-empty-window",
+      "spec": "§2.2",
+      "operator": "sum",
+      "inputs": [],
+      "expect": 0,
+      "note": "空窗口返回 0"
+    },
+    {
+      "id": "sum-basic",
+      "spec": "§2.2",
+      "operator": "sum",
+      "inputs": [{"v": 1.5}, {"v": 2.5}, {"v": 6}],
+      "expect": 10,
+      "note": "求和"
+    },
+    {
+      "id": "max-empty-window",
+      "spec": "§2.2",
+      "operator": "max",
+      "inputs": [],
+      "expect": null,
+      "note": "空窗口返回 null,不是 0 —— 这是与 sum 的关键区别"
+    },
+    {
+      "id": "min-empty-window",
+      "spec": "§2.2",
+      "operator": "min",
+      "inputs": [],
+      "expect": null
+    },
+    {
+      "id": "max-basic",
+      "spec": "§2.2",
+      "operator": "max",
+      "inputs": [{"v": 3}, {"v": 9}, {"v": 1}],
+      "expect": 9
+    },
+    {
+      "id": "avg-empty-window",
+      "spec": "§2.2",
+      "operator": "avg",
+      "inputs": [],
+      "expect": null,
+      "note": "空窗口返回 null —— 0 条数据的平均值无定义"
+    },
+    {
+      "id": "avg-basic",
+      "spec": "§2.2",
+      "operator": "avg",
+      "inputs": [{"v": 2}, {"v": 4}],
+      "expect": 3
+    },
+    {
+      "id": "variance-sample",
+      "spec": "§2.2",
+      "operator": "variance",
+      "inputs": [{"v": 2}, {"v": 4}, {"v": 4}, {"v": 4}, {"v": 5}, {"v": 5}, {"v": 7}, {"v": 9}],
+      "expect": 4.571428571428571,
+      "tolerance": 1e-9,
+      "note": "样本方差,分母 n-1,即 32/7"
+    },
+    {
+      "id": "variance-single-value",
+      "spec": "§2.2",
+      "operator": "variance",
+      "inputs": [{"v": 5}],
+      "expect": 0.0,
+      "note": "n <= 1 时返回 0.0"
+    },
+    {
+      "id": "stddev-is-sqrt-of-variance",
+      "spec": "§2.2",
+      "operator": "stddev",
+      "inputs": [{"v": 2}, {"v": 4}, {"v": 4}, {"v": 4}, {"v": 5}, {"v": 5}, {"v": 7}, {"v": 9}],
+      "expect": 2.138089935299395,
+      "tolerance": 1e-9,
+      "note": "与 1.x 的关键差异:1.x 的 stddev 返回的是方差(4.571...),未开平方"
+    },
+    {
+      "id": "stddev-single-value",
+      "spec": "§2.2",
+      "operator": "stddev",
+      "inputs": [{"v": 5}],
+      "expect": 0.0
+    },
+    {
+      "id": "cv-zero-mean",
+      "spec": "§2.2",
+      "operator": "cv",
+      "inputs": [{"v": -1}, {"v": 1}],
+      "expect": null,
+      "note": "均值为 0 时返回 null,不是 Infinity"
+    },
+    {
+      "id": "cv-single-value",
+      "spec": "§2.2",
+      "operator": "cv",
+      "inputs": [{"v": 5}],
+      "expect": null
+    },
+    {
+      "id": "distinct-count-basic",
+      "spec": "§2.5",
+      "operator": "distinct_count",
+      "inputs": [{"v": "a"}, {"v": "b"}, {"v": "a"}, {"v": "c"}, {"v": "b"}],
+      "expect": 3
+    },
+    {
+      "id": "distinct-count-empty-window",
+      "spec": "§2.1",
+      "operator": "distinct_count",
+      "inputs": [],
+      "expect": 0
+    },
+    {
+      "id": "distinct-count-boundary-20",
+      "spec": "§2.5",
+      "operator": "distinct_count",
+      "inputs": [
+        {"v": "v0"}, {"v": "v1"}, {"v": "v2"}, {"v": "v3"}, {"v": "v4"},
+        {"v": "v5"}, {"v": "v6"}, {"v": "v7"}, {"v": "v8"}, {"v": "v9"},
+        {"v": "v10"}, {"v": "v11"}, {"v": "v12"}, {"v": "v13"}, {"v": "v14"},
+        {"v": "v15"}, {"v": "v16"}, {"v": "v17"}, {"v": "v18"}, {"v": "v19"}
+      ],
+      "expect": 20,
+      "note": "基数 20 是与 1.x 对照的边界:1.x 在此之内走精确路径,两边必须完全相等"
+    },
+    {
+      "id": "first-by-event-time",
+      "spec": "§2.3",
+      "operator": "first",
+      "inputs": [{"v": "late", "ts": 3000}, {"v": "early", "ts": 1000}, {"v": "mid", "ts": 2000}],
+      "expect": "early",
+      "note": "依据事件时间而非到达顺序 —— 1.x 是到达顺序"
+    },
+    {
+      "id": "last-by-event-time",
+      "spec": "§2.3",
+      "operator": "last",
+      "inputs": [{"v": "late", "ts": 3000}, {"v": "early", "ts": 1000}],
+      "expect": "late"
+    },
+    {
+      "id": "first-empty-window",
+      "spec": "§2.3",
+      "operator": "first",
+      "inputs": [],
+      "expect": null
+    },
+    {
+      "id": "lastn-newest-first",
+      "spec": "§2.3",
+      "operator": "lastn",
+      "param": "3",
+      "inputs": [
+        {"v": "a", "ts": 1000}, {"v": "b", "ts": 1010}, {"v": "c", "ts": 1020},
+        {"v": "d", "ts": 1030}, {"v": "e", "ts": 1040}
+      ],
+      "expect": ["e", "d", "c"],
+      "note": "按时间倒序,最新在前"
+    },
+    {
+      "id": "lastn-fewer-than-n",
+      "spec": "§2.3",
+      "operator": "lastn",
+      "param": "10",
+      "inputs": [{"v": "a", "ts": 1000}, {"v": "b", "ts": 1001}],
+      "expect": ["b", "a"],
+      "note": "不足 N 条返回全部,不补位"
+    },
+    {
+      "id": "lastn-out-of-order",
+      "spec": "§2.3",
+      "operator": "lastn",
+      "param": "2",
+      "inputs": [{"v": "t1", "ts": 1000}, {"v": "t3", "ts": 3000}, {"v": "t2", "ts": 2000}],
+      "expect": ["t3", "t2"],
+      "note": "乱序到达仍按事件时间排序"
+    },
+    {
+      "id": "lastn-empty-window",
+      "spec": "§2.3",
+      "operator": "lastn",
+      "param": "3",
+      "inputs": [],
+      "expect": []
+    },
+    {
+      "id": "distinct-first-seen-order",
+      "spec": "§2.3",
+      "operator": "distinct",
+      "inputs": [{"v": "b"}, {"v": "a"}, {"v": "b"}, {"v": "c"}],
+      "expect": ["b", "a", "c"],
+      "note": "按首次出现顺序去重"
+    },
+    {
+      "id": "collection-arrival-order",
+      "spec": "§2.3",
+      "operator": "collection",
+      "inputs": [{"v": "b"}, {"v": "a"}, {"v": "b"}],
+      "expect": ["b", "a", "b"],
+      "note": "保持到达顺序,不去重"
+    },
+    {
+      "id": "group-count-basic",
+      "spec": "§2.1",
+      "operator": "group_count",
+      "inputs": [{"v": 1, "g": "x"}, {"v": 1, "g": "y"}, {"v": 1, "g": "x"}],
+      "expect": {"x": 2, "y": 1}
+    },
+    {
+      "id": "group-count-empty-window",
+      "spec": "§2.1",
+      "operator": "group_count",
+      "inputs": [],
+      "expect": {}
+    },
+    {
+      "id": "group-count-skips-null-group",
+      "spec": "§2.1",
+      "operator": "group_count",
+      "inputs": [{"v": 1, "g": "x"}, {"v": 1, "g": null}],
+      "expect": {"x": 1}
+    },
+    {
+      "id": "top-stable-tiebreak",
+      "spec": "§1.6",
+      "operator": "top",
+      "param": "3",
+      "inputs": [{"v": 5, "g": "b"}, {"v": 5, "g": "a"}, {"v": 9, "g": "c"}, {"v": 1, "g": "d"}],
+      "expect": [{"key": "c", "value": 9}, {"key": "a", "value": 5}, {"key": "b", "value": 5}],
+      "note": "按值降序;值相等时按 key 字典序升序,保证结果稳定可比"
+    },
+    {
+      "id": "merge-newer-wins",
+      "spec": "§2.4",
+      "operator": "merge",
+      "inputs": [{"v": {"a": 1, "b": 2}, "ts": 1000}, {"v": {"a": 9}, "ts": 2000}],
+      "expect": {"a": 9, "b": 2},
+      "note": "键冲突取较新的值"
+    },
+    {
+      "id": "merge-value-sums",
+      "spec": "§2.4",
+      "operator": "merge_value",
+      "inputs": [{"v": {"a": 1, "b": 2}, "ts": 1000}, {"v": {"a": 9}, "ts": 2000}],
+      "expect": {"a": 10, "b": 2},
+      "note": "键冲突对值求和"
+    }
+  ]
+}

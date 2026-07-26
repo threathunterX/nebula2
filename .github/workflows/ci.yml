@@ -109,3 +109,19 @@ jobs:
           if [ -n "$out" ]; then echo "以下文件未格式化:"; echo "$out"; exit 1; fi
       - name: 测试
         run: go test -cover ./...
+
+  engine:
+    name: 引擎算子层(Java)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/engine
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: 编译与测试(含共享向量对照)
+        run: mvn -B verify
