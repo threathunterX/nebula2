@@ -86,6 +86,21 @@ docker compose down -v       # 停止并删除数据卷
 colima stop                  # 停止虚拟机
 ```
 
+## 起来之后是什么状态
+
+`docker compose up -d` 会依次完成:建表 → 导入 170 条策略与 253 个变量 → 启动
+控制面 → 启动 Flink 集群。首次启动的管理员口令只打印一次:
+
+```bash
+docker compose logs console-api | grep -A4 已创建初始管理员账号
+```
+
+种子导入是编排的一部分,不是「起来之后再手动跑一下」—— 库空着的时候控制面能
+登录但什么也管不了,引擎拉到的 bundle 是空的,而这两者都不会报错。「起来了」
+和「能用」应该是同一件事。
+
+导入幂等(全部 `ON CONFLICT DO UPDATE`),重复 `up` 不会出问题。
+
 ## 提交引擎作业
 
 infra 起来后,Flink 集群在 http://localhost:8081,作业 jar 已经在镜像的

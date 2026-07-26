@@ -124,12 +124,27 @@ services:
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?}
     restart: "no"
 
+  # 首次导入风控资产。放在建表之后、控制面之前:控制面起来时库里就该有内容,
+  # 否则「服务健康但什么也管不了」是最难判断的一种状态。
+  seed-load:
+    build:
+      context: ../..
+      dockerfile: deploy/seed/Dockerfile
+    depends_on:
+      schema-init: {condition: service_completed_successfully}
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:-nebula}
+    restart: "no"
+
   console-api:
     build:
       context: ../..
       dockerfile: apps/console-api/Dockerfile
     depends_on:
-      schema-init: {condition: service_completed_successfully}
+      seed-load: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
     environment:
       POSTGRES_HOST: postgres

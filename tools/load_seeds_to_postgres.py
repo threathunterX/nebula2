@@ -2,30 +2,49 @@
 # -*- coding: utf-8 -*-
 """把 seeds/ 下的风控资产导入 PostgreSQL。
 
-幂等:重复执行会覆盖同名记录并递增元数据版本。
+幂等:重复执行覆盖同名记录并递增元数据版本。全部改动在一个事务里 —— 导到一半
+失败时,引擎不会看到「一半新一半旧」的资产组合。
 
-不依赖 psycopg —— 生成 SQL 后交给容器内的 psql 执行,避免为一个导入脚本引入
-Python 驱动。生产环境的导入应由控制面 API 完成,本脚本用于初始化与本地开发。
+早先的版本手写字符串转义拼 SQL,并交给 `docker compose exec psql` 执行。两处都
+改了:
+
+- 改用参数化语句。手写转义在这里恰好是安全的(输入是仓库内经过校验的种子文件),
+  但它是一种会被后来者照抄到别处的写法,而下一处的输入未必可控。
+- 改用直连数据库。走 docker exec 只在宿主机上、且容器叫特定名字时成立,放进
+  初始化容器里就找不到 docker 命令了。
+
+生产环境的策略变更应走控制面 API(有 schema 校验、乐观并发与修订历史);本脚本
+只负责首次导入与本地开发。
 """
 import argparse
 import json
 import os
 import pathlib
-import subprocess
 import sys
 
+try:
+    import psycopg
+except ImportError:  # pragma: no cover
+    raise SystemExit(
+        "缺少 psycopg。宿主机上执行:pip install 'psycopg[binary]'\n"
+        "(容器方式无需手动安装:docker compose run --rm seed-load)")
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SEEDS = ROOT / "seeds"
-COMPOSE = ROOT / "deploy" / "compose" / "docker-compose.yml"
+SEEDS = pathlib.Path(os.environ.get("NEBULA_SEEDS_DIR", ROOT / "seeds"))
 
 
-def q(s: str) -> str:
-    """PostgreSQL 字符串字面量转义。"""
-    return "'" + str(s).replace("'", "''") + "'"
-
-
-def jq(obj) -> str:
-    return q(json.dumps(obj, ensure_ascii=False, sort_keys=True))
+def dsn() -> str:
+    missing = [k for k in ("POSTGRES_USER", "POSTGRES_PASSWORD") if not os.environ.get(k)]
+    if missing:
+        raise SystemExit("缺少环境变量:" + ", ".join(missing)
+                         + "(见 deploy/compose/gen-env.sh)")
+    return (
+        f"host={os.environ.get('POSTGRES_HOST', '127.0.0.1')} "
+        f"port={os.environ.get('POSTGRES_PORT', '5432')} "
+        f"dbname={os.environ.get('POSTGRES_DB', 'nebula')} "
+        f"user={os.environ['POSTGRES_USER']} "
+        f"password={os.environ['POSTGRES_PASSWORD']}"
+    )
 
 
 def load_dir(sub):
@@ -40,96 +59,98 @@ def load_dir(sub):
     return out
 
 
-def build_sql():
-    lines = ["BEGIN;"]
+def dumps(obj) -> str:
+    return json.dumps(obj, ensure_ascii=False, sort_keys=True)
 
-    events = load_dir("events")
-    for e in events:
-        lines.append(
-            "INSERT INTO event_models (name, visible_name, definition) VALUES "
-            f"({q(e['name'])}, {q(e.get('visible_name', e['name']))}, {jq(e)}) "
-            "ON CONFLICT (name) DO UPDATE SET "
-            "visible_name = EXCLUDED.visible_name, definition = EXCLUDED.definition, "
-            "updated_at = now();")
 
-    variables = load_dir("variables")
-    for v in variables:
-        lines.append(
-            "INSERT INTO variables (name, module, dimension, status, sensitivity, definition) VALUES "
-            f"({q(v['name'])}, {q(v.get('module', 'base'))}, {q(v.get('dimension', ''))}, "
-            f"{q(v.get('status') or 'enable')}, {q(v.get('sensitivity', 'internal'))}, {jq(v)}) "
-            "ON CONFLICT (name) DO UPDATE SET "
-            "module = EXCLUDED.module, dimension = EXCLUDED.dimension, status = EXCLUDED.status, "
-            "sensitivity = EXCLUDED.sensitivity, definition = EXCLUDED.definition, updated_at = now();")
-
-    # 需要配置才能生效的策略,由 index.json 标记
+def requires_config_names() -> set:
+    """需要接入方配置才能生效的策略,由 index.json 标记。"""
     idx_path = SEEDS / "strategies" / "index.json"
-    needs = set()
-    if idx_path.exists():
-        idx = json.loads(idx_path.read_text(encoding="utf-8"))
-        for row in idx.get("strategies", []):
-            if row.get("requires_configuration"):
-                needs.add(row.get("name"))
-
-    strategies = load_dir("strategies")
-    for s in strategies:
-        tags = s.get("tags") or []
-        arr = "ARRAY[" + ",".join(q(t) for t in tags) + "]::text[]" if tags else "'{}'::text[]"
-        lines.append(
-            "INSERT INTO strategies "
-            "(name, visible_name, category, status, score, tags, requires_config, definition) VALUES "
-            f"({q(s['name'])}, {q(s.get('visible_name', s['name']))}, {q(s['category'])}, "
-            f"{q(s.get('status', 'inedit'))}, {int(s.get('score') or 0)}, {arr}, "
-            f"{'true' if s['name'] in needs else 'false'}, {jq(s)}) "
-            "ON CONFLICT (name) DO UPDATE SET "
-            "visible_name = EXCLUDED.visible_name, category = EXCLUDED.category, "
-            "status = EXCLUDED.status, score = EXCLUDED.score, tags = EXCLUDED.tags, "
-            "requires_config = EXCLUDED.requires_config, definition = EXCLUDED.definition, "
-            "version = strategies.version + 1, updated_at = now();")
-
-    tags_path = SEEDS / "tags.json"
-    tag_count = 0
-    if tags_path.exists():
-        raw = json.loads(tags_path.read_text(encoding="utf-8"))
-        items = raw.get("tags", raw) if isinstance(raw, dict) else raw
-        for t in items:
-            name = t.get("name") if isinstance(t, dict) else t
-            if not name:
-                continue
-            tag_count += 1
-            lines.append(f"INSERT INTO risk_tags (name) VALUES ({q(name)}) "
-                         "ON CONFLICT (name) DO NOTHING;")
-
-    lines.append("UPDATE metadata_version SET version = version + 1, updated_at = now() WHERE id = 1;")
-    lines.append("COMMIT;")
-    return "\n".join(lines), len(events), len(variables), len(strategies), tag_count
+    if not idx_path.exists():
+        return set()
+    idx = json.loads(idx_path.read_text(encoding="utf-8"))
+    return {row.get("name") for row in idx.get("strategies", [])
+            if row.get("requires_configuration")}
 
 
-def main():
+def tag_names() -> list:
+    path = SEEDS / "tags.json"
+    if not path.exists():
+        return []
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    items = raw.get("tags", raw) if isinstance(raw, dict) else raw
+    out = []
+    for t in items:
+        name = t.get("name") if isinstance(t, dict) else t
+        if name:
+            out.append(name)
+    return out
+
+
+def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dry-run", action="store_true", help="只输出 SQL,不执行")
+    ap.add_argument("--dry-run", action="store_true", help="只统计,不写库")
     args = ap.parse_args()
 
-    sql, ne, nv, ns, nt = build_sql()
+    events = load_dir("events")
+    variables = load_dir("variables")
+    strategies = load_dir("strategies")
+    needs = requires_config_names()
+    tags = tag_names()
+
+    print(f"  事件 {len(events)} / 变量 {len(variables)} / "
+          f"策略 {len(strategies)} / 标签 {len(tags)}")
     if args.dry_run:
-        print(sql)
         return 0
+    if not (events or variables or strategies):
+        raise SystemExit(f"没有找到任何种子数据:{SEEDS}")
 
-    for var in ("POSTGRES_USER", "POSTGRES_PASSWORD"):
-        if not os.environ.get(var):
-            raise SystemExit(f"缺少环境变量 {var}(见 deploy/compose/gen-env.sh)")
+    with psycopg.connect(dsn()) as conn:
+        # 一个事务:导到一半失败时,引擎不会看到「一半新一半旧」的资产组合
+        with conn.transaction():
+            conn.cursor().executemany(
+                "INSERT INTO event_models (name, visible_name, definition) "
+                "VALUES (%s, %s, %s::jsonb) "
+                "ON CONFLICT (name) DO UPDATE SET "
+                "visible_name = EXCLUDED.visible_name, "
+                "definition = EXCLUDED.definition, updated_at = now()",
+                [(e["name"], e.get("visible_name", e["name"]), dumps(e)) for e in events])
 
-    proc = subprocess.run(
-        ["docker", "compose", "-f", str(COMPOSE), "exec", "-T",
-         "-e", "PGPASSWORD=" + os.environ["POSTGRES_PASSWORD"],
-         "postgres", "psql", "-v", "ON_ERROR_STOP=1",
-         "-U", os.environ["POSTGRES_USER"], "-d", "nebula"],
-        input=sql, text=True, capture_output=True)
-    if proc.returncode != 0:
-        err = (proc.stderr or proc.stdout).strip().splitlines()
-        raise SystemExit("导入失败:\n  " + "\n  ".join(err[:6]))
+            conn.cursor().executemany(
+                "INSERT INTO variables "
+                "(name, module, dimension, status, sensitivity, definition) "
+                "VALUES (%s, %s, %s, %s, %s, %s::jsonb) "
+                "ON CONFLICT (name) DO UPDATE SET "
+                "module = EXCLUDED.module, dimension = EXCLUDED.dimension, "
+                "status = EXCLUDED.status, sensitivity = EXCLUDED.sensitivity, "
+                "definition = EXCLUDED.definition, updated_at = now()",
+                [(v["name"], v.get("module", "base"), v.get("dimension", ""),
+                  v.get("status") or "enable", v.get("sensitivity", "internal"),
+                  dumps(v)) for v in variables])
 
-    print(f"已导入:事件 {ne} 个、变量 {nv} 个、策略 {ns} 条、标签 {nt} 个")
+            conn.cursor().executemany(
+                "INSERT INTO strategies (name, visible_name, category, status, score, "
+                "tags, requires_config, definition) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb) "
+                "ON CONFLICT (name) DO UPDATE SET "
+                "visible_name = EXCLUDED.visible_name, category = EXCLUDED.category, "
+                "status = EXCLUDED.status, score = EXCLUDED.score, tags = EXCLUDED.tags, "
+                "requires_config = EXCLUDED.requires_config, "
+                "definition = EXCLUDED.definition, "
+                "version = strategies.version + 1, updated_at = now()",
+                [(s["name"], s.get("visible_name", s["name"]), s["category"],
+                  s.get("status", "inedit"), int(s.get("score") or 0),
+                  list(s.get("tags") or []), s["name"] in needs, dumps(s))
+                 for s in strategies])
+
+            conn.cursor().executemany(
+                "INSERT INTO risk_tags (name) VALUES (%s) ON CONFLICT (name) DO NOTHING",
+                [(t,) for t in tags])
+
+            conn.execute("UPDATE metadata_version SET version = version + 1, "
+                         "updated_at = now() WHERE id = 1")
+
+    print("种子资产已导入")
     return 0
 
 
