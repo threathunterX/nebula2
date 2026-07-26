@@ -17,9 +17,32 @@
     <maven.compiler.release>21</maven.compiler.release>
     <junit.version>5.11.3</junit.version>
     <jackson.version>2.18.2</jackson.version>
+    <flink.version>1.20.0</flink.version>
   </properties>
 
   <dependencies>
+    <!-- Flink 只被 flink/ 包依赖;算子、条件、窗口、图、规则五层都不依赖它,
+         因此可以脱离 Flink 单元测试,也可以在别处复用。provided 表示由运行
+         环境提供,不打进 fat jar。 -->
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-streaming-java</artifactId>
+      <version>${flink.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-clients</artifactId>
+      <version>${flink.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-test-utils</artifactId>
+      <version>${flink.version}</version>
+      <scope>test</scope>
+    </dependency>
+
     <!-- 算子层刻意保持零运行时依赖:它是纯计算,越少依赖越容易被 Flink 之外的
          场景复用,也越容易与参考引擎逐行对照。Jackson 只用于测试读取共享向量。 -->
     <dependency>
@@ -42,6 +65,15 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.2</version>
+        <configuration>
+          <!-- Flink MiniCluster 在 JDK 17+ 需要开放这些模块 -->
+          <argLine>
+            --add-opens=java.base/java.util=ALL-UNNAMED
+            --add-opens=java.base/java.lang=ALL-UNNAMED
+            --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+            --add-opens=java.base/java.nio=ALL-UNNAMED
+          </argLine>
+        </configuration>
       </plugin>
     </plugins>
   </build>
