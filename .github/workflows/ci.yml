@@ -154,3 +154,57 @@ jobs:
       # 不会有任何报错,只会让管理接口变成匿名可写。必须每次都跑。
       - name: 编译与测试(认证与授权矩阵)
         run: mvn -B verify
+
+  images:
+    name: 容器镜像构建
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # 这一栏存在的理由:容器化时一次撞出四个只在部署阶段才暴露的问题
+      # (class 文件版本、连接器未打包、卷属主、建表脚本依赖 docker 命令)。
+      # 单元测试全绿、本地 java -jar 也正常,唯独提交到集群才炸 —— 不构建
+      # 镜像就等于把这类问题留给部署当天。
+      - name: 采集器镜像
+        run: docker build -t nebula-collector:ci apps/collector
+      - name: 控制面镜像
+        run: docker build -f apps/console-api/Dockerfile -t nebula-console-api:ci .
+      - name: 引擎镜像
+        run: docker build -f apps/engine/Dockerfile -t nebula-engine:ci .
+      - name: 建表镜像
+        run: docker build -t nebula-schema-init:ci deploy/schema
+
+      # 构建成功不代表能用。这几条断言针对的正是上面那四个问题。
+      # jar 取到宿主机上检查:Flink 镜像里没有 unzip,在容器内验证反而更麻烦。
+      - name: 取出作业 jar
+        run: |
+          cid=$(docker create nebula-engine:ci)
+          docker cp "$cid":/opt/flink/usrlib/nebula-engine.jar /tmp/nebula-engine.jar
+          docker rm "$cid" > /dev/null
+
+      - name: 作业 jar 必须是 Java 17 字节码
+        run: |
+          unzip -p /tmp/nebula-engine.jar \
+            cn/threathunter/nebula/engine/flink/NebulaJob.class > /tmp/NebulaJob.class
+          # awk 只取第一行:od 末尾还会输出一行偏移量,不加 NR==1 会得到 "61\n0"
+          v=$(od -An -tu1 -j6 -N2 /tmp/NebulaJob.class | awk 'NR==1 {print $1*256+$2; exit}')
+          echo "class 文件版本: $v (61 = Java 17)"
+          test "$v" -eq 61
+
+      - name: 作业 jar 必须自带连接器与 Jackson
+        run: |
+          unzip -l /tmp/nebula-engine.jar > /tmp/jar.txt
+          grep -q 'org/apache/flink/connector/kafka/source/KafkaSource.class' /tmp/jar.txt
+          grep -q 'com/fasterxml/jackson/core/type/TypeReference.class' /tmp/jar.txt
+
+      - name: checkpoint 目录必须归 flink 所有
+        run: |
+          owner=$(docker run --rm nebula-engine:ci stat -c '%U' /flink-checkpoints)
+          echo "属主: $owner"
+          test "$owner" = flink
+
+      - name: 采集器镜像里不应有 shell
+        run: |
+          if docker run --rm --entrypoint /bin/sh nebula-collector:ci -c 'echo x' 2>/dev/null; then
+            echo "distroless 镜像里不该存在 shell"; exit 1
+          fi
+          docker run --rm nebula-collector:ci --help > /dev/null
