@@ -25,7 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * </ul>
  *
  * <p>两者刻意分开:业务系统不该持有能改策略的凭据,管理员也不该用自己的账号
- * 去跑生产查询。1.x 用同一套 token 混用两种场景,拿到它既能查风险也能改配置。
+ * 去跑生产查询。两者共用一套凭据时,一个业务侧令牌泄露就意味着策略配置同时失守。
  */
 @Configuration
 @EnableWebSecurity
@@ -35,7 +35,7 @@ public class SecurityConfig {
      * Argon2id。参数取 Spring Security 的推荐默认值(16 字节盐、32 字节输出、
      * 1 并行度、16MB 内存、3 轮)。
      *
-     * <p>1.x 用的是无盐单次 SHA1 —— 弱口令一撞即出,而且同口令的不同账号哈希相同。
+     * <p>不含盐的单次哈希对弱口令没有实质保护,而且同口令的不同账号哈希相同。
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
