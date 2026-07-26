@@ -10,6 +10,22 @@
 
 ### 新增
 
+- **Helm chart**(`deploy/helm/`)。此前是空目录。**在真实 k3s 上装起来并跑通过**,
+  不是只做 `helm lint`:7 个 Pod 全部 Running,建表与导入资产两个 Job 都 Complete,
+  控制面 `/api/v2/stats` 返回事件 17 / 变量 253 / 策略 170 —— 出厂资产完整导入。
+
+  **口令不自动生成。** 很多 chart 会在没给时生成随机值,但 Helm 每次 upgrade 都重新
+  渲染模板,自动生成的值会在升级时变掉,而数据库里的口令不会跟着变 —— 结果是升级之后
+  连不上。这类故障只在升级时出现,首次安装完全正常,极难提前发现。
+
+  chart README 里逐条写了**验证过什么、没验证过什么**(多节点、真实流量、
+  `helm upgrade`、Ingress/TLS、备份恢复都没验),以及刻意不做的部分(存储组件的高可用
+  应当交给各自的 Operator)。
+
+  装的时候踩到两个只有真装才会发现的坑,记在 README 里:建表工具读的是 `CLICKHOUSE_URL`
+  而不是 `NEBULA_CLICKHOUSE_URL`;ClickHouse 镜像靠 `CLICKHOUSE_DB` 建库,漏了它会报
+  「Database nebula does not exist」—— 两者都容易被误读成「ClickHouse 挂了」。
+
 - **OpenResty 埋点**(`apps/collector/openresty/`)。网关侧把 HTTP 请求转成
   `HTTP_DYNAMIC` 事件批量投给采集器,1.x 的 `sniffer` 承担过这个角色。
 

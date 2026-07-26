@@ -1,0 +1,182 @@
+{{- /*
+  三个存储组件都是**单副本 StatefulSet**,没有高可用。
+  生产上应当换成各自的 Operator 或托管服务 —— 在 Kubernetes 里自己维护有状态集群
+  是另一个量级的工作,不该由一份应用 chart 顺带承担。这一条写在 values.yaml 顶部。
+*/}}
+{{- if .Values.postgres.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nebula.fullname" . }}-postgres
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports: [{ port: 5432, name: postgres }]
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "nebula.fullname" . }}-postgres
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "nebula.fullname" . }}-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom: { secretKeyRef: { name: {{ include "nebula.secretName" . }}, key: postgres-user } }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ include "nebula.secretName" . }}, key: postgres-password } }
+            - name: POSTGRES_DB
+              valueFrom: { secretKeyRef: { name: {{ include "nebula.secretName" . }}, key: postgres-db } }
+            # 强制 scram-sha-256,不接受 md5 —— 与 compose 一致
+            - name: POSTGRES_INITDB_ARGS
+              value: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports: [{ containerPort: 5432 }]
+          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+          readinessProbe:
+            exec: { command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"] }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources: {{- toYaml .Values.postgres.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: {{ .Values.postgres.storage }} } }
+{{- end }}
+---
+{{- if .Values.clickhouse.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nebula.fullname" . }}-clickhouse
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - { port: 8123, name: http }
+    - { port: 9000, name: native }
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: clickhouse
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "nebula.fullname" . }}-clickhouse
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "nebula.fullname" . }}-clickhouse
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: clickhouse
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: clickhouse
+    spec:
+      containers:
+        - name: clickhouse
+          image: {{ .Values.clickhouse.image }}
+          env:
+            - name: CLICKHOUSE_USER
+              valueFrom: { secretKeyRef: { name: {{ include "nebula.secretName" . }}, key: clickhouse-user } }
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ include "nebula.secretName" . }}, key: clickhouse-password } }
+            # 镜像在初始化时按这个变量建库。漏了它的表现是建表阶段报
+            # 「Database nebula does not exist」,而 PostgreSQL 那半段已经跑完 ——
+            # 看起来像 ClickHouse 有问题,实际是少给了一个环境变量。
+            - name: CLICKHOUSE_DB
+              value: nebula
+            # 不建默认的无密码 default 用户
+            - name: CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT
+              value: "1"
+          ports:
+            - { containerPort: 8123 }
+            - { containerPort: 9000 }
+          volumeMounts: [{ name: data, mountPath: /var/lib/clickhouse }]
+          readinessProbe:
+            exec: { command: ["sh", "-c", "clickhouse-client --user $CLICKHOUSE_USER --password $CLICKHOUSE_PASSWORD -q 'SELECT 1'"] }
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources: {{- toYaml .Values.clickhouse.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: {{ .Values.clickhouse.storage }} } }
+{{- end }}
+---
+{{- if .Values.redis.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nebula.fullname" . }}-redis
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports: [{ port: 6379, name: redis }]
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: redis
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "nebula.fullname" . }}-redis
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "nebula.fullname" . }}-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: redis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: redis
+    spec:
+      containers:
+        - name: redis
+          image: {{ .Values.redis.image }}
+          # 口令从环境变量取,不写进命令行 —— 命令行会出现在 ps 与 pod spec 里
+          command: ["sh", "-c", 'exec redis-server --requirepass "$REDIS_PASSWORD" --appendonly yes']
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ include "nebula.secretName" . }}, key: redis-password } }
+          ports: [{ containerPort: 6379 }]
+          volumeMounts: [{ name: data, mountPath: /data }]
+          readinessProbe:
+            exec: { command: ["sh", "-c", 'redis-cli -a "$REDIS_PASSWORD" --no-auth-warning ping'] }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources: {{- toYaml .Values.redis.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: {{ .Values.redis.storage }} } }
+{{- end }}

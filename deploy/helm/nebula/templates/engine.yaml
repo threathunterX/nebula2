@@ -1,0 +1,90 @@
+{{- if .Values.engine.enabled }}
+{{- /*
+  Flink 的 **session 集群**,不是 Flink Kubernetes Operator。
+  没有作业级的自动恢复与滚动升级 —— 生产上应当换成 Operator。
+  这一条写在 values.yaml 顶部与 deploy/helm/README.md。
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nebula.fullname" . }}-jobmanager
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  ports:
+    - { port: 6123, name: rpc }
+    - { port: 6124, name: blob }
+    - { port: 8081, name: ui }
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: jobmanager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nebula.fullname" . }}-jobmanager
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: jobmanager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: jobmanager
+    spec:
+      containers:
+        - name: jobmanager
+          image: {{ include "nebula.image" (dict "component" "engine" "Values" .Values) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["jobmanager"]
+          env:
+            - name: FLINK_PROPERTIES
+              value: |
+                jobmanager.rpc.address: {{ include "nebula.fullname" . }}-jobmanager
+                state.backend: rocksdb
+                execution.checkpointing.interval: 30s
+            {{- include "nebula.credentialEnv" . | nindent 12 }}
+          ports:
+            - { containerPort: 6123 }
+            - { containerPort: 6124 }
+            - { containerPort: 8081 }
+          readinessProbe:
+            tcpSocket: { port: 8081 }
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          resources: {{- toYaml .Values.engine.jobmanager.resources | nindent 12 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nebula.fullname" . }}-taskmanager
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.engine.taskManagers }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: taskmanager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: taskmanager
+    spec:
+      containers:
+        - name: taskmanager
+          image: {{ include "nebula.image" (dict "component" "engine" "Values" .Values) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["taskmanager"]
+          env:
+            - name: FLINK_PROPERTIES
+              value: |
+                jobmanager.rpc.address: {{ include "nebula.fullname" . }}-jobmanager
+                state.backend: rocksdb
+                taskmanager.numberOfTaskSlots: 2
+            {{- include "nebula.credentialEnv" . | nindent 12 }}
+          resources: {{- toYaml .Values.engine.taskmanager.resources | nindent 12 }}
+{{- end }}

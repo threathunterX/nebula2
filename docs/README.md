@@ -33,7 +33,7 @@
 
 | | |
 |---|---|
-| [部署](operations/deployment.md) | Lite 模式、凭据注入、暴露面、升级(Cluster 🚧) |
+| [部署](operations/deployment.md) | Lite 模式、凭据注入、暴露面、升级;Cluster 见 [Helm chart](../deploy/helm/) |
 | [容量规划](operations/capacity.md) | 实测的吞吐、状态与存储量级,以及测不了的部分 |
 | [监控告警](operations/monitoring.md) | 指标清单、建议告警项、排查顺序 |
 

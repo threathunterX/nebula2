@@ -150,7 +150,8 @@ echo '{"name":"ACCOUNT_LOGIN","timestamp":1784944800000,"c_ip":"198.51.100.1",
 | PostgreSQL 元数据(JSONB + 约束 + 审计分区) | ✅ |
 | [可观测性](docs/operations/monitoring.md)(引擎 / 控制面 / 采集器三端指标) | ✅ |
 | [Lite 部署](deploy/compose/)(三个组件容器化,compose 一键起全栈) | ✅ |
-| Helm / Kubernetes 编排 | 🚧 |
+| [Helm / Kubernetes 编排](deploy/helm/)(单节点 k3s 上实测装通) | ✅ |
+| 存储组件的高可用(Operator / 托管服务) | 🚧 |
 
 </details>
 
@@ -265,7 +266,7 @@ nebula2/
 ├── deploy/
 │   ├── compose/         # Lite 部署(可用)
 │   ├── schema/          # 建表脚本
-│   └── helm/            # Cluster 部署 —— 🚧 空目录,尚未开始
+│   └── helm/            # Cluster 部署(单节点验证过,HA 见 README 的取舍说明)
 ├── docs/                # 文档站
 ├── tests/golden/        # 新旧引擎语义回归测试
 └── tools/               # 迁移与开发工具
