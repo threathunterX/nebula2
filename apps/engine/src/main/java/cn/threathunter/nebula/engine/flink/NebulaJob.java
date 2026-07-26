@@ -3,6 +3,7 @@ package cn.threathunter.nebula.engine.flink;
 import cn.threathunter.nebula.engine.meta.MetadataClient;
 import cn.threathunter.nebula.engine.rule.StrategyEngine;
 import cn.threathunter.nebula.engine.sink.ClickHouseRows;
+import cn.threathunter.nebula.engine.sink.PiiHmac;
 import cn.threathunter.nebula.engine.sink.ClickHouseSink;
 import cn.threathunter.nebula.engine.sink.RedisNoticeSink;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -90,9 +91,16 @@ public final class NebulaJob {
                 .filter(e -> e != null && e.get("name") != null && e.get("timestamp") != null);
 
         if (toClickHouse) {
+            // 个人标识列在写库前做 HMAC。变量计算与策略判定用的仍是原值 ——
+            // c_ip 一旦在采集端哈希,地理定位与跨维度关联就废了,所以保护放在这一层。
+            PiiHmac hmac = PiiHmac.fromEnv();
+            System.out.println(hmac.enabled()
+                    ? "事件明细的 HMAC 保护列: " + hmac.columns()
+                    : "事件明细未启用 HMAC 保护(NEBULA_PII_HMAC_COLUMNS 为空)");
+
             // 事件明细落库。小时聚合由 ClickHouse 的物化视图自动维护,不需要批任务。
             events.addSink(new ClickHouseSink<Map<String, Object>>(
-                    "nebula.events", ClickHouseRows::event, 500, 2000,
+                    "nebula.events", e -> ClickHouseRows.event(e, hmac), 500, 2000,
                     chUrl, chUser, chPassword)).name("clickhouse-events");
         }
 

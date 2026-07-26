@@ -39,16 +39,26 @@ public final class ClickHouseRows {
         return TS.format(Instant.ofEpochMilli(millis));
     }
 
-    /** 事件行。 */
+    /** 事件行。不做 pii 保护 —— 仅用于测试与不需要保护的场景。 */
     public static String event(Map<String, Object> e) {
+        return event(e, PiiHmac.disabled());
+    }
+
+    /**
+     * 事件行,写库前对配置的个人标识列做 HMAC。
+     *
+     * <p>保护发生在**算完之后、写库之前**:变量计算与策略判定拿到的仍是原值,
+     * 落到磁盘上的不是。见 {@link PiiHmac}。
+     */
+    public static String event(Map<String, Object> e, PiiHmac hmac) {
         Object tsObj = e.get("timestamp");
         long millis = tsObj instanceof Number n ? n.longValue() : System.currentTimeMillis();
 
         Map<String, Object> row = new LinkedHashMap<>();
-        row.put("c_ip", str(e, "c_ip"));
-        row.put("uid", str(e, "uid"));
-        row.put("did", str(e, "did"));
-        row.put("sid", str(e, "sid"));
+        row.put("c_ip", hmac.apply("c_ip", str(e, "c_ip")));
+        row.put("uid", hmac.apply("uid", str(e, "uid")));
+        row.put("did", hmac.apply("did", str(e, "did")));
+        row.put("sid", hmac.apply("sid", str(e, "sid")));
         row.put("event_name", str(e, "name"));
         row.put("event_time", ts(millis));
         row.put("event_id", str(e, "id"));
@@ -58,7 +68,8 @@ public final class ClickHouseRows {
         row.put("method", str(e, "method"));
         row.put("status", e.get("status") instanceof Number n ? n.intValue() : 0);
         row.put("referer", str(e, "referer"));
-        row.put("useragent", str(e, "useragent"));
+        // useragent 默认不在保护列内,见 PiiHmac 的说明
+        row.put("useragent", hmac.apply("useragent", str(e, "useragent")));
         row.put("geo_province", str(e, "geo_province"));
         row.put("geo_city", str(e, "geo_city"));
 

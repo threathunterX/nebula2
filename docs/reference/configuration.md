@@ -69,6 +69,8 @@
 | `CLICKHOUSE_USER` / `CLICKHOUSE_PASSWORD` | — | 两者都给才落库,否则跳过 |
 | `REDIS_HOST` / `REDIS_PORT` | `127.0.0.1` / `6379` | |
 | `REDIS_PASSWORD` | — | 给了才写名单 |
+| `NEBULA_HMAC_KEY` | — | 事件明细 pii 列的 HMAC 密钥。配了保护列却缺它时**启动失败** |
+| `NEBULA_PII_HMAC_COLUMNS` | `uid,did,sid` | 做 HMAC 的列,逗号分隔。显式设为空串可关闭 |
 
 **凭据不走命令行参数是刻意的**:`ps aux` 对同机所有用户可见,一个能读全部策略的令牌
 出现在进程列表里等于没有保护。
