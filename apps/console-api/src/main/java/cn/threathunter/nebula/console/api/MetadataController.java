@@ -2,12 +2,14 @@ package cn.threathunter.nebula.console.api;
 
 import cn.threathunter.nebula.console.audit.AuditLog;
 import cn.threathunter.nebula.console.store.MetadataStore;
+import cn.threathunter.nebula.console.store.StrategyValidator;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,8 +29,11 @@ public class MetadataController {
 
     private final MetadataStore store;
     private final AuditLog audit;
+    private final StrategyValidator validator;
 
-    public MetadataController(MetadataStore store, AuditLog audit) {
+    public MetadataController(MetadataStore store, AuditLog audit,
+                              StrategyValidator validator) {
+        this.validator = validator;
         this.store = store;
         this.audit = audit;
     }
@@ -102,5 +107,75 @@ public class MetadataController {
         return store.getVariable(name)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    public record StrategyWrite(JsonNode definition, Integer expected_version,
+                                String change_note) {
+    }
+
+    /**
+     * 新建或更新策略。
+     *
+     * <p>校验不通过时<b>一次返回全部问题</b>,不要让人改一条再提交一次。
+     */
+    @PutMapping("/strategies/{name}")
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
+    public ResponseEntity<Map<String, Object>> saveStrategy(
+            @PathVariable String name,
+            @RequestBody StrategyWrite body,
+            Authentication auth,
+            HttpServletRequest http) {
+
+        if (body == null || body.definition() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "缺少 definition"));
+        }
+        JsonNode def = body.definition();
+        if (!def.hasNonNull("name") || !def.get("name").asText().equals(name)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "definition.name 必须与路径中的策略名一致"));
+        }
+        List<String> problems = validator.validate(def);
+        if (!problems.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "策略定义校验未通过", "problems", problems));
+        }
+
+        String actor = auth == null ? "anonymous" : auth.getName();
+        int expected = body.expected_version() == null ? 0 : body.expected_version();
+        MetadataStore.SaveResult r = store.saveStrategy(
+                name, def, actor, body.change_note(), expected);
+
+        audit.record(actor, expected == 0 ? "create_strategy" : "update_strategy",
+                "strategy", name,
+                Map.of("expected_version", String.valueOf(expected),
+                        "result_version", String.valueOf(r.version()),
+                        "change_note", body.change_note() == null ? "" : body.change_note()),
+                http.getRemoteAddr(), r.ok());
+
+        if (!r.ok()) {
+            // 409 而不是 400:请求本身没错,是状态变了
+            return ResponseEntity.status(409).body(Map.of(
+                    "error", r.error(), "current_version", r.version()));
+        }
+        return ResponseEntity.ok(Map.of("name", name, "version", r.version()));
+    }
+
+    /** 策略的修订历史。 */
+    @GetMapping("/strategies/{name}/revisions")
+    public ResponseEntity<Map<String, Object>> revisions(
+            @PathVariable String name,
+            @RequestParam(defaultValue = "50") int limit) {
+        return ResponseEntity.ok(Map.of(
+                "name", name,
+                "revisions", store.revisions(name, Math.clamp(limit, 1, 200))));
+    }
+
+    /** 某个历史版本的完整定义。回滚 = 把它作为新版本重新提交一次。 */
+    @GetMapping("/strategies/{name}/revisions/{version}")
+    public ResponseEntity<?> revision(@PathVariable String name, @PathVariable int version) {
+        return store.revision(name, version)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(404).body(
+                        Map.of("error", "没有这个版本")));
     }
 }

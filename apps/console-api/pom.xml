@@ -57,6 +57,14 @@
       <artifactId>bcprov-jdk18on</artifactId>
       <version>1.79</version>
     </dependency>
+    <!-- 策略定义按 packages/domain-schema/ 的 JSON Schema 校验。用同一份 schema
+         而不是在 Java 里另写一套字段检查 —— 后者正是 1.x 领域模型漂移的做法。 -->
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>1.5.4</version>
+    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
@@ -74,6 +82,20 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <!-- 领域 schema 打进 jar。服务运行时不该依赖仓库的目录布局 —— 部署出去的
+           是一个 jar,它旁边没有 packages/domain-schema/。 -->
+      <resource>
+        <directory>../../packages/domain-schema</directory>
+        <targetPath>domain-schema</targetPath>
+        <includes>
+          <include>*.json</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>

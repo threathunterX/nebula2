@@ -16,7 +16,7 @@
 | OIDC 对接企业身份源 | 🚧 |
 | 告警查询与趋势(ClickHouse) | ✅ |
 | 账号管理(建号、列表) | ✅ |
-| 策略创建与编辑(需接 schema 校验) | 🚧 |
+| 策略创建与编辑(schema 校验 + 修订历史) | ✅ |
 
 所有接口默认拒绝。未认证请求返回 401,认证但越权返回 403,只有 `/actuator/health` 匿名可读。
 
@@ -102,6 +102,9 @@ curl -XPOST localhost:8080/checkRisk -H 'Content-Type: application/json' \
 | GET | `/api/v2/strategies` | 策略列表,可按 `category` / `status` 过滤 |
 | GET | `/api/v2/strategies/{name}` | 策略完整定义 |
 | PUT | `/api/v2/strategies/{name}/status` | 切换状态,记审计 |
+| PUT | `/api/v2/strategies/{name}` | 新建或更新定义,校验 + 记历史 |
+| GET | `/api/v2/strategies/{name}/revisions` | 修订历史 |
+| GET | `/api/v2/strategies/{name}/revisions/{version}` | 某个历史版本的完整定义 |
 | GET | `/api/v2/variables` | 变量列表,可按 `module` / `sensitivity` 过滤 |
 | GET | `/api/v2/variables/{name}` | 变量完整定义 |
 | POST | `/api/v2/tokens` | 签发服务令牌,仅 ADMIN,记审计 |
@@ -139,6 +142,35 @@ curl -u admin:<口令> -G localhost:8080/api/v2/alerts \
 
 `/trend` 读的是物化视图维护的 `notices_hourly`,不是明细表 —— 跨天按小时汇总在
 明细表上要扫全部分区。
+
+### 策略编辑
+
+```bash
+curl -u admin:<口令> -XPUT localhost:8080/api/v2/strategies/IP下单不支付 \
+  -H 'Content-Type: application/json' \
+  -d '{"definition": {...}, "expected_version": 2, "change_note": "阈值 100 调到 50"}'
+```
+
+**校验分两层。** 结构按 [`packages/domain-schema/strategy.schema.json`](../../packages/domain-schema/strategy.schema.json)
+校验 —— 用同一份 schema 而不是在 Java 里另写一套字段检查,后者会随时间与 schema
+分歧,而「同一个领域模型在两处各写一份、逐渐漂移」正是 1.x 最大的结构性问题。
+
+引用则是 schema 管不了的那层:`counter.event` 指向的事件、`groupby` / `operand` /
+`filter.object` 用到的字段都必须真实存在。`"event": "ORDER_SUBMITT"` 在结构上完全
+合法,策略能保存、能上线,然后**永远不命中也永远不报错** —— 运营看到的只是「这条
+策略没量」,查不出原因。这类静默失效比直接报错危险得多。
+
+校验不通过时一次返回全部问题,不让人改一条再提交一次。
+
+**`expected_version` 必填**(新建传 0)。两个人同时编辑同一条策略时,后提交的会
+收到 409 而不是静默覆盖 —— 风控阈值被无声覆盖的代价是「昨天调好的今天没了,而且
+没人知道」。
+
+每次写入把改动后的完整定义存进 `strategy_revisions`。**回滚就是把某个旧版本重新
+提交一次**,因此回滚本身也产生新版本,历史只增不改。没有历史时,「昨天这条策略
+为什么突然报了十倍」查不出来:定义表里只有当前值,阈值被谁在什么时候从 100 改到
+10 没有任何痕迹;审计日志记了「发生过一次修改」,但记不下改前改后的完整定义 ——
+那是业务数据,不该塞进审计表。
 
 ## 元数据为什么用 JSONB
 

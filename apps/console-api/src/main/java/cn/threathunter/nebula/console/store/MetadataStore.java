@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,6 +79,102 @@ public class MetadataStore {
         return rows.isEmpty() ? Optional.empty() : Optional.of(parse(rows.get(0)));
     }
 
+    public record SaveResult(boolean ok, String error, int version) {
+    }
+
+    /**
+     * 写入策略定义(新建或更新),并把改动后的完整快照记入修订历史。
+     *
+     * <p><b>乐观并发</b>:调用方必须带上它读到的 {@code expectedVersion}。两个人
+     * 同时编辑同一条策略时,后提交的那个会失败而不是静默覆盖 —— 风控策略被无声
+     * 覆盖的代价是「昨天调好的阈值今天没了,而且没人知道」。新建时传 0。
+     *
+     * <p>定义、历史、版本号三者必须同时成功,故整体在一个事务里。
+     */
+    @Transactional
+    public SaveResult saveStrategy(String name, JsonNode definition, String actor,
+                                   String changeNote, int expectedVersion) {
+        String status = definition.hasNonNull("status")
+                ? definition.get("status").asText() : "inedit";
+        String category = definition.hasNonNull("category")
+                ? definition.get("category").asText() : "OTHER";
+        String visibleName = definition.hasNonNull("visible_name")
+                ? definition.get("visible_name").asText() : name;
+        int score = definition.hasNonNull("score") ? definition.get("score").asInt() : 0;
+
+        List<String> tags = new ArrayList<>();
+        JsonNode tagsNode = definition.get("tags");
+        if (tagsNode != null && tagsNode.isArray()) {
+            for (JsonNode t : tagsNode) {
+                tags.add(t.asText());
+            }
+        }
+        String tagsLiteral = "{" + String.join(",", tags) + "}";
+        String json = definition.toString();
+
+        List<Integer> current = jdbc.query(
+                "SELECT version FROM strategies WHERE name = ?", (rs, i) -> rs.getInt(1), name);
+        int newVersion;
+        if (current.isEmpty()) {
+            if (expectedVersion != 0) {
+                return new SaveResult(false,
+                        "策略不存在;新建时 expected_version 应为 0", 0);
+            }
+            newVersion = 1;
+            jdbc.update(
+                    "INSERT INTO strategies (name, visible_name, category, status, score, "
+                            + "tags, definition, version) "
+                            + "VALUES (?, ?, ?, ?, ?, ?::text[], ?::jsonb, 1)",
+                    name, visibleName, category, status, score, tagsLiteral, json);
+        } else {
+            int actual = current.get(0);
+            if (expectedVersion != actual) {
+                return new SaveResult(false,
+                        "版本冲突:你基于 v" + expectedVersion + " 修改,当前已是 v" + actual
+                                + "。请重新拉取后再提交", actual);
+            }
+            newVersion = actual + 1;
+            jdbc.update(
+                    "UPDATE strategies SET visible_name = ?, category = ?, status = ?, "
+                            + "score = ?, tags = ?::text[], definition = ?::jsonb, "
+                            + "version = ?, updated_at = now() WHERE name = ?",
+                    visibleName, category, status, score, tagsLiteral, json, newVersion, name);
+        }
+
+        jdbc.update(
+                "INSERT INTO strategy_revisions "
+                        + "(strategy_name, version, definition, status, changed_by, change_note) "
+                        + "VALUES (?, ?, ?::jsonb, ?, ?, ?)",
+                name, newVersion, json, status, actor, changeNote == null ? "" : changeNote);
+        bumpVersion();
+        return new SaveResult(true, null, newVersion);
+    }
+
+    /** 某条策略的修订历史,新的在前。 */
+    public List<Map<String, Object>> revisions(String name, int limit) {
+        return jdbc.query(
+                "SELECT version, status, changed_by, change_note, changed_at "
+                        + "FROM strategy_revisions WHERE strategy_name = ? "
+                        + "ORDER BY version DESC LIMIT ?",
+                (rs, i) -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("version", rs.getInt("version"));
+                    m.put("status", rs.getString("status"));
+                    m.put("changed_by", rs.getString("changed_by"));
+                    m.put("change_note", rs.getString("change_note"));
+                    m.put("changed_at", String.valueOf(rs.getTimestamp("changed_at")));
+                    return m;
+                }, name, limit);
+    }
+
+    public Optional<JsonNode> revision(String name, int version) {
+        List<String> rows = jdbc.query(
+                "SELECT definition::text FROM strategy_revisions "
+                        + "WHERE strategy_name = ? AND version = ?",
+                (rs, i) -> rs.getString(1), name, version);
+        return rows.isEmpty() ? Optional.empty() : Optional.of(parse(rows.get(0)));
+    }
+
     /** 更新策略状态。返回受影响行数,0 表示策略不存在。 */
     @Transactional
     public int updateStrategyStatus(String name, String status) {
@@ -138,6 +237,67 @@ public class MetadataStore {
                 "SELECT count(*) FROM variables WHERE sensitivity = 'pii'", Long.class));
         out.put("metadata_version", metadataVersion());
         return out;
+    }
+
+    /**
+     * 每个事件有哪些字段(含继承来的)。用于校验策略里 counter 的引用。
+     *
+     * <p>字段在 {@code properties[]},父事件在 {@code source[]} —— 是数组,一个事件
+     * 可以有多个来源。ACCOUNT_LOGIN 的字段大部分来自 HTTP_DYNAMIC,不把父事件的
+     * 字段并进来,合法策略会被判成「引用了不存在的字段」而无法保存。
+     */
+    public Map<String, Set<String>> eventFields() {
+        Map<String, Set<String>> own = new LinkedHashMap<>();
+        Map<String, List<String>> parents = new LinkedHashMap<>();
+        jdbc.query("SELECT name, definition::text FROM event_models", rs -> {
+            String name = rs.getString(1);
+            Set<String> fields = new LinkedHashSet<>();
+            List<String> src = new ArrayList<>();
+            try {
+                JsonNode def = MAPPER.readTree(rs.getString(2));
+                JsonNode props = def.get("properties");
+                if (props != null && props.isArray()) {
+                    for (JsonNode f : props) {
+                        if (f.hasNonNull("name")) {
+                            fields.add(f.get("name").asText());
+                        }
+                    }
+                }
+                JsonNode sources = def.get("source");
+                if (sources != null && sources.isArray()) {
+                    for (JsonNode o : sources) {
+                        if (o.hasNonNull("name")) {
+                            src.add(o.get("name").asText());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // 定义解析不了时按「没有字段」处理,由 schema 校验去报结构问题
+            }
+            own.put(name, fields);
+            parents.put(name, src);
+        });
+
+        Map<String, Set<String>> resolved = new LinkedHashMap<>();
+        for (String name : own.keySet()) {
+            resolved.put(name, inherited(name, own, parents, new LinkedHashSet<>()));
+        }
+        return resolved;
+    }
+
+    /** 广度优先并入父事件字段。{@code seen} 同时充当环检测 —— 配置成环不能把服务转死。 */
+    private static Set<String> inherited(String name, Map<String, Set<String>> own,
+                                         Map<String, List<String>> parents,
+                                         Set<String> seen) {
+        Set<String> all = new LinkedHashSet<>();
+        if (!seen.add(name)) {
+            return all;
+        }
+        all.addAll(own.getOrDefault(name, Set.of()));
+        for (String p : parents.getOrDefault(name, List.of())) {
+            all.addAll(inherited(p, own, parents, seen));
+        }
+        return all;
     }
 
     public long metadataVersion() {

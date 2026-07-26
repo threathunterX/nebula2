@@ -15,6 +15,7 @@ import cn.threathunter.nebula.console.audit.AuditLog;
 import cn.threathunter.nebula.console.risk.CheckRiskController;
 import cn.threathunter.nebula.console.risk.NoticeStore;
 import cn.threathunter.nebula.console.store.MetadataStore;
+import cn.threathunter.nebula.console.store.StrategyValidator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,6 +52,8 @@ class AuthorizationMatrixTest {
     private ServiceTokenStore tokens;
     @MockitoBean
     private MetadataStore metadata;
+    @MockitoBean
+    private StrategyValidator validator;
     @MockitoBean
     private NoticeStore notices;
     @MockitoBean
