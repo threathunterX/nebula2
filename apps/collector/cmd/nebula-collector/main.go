@@ -22,6 +22,7 @@ import (
 	"github.com/threathunterX/nebula2/apps/collector/internal/driver"
 	"github.com/threathunterX/nebula2/apps/collector/internal/event"
 	"github.com/threathunterX/nebula2/apps/collector/internal/mask"
+	"github.com/threathunterX/nebula2/apps/collector/internal/metrics"
 	"github.com/threathunterX/nebula2/apps/collector/internal/pipeline"
 	"github.com/threathunterX/nebula2/apps/collector/internal/sink"
 )
@@ -47,6 +48,8 @@ func run() error {
 		strict    = flag.Bool("strict", false, "事件类型不在模型中时丢弃")
 		showVer   = flag.Bool("version", false, "显示版本")
 		quiet     = flag.Bool("quiet", false, "不输出运行摘要")
+		// 独立于接入端口:接入端口通常只对业务网段开放,而指标要给监控系统抓
+		metricsAddr = flag.String("metrics-addr", "", "Prometheus 指标监听地址,如 127.0.0.1:9100")
 	)
 	flag.Parse()
 
@@ -116,6 +119,23 @@ func run() error {
 
 	p := pipeline.New(drv, masker, sk, registry)
 	p.StrictEventName = *strict
+
+	// 采集器是常驻进程,退出时才打印摘要对监控毫无用处
+	ms := metrics.Start(*metricsAddr, func() metrics.Snapshot {
+		return metrics.Snapshot{
+			Received:    p.Stats.Received.Load(),
+			Emitted:     p.Stats.Emitted.Load(),
+			Dropped:     p.Stats.Dropped.Load(),
+			WriteErrs:   p.Stats.WriteErrs.Load(),
+			MaskApplied: masker.Stats.Snapshot(),
+		}
+	}, func(err error) {
+		fmt.Fprintf(os.Stderr, "指标服务异常: %v\n", err)
+	})
+	defer func() { _ = ms.Close() }()
+	if *metricsAddr != "" {
+		fmt.Fprintf(os.Stderr, "指标端点: http://%s/metrics\n", *metricsAddr)
+	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

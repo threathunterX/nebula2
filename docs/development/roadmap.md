@@ -102,7 +102,7 @@ VariableGraph.extendTo(newDefs, neededNames)
 
 - 引擎:变量计算耗时、各策略命中数、去重抑制数、迟到事件数,走 Flink 的 metrics
 - 控制面:接口延迟与错误率(actuator 已在,补 Micrometer + Prometheus 端点)
-- 采集器:已有运行摘要,补 Prometheus 端点
+- ~~采集器:补 Prometheus 端点~~ ✅ 已完成
 - 补齐 [`docs/operations/monitoring.md`](../operations/monitoring.md)(当前 13 行占位)
 
 **为什么**:出问题时现在没有任何手段判断「哪个变量算慢了」「哪条策略命中率突然异常」。

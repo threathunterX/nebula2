@@ -66,12 +66,30 @@ Prometheus 端点 `/actuator/prometheus`,由 Micrometer 提供。
 
 ## 采集器
 
-当前只有**退出时打印的运行摘要**(处理条数、脱敏命中数、丢弃数),没有 Prometheus 端点。
+用 `-metrics-addr` 启用 Prometheus 端点:
 
-> 🚧 Prometheus 端点尚未实现。采集器是常驻进程,退出时才输出摘要对监控没有用 ——
-> 这是当前可观测性链条上最弱的一环,已列入[路线图](../development/roadmap.md)。
+```bash
+nebula-collector -source http -source-addr 0.0.0.0:9000 \
+                 -metrics-addr 127.0.0.1:9100 -events seeds/events
+```
 
-在此之前,可以从 Kafka 侧间接观察:topic 的 `HIGH-WATERMARK` 停止增长即说明采集断了。
+> **端口独立于接入端口是有意的。** 接入端口通常只对业务网段开放,而指标要给监控系统
+> 抓 —— 合在一起意味着要么监控系统进不来,要么接入端口对监控网段敞开。
+
+| 指标 | 类型 | 怎么用 |
+|---|---|---|
+| `nebula_collector_events_received_total` | Counter | 接收条数。停止增长 = 上游断了 |
+| `nebula_collector_events_emitted_total` | Counter | 成功写出条数 |
+| `nebula_collector_events_dropped_total` | Counter | 被丢弃条数(事件类型不在模型中等)。**上游改字段名时这个会涨,而链路本身看起来完全正常** |
+| `nebula_collector_write_errors_total` | Counter | 写出失败次数 |
+| `nebula_collector_mask_applied_total{field}` | Counter | 按字段的脱敏命中。**某个字段的命中数突然归零,通常意味着上游不再发这个字段了 —— 而那意味着它的原值可能正从别的字段流过去** |
+| `nebula_collector_mask_errors_total` | Counter | 脱敏执行失败次数 |
+| `nebula_collector_uptime_seconds` | Gauge | 已运行秒数,可用于发现反复重启 |
+
+`/healthz` 用于存活探针。
+
+> 端点由 Go 标准库实现,**没有引入 client_golang** —— 采集器至今零外部依赖,
+> 而 Prometheus 的文本格式几十行就够。为这点格式引入一个需要长期跟踪 CVE 的依赖不划算。
 
 ---
 
