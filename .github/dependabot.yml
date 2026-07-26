@@ -2,18 +2,36 @@
 #
 # 1.x 的教训:依赖一旦停止更新就会静默腐化 —— commons-collections 3.2.1 的反序列化
 # 漏洞、jackson 1.9 的一系列 CVE,都是在项目停更后才公开的,而没有任何机制会提醒。
-# 每周一次的 PR 比"想起来的时候看一眼"可靠。
+#
+# 但默认配置会把「刻意钉住的版本」也一起提上来。首次启用时一口气开了 19 个 PR,其中
+# Flink 1.20→2.3、Jackson 2.15.2→2.22、temurin 21→26 都会直接推翻有明确理由的约束。
+# 这类噪音是团队最后关掉 dependabot 的主要原因,所以下面逐条写明忽略什么、为什么。
 version: 2
 updates:
   - package-ecosystem: maven
     directory: /apps/engine
     schedule: {interval: weekly}
     open-pull-requests-limit: 5
+    ignore:
+      # Flink 大版本升级不是换个数字的事:API、状态兼容性、连接器版本全都要一起动,
+      # 而且引擎的 Java 版本约束(见 pom 注释)也跟着变。要升就单独立项。
+      - dependency-name: org.apache.flink:*
+        update-types: [version-update:semver-major]
+      # 连接器版本与 Flink 版本绑定(3.3.0-1.20 中的 -1.20 就是 Flink 版本)
+      - dependency-name: org.apache.flink:flink-connector-kafka
+      # 必须与 Flink 运行时自带的 jackson-core 对齐,否则运行期 NoSuchMethodError。
+      # 版本由 Flink 决定,不由我们决定。
+      - dependency-name: com.fasterxml.jackson.core:*
 
   - package-ecosystem: maven
     directory: /apps/console-api
     schedule: {interval: weekly}
     open-pull-requests-limit: 5
+    ignore:
+      # Spring Boot 大版本升级涉及 Spring Security 的配置 DSL 变更,授权规则要重写。
+      # 授权规则改错的后果是静默放宽,不能顺手升。
+      - dependency-name: org.springframework.boot:*
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: gomod
     directory: /apps/collector
@@ -31,3 +49,14 @@ updates:
       - /deploy/schema
       - /deploy/seed
     schedule: {interval: weekly}
+    ignore:
+      # 基础镜像的大版本号里编码着 Java / Go 版本约束:
+      #   flink:1.20-java17  —— 引擎必须按 Java 17 编译,Flink 1.20 没有 java21 镜像
+      #   eclipse-temurin:21 —— 控制面的目标版本
+      #   maven:3.9-...-21   —— 构建期 JDK 要与目标一致
+      # 自动升大版本会让「构建通过但提交作业时 class 文件版本不兼容」这类问题重现。
+      - dependency-name: flink
+      - dependency-name: eclipse-temurin
+        update-types: [version-update:semver-major]
+      - dependency-name: maven
+        update-types: [version-update:semver-major]
