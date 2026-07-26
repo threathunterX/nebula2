@@ -135,7 +135,7 @@ echo '{"name":"ACCOUNT_LOGIN","timestamp":1784944800000,"c_ip":"198.51.100.1",
 | [管理界面](apps/console-web/)(登录、策略管理、告警查询、变量浏览、账号与令牌) | ✅ |
 | [策略热更新](docs/development/roadmap.md)(改完无需重启作业,窗口状态不丢) | ✅ |
 | [数据主体权利](docs/security/privacy.md#四数据主体权利)(按主体导出与删除) | ✅ |
-| 可视化策略编辑器 | 🚧 |
+| [表单化策略编辑器](apps/console-web/)(字段与取值从 domain-schema 派生) | ✅ |
 
 **存储与部署**
 

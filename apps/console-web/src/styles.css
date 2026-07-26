@@ -111,3 +111,42 @@ label.inline {
   font-weight: normal;
 }
 label.inline input { margin: 0; }
+
+/* ---------------------------------------------------------------- 策略表单 */
+.tabs { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+
+.form-section {
+  border: 1px solid var(--line, #2a3040);
+  border-radius: 6px;
+  padding: 10px 14px 4px;
+  margin: 0 0 14px;
+}
+.form-section legend { padding: 0 6px; font-weight: 600; font-size: 13px; }
+
+.form-row { display: flex; gap: 12px; align-items: baseline; margin-bottom: 10px; }
+.form-row > label { flex: 0 0 116px; text-align: right; font-size: 13px; }
+.form-field { flex: 1; min-width: 0; }
+.form-field > input, .form-field > select { width: 100%; }
+.form-field .note { margin: 3px 0 0; }
+
+/* 条件树。缩进用左边框而不是 margin —— 嵌套深了之后边框能看出层级,
+   纯缩进只会看出「有点靠右」。 */
+.cond-list { list-style: none; margin: 6px 0 0; padding: 0; }
+.cond-list > li { margin: 6px 0; }
+.nested {
+  border-left: 2px solid var(--line, #2a3040);
+  padding-left: 10px;
+}
+.cond-op { display: flex; align-items: center; gap: 8px; }
+.cond-op select { width: auto; }
+.cond-leaf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 0;
+}
+.cond-leaf select { width: auto; }
+.cond-leaf input.operand { width: 160px; }
+.cond-leaf input.operand-num { width: 84px; }
+.operand-ro { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
