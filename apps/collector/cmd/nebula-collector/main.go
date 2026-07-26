@@ -41,13 +41,19 @@ func run() error {
 	var (
 		cfgPath   = flag.String("config", "", "配置文件路径(JSON)")
 		eventsDir = flag.String("events", "", "事件模型目录,用于按敏感级别脱敏")
-		srcType   = flag.String("source", "", "数据源: stdin | file | http")
+		srcType   = flag.String("source", "", "数据源: stdin | file | http | syslog")
 		srcPath   = flag.String("source-path", "", "source=file 时的文件路径")
-		srcAddr   = flag.String("source-addr", "", "source=http 时的监听地址")
-		outPath   = flag.String("out", "", "输出文件路径,缺省写 stdout")
-		strict    = flag.Bool("strict", false, "事件类型不在模型中时丢弃")
-		showVer   = flag.Bool("version", false, "显示版本")
-		quiet     = flag.Bool("quiet", false, "不输出运行摘要")
+		srcAddr   = flag.String("source-addr", "", "source=http/syslog 时的监听地址")
+		// syslog 的默认传输是 UDP —— 绝大多数网络设备只支持它。UDP 会丢包,
+		// 而丢的那条可能正是要命中策略的那条,所以支持切到 TCP。
+		syslogNet = flag.String("syslog-network", "", "source=syslog 时的传输: udp(默认)| tcp")
+		// 接入口的共享令牌。不从命令行传值 —— 命令行参数会出现在 ps 输出、
+		// shell 历史与容器的 inspect 里。空表示不校验,启动时会打印警告。
+		tokenEnv = "NEBULA_COLLECTOR_TOKEN"
+		outPath  = flag.String("out", "", "输出文件路径,缺省写 stdout")
+		strict   = flag.Bool("strict", false, "事件类型不在模型中时丢弃")
+		showVer  = flag.Bool("version", false, "显示版本")
+		quiet    = flag.Bool("quiet", false, "不输出运行摘要")
 		// 独立于接入端口:接入端口通常只对业务网段开放,而指标要给监控系统抓
 		metricsAddr = flag.String("metrics-addr", "", "Prometheus 指标监听地址,如 127.0.0.1:9100")
 	)
@@ -73,7 +79,16 @@ func run() error {
 		cfg.Source.Type, cfg.Source.Path = "file", *srcPath
 	}
 	if *srcAddr != "" {
-		cfg.Source.Type, cfg.Source.Addr = "http", *srcAddr
+		cfg.Source.Addr = *srcAddr
+		// 只在没显式指定数据源类型时才推断为 http。写死成 http 会让
+		// `-source syslog -source-addr :514` 被悄悄改回 http —— 参数都对,
+		// 行为却不是要的那个,而且不报错。
+		if *srcType == "" && cfg.Source.Type != "syslog" {
+			cfg.Source.Type = "http"
+		}
+	}
+	if *syslogNet != "" {
+		cfg.Source.Network = *syslogNet
 	}
 	if *outPath != "" {
 		cfg.Sink.Type, cfg.Sink.Path = "file", *outPath
@@ -99,7 +114,27 @@ func run() error {
 	case "file":
 		drv = driver.NewFile(cfg.Source.Path, cfg.DefaultEventName)
 	case "http":
-		drv = driver.NewHTTP(cfg.Source.Addr, cfg.DefaultEventName)
+		token := os.Getenv(tokenEnv)
+		if token == "" && !*quiet {
+			// 不静默放行:「忘了配」与「明确决定不配」在日志里必须能区分开。
+			// 采集器入口是名单投毒最直接的路径 —— 能连到端口的人都可以伪造事件。
+			fmt.Fprintf(os.Stderr,
+				"警告:未设置 %s,接入口不校验来源。任何能连到 %s 的人都可以伪造事件。\n",
+				tokenEnv, cfg.Source.Addr)
+		}
+		drv = driver.NewHTTP(cfg.Source.Addr, cfg.DefaultEventName, token)
+	case "syslog":
+		network := cfg.Source.Network
+		if network == "" {
+			network = "udp"
+		}
+		// syslog 协议本身没有认证的位置。写明白,而不是让人以为配了 token 就管用。
+		if !*quiet {
+			fmt.Fprintf(os.Stderr,
+				"提示:syslog 协议无认证机制,请把 %s 绑定到内网地址并用网络策略限制来源。\n",
+				cfg.Source.Addr)
+		}
+		drv = driver.NewSyslog(network, cfg.Source.Addr, cfg.DefaultEventName)
 	default:
 		return fmt.Errorf("不支持的数据源类型 %q", cfg.Source.Type)
 	}

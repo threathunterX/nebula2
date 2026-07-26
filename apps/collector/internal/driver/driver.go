@@ -1,7 +1,7 @@
 // Package driver 数据源驱动。
 //
-// 每种驱动把外部数据转成统一的 event.Event。当前实现 stdin / file / http,
-// Kafka、syslog、Zeek 旁路等见 apps/collector/README.md 的规划。
+// 每种驱动把外部数据转成统一的 event.Event。当前实现 stdin / file / http / syslog,
+// Kafka 见 apps/collector/README.md 的规划。
 package driver
 
 import (
@@ -102,11 +102,12 @@ func NewFile(path, defaultEventName string) Driver {
 type httpDriver struct {
 	addr             string
 	defaultEventName string
+	auth             *Auth
 }
 
-// NewHTTP 监听 HTTP,接受单条 JSON 或 JSON 数组。
-func NewHTTP(addr, defaultEventName string) Driver {
-	return &httpDriver{addr: addr, defaultEventName: defaultEventName}
+// NewHTTP 监听 HTTP,接受单条 JSON 或 JSON 数组。token 为空表示不校验。
+func NewHTTP(addr, defaultEventName, token string) Driver {
+	return &httpDriver{addr: addr, defaultEventName: defaultEventName, auth: NewAuth(token)}
 }
 
 func (d *httpDriver) Name() string { return "http" }
@@ -117,7 +118,9 @@ func (d *httpDriver) Run(ctx context.Context, out chan<- *event.Event) error {
 		w.WriteHeader(http.StatusOK)
 		_, _ = io.WriteString(w, "ok")
 	})
-	mux.HandleFunc("/v2/events", func(w http.ResponseWriter, r *http.Request) {
+	// 上报口要认证;健康检查不要 —— 探针通常由编排系统发起,给它配令牌
+	// 意味着令牌要出现在 compose / k8s 的健康检查配置里
+	mux.HandleFunc("/v2/events", d.auth.Wrap(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "只接受 POST", http.StatusMethodNotAllowed)
 			return
@@ -144,7 +147,7 @@ func (d *httpDriver) Run(ctx context.Context, out chan<- *event.Event) error {
 		}
 		w.WriteHeader(http.StatusAccepted)
 		_, _ = fmt.Fprintf(w, `{"accepted":%d}`, len(events))
-	})
+	}))
 
 	srv := &http.Server{
 		Addr:              d.addr,
