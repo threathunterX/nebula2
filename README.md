@@ -139,6 +139,7 @@ echo '{"name":"ACCOUNT_LOGIN","timestamp":1784944800000,"c_ip":"198.51.100.1",
 | | |
 |---|---|
 | [ClickHouse 落库](deploy/schema/)(明细、告警、物化视图小时聚合、TTL) | ✅ |
+| [事件明细的 pii 保护](docs/security/privacy.md)(写库前 HMAC,计算仍用原值) | ✅ |
 | PostgreSQL 元数据(JSONB + 约束 + 审计分区) | ✅ |
 | [Lite 部署](deploy/compose/)(三个组件容器化,compose 一键起全栈) | ✅ |
 | Helm / Kubernetes 编排 | 🚧 |
