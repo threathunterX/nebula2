@@ -1,4 +1,9 @@
 # gitleaks 配置 —— CI 门禁,发现任何疑似凭据即阻断合并
+#
+# 正则由 RE2 执行(gitleaks 通过 go-re2 编译),**不支持先行/后行断言与反向引用**。
+# 写了 (?!...) 不会被拒绝配置,而是让 gitleaks 直接 panic —— 表现为扫描任务崩溃,
+# 而崩溃看起来很像「环境问题」,很容易被当成偶发失败略过,结果是门禁静默失效。
+# 排除项一律用 allowlist,不要写进正则。
 title = "Nebula 2.0 secret scanning"
 
 [extend]
@@ -13,11 +18,20 @@ tags = ["nebula", "token"]
 [[rules]]
 id = "nebula-hardcoded-db-password"
 description = "硬编码数据库口令"
-regex = '''(?i)(mysql_passwd|db_password|passwd)\s*=\s*(?!CHANGE_ME|\$\{|\"\")\S+'''
+regex = '''(?i)(mysql_passwd|db_password|passwd)\s*=\s*\S+'''
 tags = ["nebula", "password"]
+
+  [rules.allowlist]
+  description = "占位符、环境变量引用与空值不算凭据"
+  # 匹配整行,不是匹配截取出的 secret —— 占位符的特征在赋值语句的形态上
+  regexTarget = "line"
+  regexes = [
+    '''(?i)(mysql_passwd|db_password|passwd)\s*=\s*(CHANGE_ME[A-Z_]*|\$\{[^}]*\}|\$[A-Z_]+|""|''|<[A-Z_]+>|\*+|REDACTED)''',
+  ]
 
 [allowlist]
 description = "允许占位符与文档示例"
+regexTarget = "line"
 regexes = [
   '''CHANGE_ME_[A-Z_]+''',
   '''<YOUR_[A-Z_]+>''',
@@ -25,4 +39,16 @@ regexes = [
   '''<REDACTED>''',
   '''example\.(com|net|org)''',
 ]
-paths = ['''docs/.*\.md$''']
+# 注意:这里**不要**整目录排除 docs/。文档正是最容易被粘进真实连接串的地方
+# (「我把线上的配置贴上来当例子」),排除它等于把最需要扫的地方关掉。
+# 合法的文档示例由上面的占位符 allowlist 覆盖。
+paths = [
+  '''(^|/)\.venv/''',
+  '''(^|/)node_modules/''',
+  # 本机生成的运行时凭据文件。它由 gen-env.sh 生成、被 .gitignore 排除、永不进
+  # 版本库,但 --no-git 的工作区扫描会读到它。
+  # 这条路径排除会同时作用于历史扫描 —— 也就是说,万一它真被提交了,gitleaks
+  # 不会报。所以另有一条硬断言(make check-env-untracked)专门盯着它有没有被
+  # 纳入版本控制,两者配合才是完整的:一个负责「别误报」,一个负责「别漏」。
+  '''^deploy/compose/\.env$''',
+]

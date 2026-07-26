@@ -11,7 +11,7 @@ help: ## 显示本帮助
 # ---------- 校验 ----------
 
 .PHONY: validate
-validate: validate-schema validate-seeds docs-check links privacy-check test-reference test-engine lint ## 跑全部校验(等同 CI 的检查项)
+validate: validate-schema validate-seeds docs-check links privacy-check check-env-untracked secrets-scan test-reference test-engine lint ## 跑全部校验(等同 CI 的检查项)
 
 .PHONY: validate-schema
 validate-schema: ## 校验 JSON Schema 自身合法
@@ -33,11 +33,29 @@ links: ## 校验文档内部链接可达
 privacy-check: ## 扫描仓库中是否混入真实个人信息或客户标识
 	@$(PYTHON) tools/check_no_pii.py
 
+.PHONY: check-env-untracked
+check-env-untracked: ## 断言本机凭据文件没有被纳入版本控制
+	@if git ls-files --error-unmatch deploy/compose/.env >/dev/null 2>&1; then \
+		echo "deploy/compose/.env 已被纳入版本控制 —— 这个文件含本机真实凭据,绝不能提交。"; \
+		echo "请执行:git rm --cached deploy/compose/.env"; \
+		exit 1; \
+	fi
+	@echo "本机凭据文件未进版本库"
+
 .PHONY: secrets-scan
+# 两遍:git 历史(与 CI 一致)+ 工作区(--no-git)。只扫历史会漏掉尚未提交的
+# 文件 —— 而本地跑这个的目的正是在提交前拦住。
+# 未安装 gitleaks 时跳过,但**发现泄露必须失败**。
+# 早先这里写成 `gitleaks ... || echo 未安装`,发现泄露也会走进 || 分支变成成功 ——
+# 门禁看起来在跑,实际永远是绿的。
 secrets-scan: ## 本地跑一遍凭据扫描(需已安装 gitleaks)
-	@command -v gitleaks >/dev/null 2>&1 \
-		&& gitleaks detect --source . --config .gitleaks.toml --verbose \
-		|| echo "未安装 gitleaks,跳过。安装方式见 https://github.com/gitleaks/gitleaks"
+	@if command -v gitleaks >/dev/null 2>&1; then \
+		gitleaks detect --source . --config .gitleaks.toml --redact --verbose; \
+		gitleaks detect --source . --config .gitleaks.toml --redact --verbose --no-git; \
+	else \
+		echo "未安装 gitleaks,跳过凭据扫描。安装方式见 https://github.com/gitleaks/gitleaks"; \
+		echo "  (CI 上不会跳过 —— 推送前建议本地装一个)"; \
+	fi
 
 # ---------- 文档 ----------
 

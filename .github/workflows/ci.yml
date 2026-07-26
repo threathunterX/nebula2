@@ -16,10 +16,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 直接用 CLI 而不是 gitleaks-action:action 在扫描进程崩溃后仍会去上传
+      # results.sarif,于是日志末尾是「File results.sarif does not exist」——
+      # 真正的原因(配置里的正则 RE2 编译失败)被埋在几十行 Go 栈里,看起来
+      # 像是 action 自身的环境问题。
+      - name: 安装 gitleaks
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz \
+            | tar -xz -C /usr/local/bin gitleaks
+          gitleaks version
+      - name: 扫描提交历史
+        run: gitleaks detect --source . --config .gitleaks.toml --redact --verbose
+      - name: 扫描工作区
+        run: gitleaks detect --source . --config .gitleaks.toml --redact --verbose --no-git
+      - name: 断言本机凭据文件未进版本库
+        run: make check-env-untracked
 
   schema:
     name: 领域模型与资产校验
