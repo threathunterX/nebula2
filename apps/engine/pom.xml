@@ -19,7 +19,7 @@
          而且报错发生在提交作业时,不是构建时。这是运行环境施加的约束,不是偏好。
          控制面(console-api)不受此限,它是独立进程,用的是 21。 -->
     <maven.compiler.release>17</maven.compiler.release>
-    <junit.version>5.11.3</junit.version>
+    <junit.version>6.1.2</junit.version>
     <!-- 必须与 Flink 运行时自带的 jackson-core 对齐(Flink 1.20 为 2.15.2),
          否则运行期报 NoSuchMethodError -->
     <jackson.version>2.15.2</jackson.version>
