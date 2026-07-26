@@ -140,12 +140,20 @@ VariableGraph.extendTo(newDefs, neededNames)
 
 ## v0.5.0 —— 主题:规模与接入
 
-### 5. Helm / Kubernetes 编排
+### 5. Kubernetes 上的高可用
 
-Lite 模式全部单节点、无高可用。这是「不能承接生产流量」的直接原因之一。
+[Helm chart](../../deploy/helm/) 已完成,在单节点 k3s 上实测装通并验证了出厂资产导入。
+容量规划也已按实测补齐。
 
-需要:Flink Kubernetes Operator、存储组件的集群配置、Secret 注入、滚动升级。
-配套补齐 [`docs/operations/capacity.md`](../operations/capacity.md)。
+**剩下的是高可用**,而这一项刻意留在 chart 之外:存储组件目前是单副本 StatefulSet,
+生产上应当换成各自的 Operator(CloudNativePG、Altinity ClickHouse Operator、
+Redpanda Operator)或托管服务 —— 在 Kubernetes 里自己维护有状态集群是另一个量级的
+工作,不该由一份应用 chart 顺带承担。
+
+引擎同理:当前是 Flink 的 session 集群,不是 Flink Kubernetes Operator,没有作业级的
+自动恢复与滚动升级。
+
+chart 的 README 里逐条写了「验证过什么 / 没验证过什么」。
 
 ### 6. Kafka 作为**数据源**
 

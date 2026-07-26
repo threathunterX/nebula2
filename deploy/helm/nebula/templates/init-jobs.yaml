@@ -1,0 +1,62 @@
+{{- /*
+  建表与导入出厂资产。用 Helm hook 保证它们在其余组件之前跑完。
+  hook-weight 决定顺序:先建表(-5),再导资产(-4)。
+  失败时**不删除 Job** —— 删掉的话日志也没了,而这两个 Job 失败正是最需要看日志的时候。
+*/}}
+{{- if .Values.init.schema.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "nebula.fullname" . }}-schema-init
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: schema-init
+          image: {{ include "nebula.image" (dict "component" "schema-init" "Values" .Values) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: POSTGRES_HOST
+              value: {{ include "nebula.fullname" . }}-postgres
+            # 建表工具读的是 CLICKHOUSE_URL,**不是** NEBULA_CLICKHOUSE_URL ——
+            # 后者是控制面用的。两个名字都给,免得下次谁又只设一个:
+            # 设错的表现是回落到 127.0.0.1 然后连接被拒,而 PostgreSQL 那半段已经跑完了,
+            # 看起来像「ClickHouse 挂了」而不是「变量名写错了」。
+            - name: CLICKHOUSE_URL
+              value: http://{{ include "nebula.fullname" . }}-clickhouse:8123
+            - name: NEBULA_CLICKHOUSE_URL
+              value: http://{{ include "nebula.fullname" . }}-clickhouse:8123
+            {{- include "nebula.credentialEnv" . | nindent 12 }}
+{{- end }}
+---
+{{- if .Values.init.seed.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "nebula.fullname" . }}-seed-load
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-4"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: seed-load
+          image: {{ include "nebula.image" (dict "component" "seed-load" "Values" .Values) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: POSTGRES_HOST
+              value: {{ include "nebula.fullname" . }}-postgres
+            {{- include "nebula.credentialEnv" . | nindent 12 }}
+{{- end }}

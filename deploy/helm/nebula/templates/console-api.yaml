@@ -1,0 +1,62 @@
+{{- if .Values.consoleApi.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nebula.fullname" . }}-console-api
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.consoleApi.service.type }}
+  ports: [{ port: {{ .Values.consoleApi.service.port }}, targetPort: 8080, name: http }]
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: console-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nebula.fullname" . }}-console-api
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.consoleApi.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: console-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: console-api
+    spec:
+      containers:
+        - name: console-api
+          image: {{ include "nebula.image" (dict "component" "console-api" "Values" .Values) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: POSTGRES_HOST
+              value: {{ include "nebula.fullname" . }}-postgres
+            - name: REDIS_HOST
+              value: {{ include "nebula.fullname" . }}-redis
+            - name: NEBULA_CLICKHOUSE_URL
+              value: http://{{ include "nebula.fullname" . }}-clickhouse:8123
+            - name: NEBULA_CLICKHOUSE_USER
+              valueFrom: { secretKeyRef: { name: {{ include "nebula.secretName" . }}, key: clickhouse-user } }
+            - name: NEBULA_CLICKHOUSE_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ include "nebula.secretName" . }}, key: clickhouse-password } }
+            - name: NEBULA_PII_HMAC_COLUMNS
+              value: "uid,did,sid"
+            {{- include "nebula.credentialEnv" . | nindent 12 }}
+          ports: [{ containerPort: 8080 }]
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8080 }
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8080 }
+            # 探活比就绪宽松得多:控制面重启会打断正在编辑的会话,
+            # 而它偶尔慢一次不代表挂了
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 6
+          resources: {{- toYaml .Values.consoleApi.resources | nindent 12 }}
+{{- end }}

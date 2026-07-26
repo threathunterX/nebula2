@@ -1,0 +1,101 @@
+# 星云 2.0 的 Helm 配置。
+#
+# 这份 chart 部署的是 compose 里那一套的 Kubernetes 版本:PostgreSQL(元数据与审计)、
+# ClickHouse(事件与告警)、Redis(名单)、Redpanda(事件流)、控制面、Flink 引擎。
+#
+# ---------------------------------------------------------------------------
+# 先说清楚它**不做**什么
+#
+#   * 存储组件都是**单副本 StatefulSet**,没有高可用。生产上应当换成各自的
+#     Operator(CloudNativePG、Altinity ClickHouse Operator、Redpanda Operator)
+#     或托管服务 —— 在 Kubernetes 里自己维护有状态集群是另一个量级的工作。
+#   * 引擎用 Deployment 跑 Flink 的 session 集群,**不是 Flink Kubernetes Operator**。
+#     没有作业级的自动恢复与滚动升级。
+#   * 没有 NetworkPolicy。同命名空间内任意 Pod 都能连上数据库。
+#
+# 这些都是刻意的取舍:先给一份能真正跑起来、能读懂的东西,而不是一份看起来完整
+# 但没人验证过的。哪些验证过、哪些没有,见 deploy/helm/README.md。
+# ---------------------------------------------------------------------------
+
+nameOverride: ""
+
+image:
+  # 本地构建的镜像。发布到镜像仓库后改成仓库地址。
+  registry: ""
+  pullPolicy: IfNotPresent
+  tag: dev
+
+# 凭据。**不要把真实口令写进 values.yaml 提交上去** ——
+# 用 --set 传,或引用一个已存在的 Secret(existingSecret)。
+credentials:
+  existingSecret: ""
+  postgresUser: nebula
+  postgresPassword: ""
+  postgresDb: nebula
+  clickhouseUser: nebula
+  clickhousePassword: ""
+  redisPassword: ""
+  # 事件明细 pii 列的 HMAC 密钥。**与数据库凭据分开保管** ——
+  # 放在一起时 HMAC 就没有意义了。
+  hmacKey: ""
+
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  storage: 2Gi
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 512Mi }
+
+clickhouse:
+  enabled: true
+  image: clickhouse/clickhouse-server:24.8-alpine
+  storage: 4Gi
+  resources:
+    requests: { cpu: 200m, memory: 512Mi }
+    limits: { memory: 2Gi }
+
+redis:
+  enabled: true
+  image: redis:7-alpine
+  storage: 1Gi
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 256Mi }
+
+redpanda:
+  enabled: true
+  image: redpandadata/redpanda:v24.2.7
+  storage: 4Gi
+  resources:
+    requests: { cpu: 200m, memory: 512Mi }
+    limits: { memory: 1Gi }
+
+consoleApi:
+  enabled: true
+  replicas: 1
+  resources:
+    requests: { cpu: 200m, memory: 512Mi }
+    limits: { memory: 1Gi }
+  service:
+    type: ClusterIP
+    port: 8080
+
+engine:
+  enabled: true
+  taskManagers: 1
+  jobmanager:
+    resources:
+      requests: { cpu: 200m, memory: 768Mi }
+      limits: { memory: 1536Mi }
+  taskmanager:
+    resources:
+      requests: { cpu: 300m, memory: 1Gi }
+      limits: { memory: 2Gi }
+
+# 初始化任务:建表 + 导入出厂资产。作为 Helm hook 在其余组件之前跑。
+init:
+  schema:
+    enabled: true
+  seed:
+    enabled: true

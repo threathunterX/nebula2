@@ -1,0 +1,58 @@
+{{- if .Values.redpanda.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nebula.fullname" . }}-redpanda
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports: [{ port: 9092, name: kafka }]
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: redpanda
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "nebula.fullname" . }}-redpanda
+  labels: {{- include "nebula.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "nebula.fullname" . }}-redpanda
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: redpanda
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: redpanda
+    spec:
+      containers:
+        - name: redpanda
+          image: {{ .Values.redpanda.image }}
+          args:
+            - redpanda
+            - start
+            - --smp=1
+            - --overprovisioned
+            - --node-id=0
+            - --check=false
+            # advertise 地址必须是 Pod 能被别人访问到的名字。用 headless service 的
+            # DNS —— 写 localhost 的话集群内其它 Pod 拿到的地址指向它们自己。
+            - --kafka-addr=PLAINTEXT://0.0.0.0:9092
+            - --advertise-kafka-addr=PLAINTEXT://{{ include "nebula.fullname" . }}-redpanda-0.{{ include "nebula.fullname" . }}-redpanda:9092
+          ports: [{ containerPort: 9092 }]
+          volumeMounts: [{ name: data, mountPath: /var/lib/redpanda/data }]
+          readinessProbe:
+            exec: { command: ["sh", "-c", "rpk cluster health | grep -q 'Healthy:.*true'"] }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources: {{- toYaml .Values.redpanda.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: {{ .Values.redpanda.storage }} } }
+{{- end }}

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: nebula
+description: 星云 2.0 实时风控系统
+type: application
+version: 0.1.0
+appVersion: "0.4.0"
+home: https://github.com/threathunterX/nebula2
+sources:
+  - https://github.com/threathunterX/nebula2
