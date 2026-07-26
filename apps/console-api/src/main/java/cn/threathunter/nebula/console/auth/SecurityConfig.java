@@ -87,6 +87,13 @@ public class SecurityConfig {
                             "/api/v2/metadata/**")
                         .hasAnyAuthority("SCOPE_metadata:read",
                                 "ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_VIEWER")
+                    // 主体权利接口仅管理员 —— 导出与删除个人信息不是日常运营操作。
+                    //
+                    // 必须排在下面那条通用 GET 规则<b>之前</b>:匹配是首条命中即生效,
+                    // 排在后面的话 GET /api/v2/privacy/... 会先命中「读接口对三种角色
+                    // 开放」,导出一个人的全部数据就成了 VIEWER 也能做的事。
+                    // 这个顺序问题不会有任何报错 —— 是缺陷注入试出来的。
+                    .requestMatchers("/api/v2/privacy/**").hasRole("ADMIN")
                     // 读接口:任意已认证的人类角色
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v2/**")
                         .hasAnyRole("ADMIN", "OPERATOR", "VIEWER")

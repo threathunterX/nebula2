@@ -112,6 +112,47 @@ public class ClickHouseClient {
         return rows;
     }
 
+    /**
+     * 执行一条会改数据的语句(ALTER ... DELETE 等)。
+     *
+     * <p>与 {@link #query} 分开是刻意的:query 走 {@code readonly=1},即便 SQL 被构造错了
+     * 也执行不了写操作。把两者合成一个方法会让那道保护失效。
+     *
+     * <p>ClickHouse 的 DELETE 是<b>异步 mutation</b>:提交后立即返回,后台执行。
+     * 调用方不能假设返回时数据已消失。
+     */
+    public void mutate(String sql, Map<String, String> params) throws IOException {
+        if (!configured()) {
+            throw new IllegalStateException("未配置 ClickHouse 凭据");
+        }
+        StringBuilder url = new StringBuilder(baseUrl)
+                .append("/?user=").append(enc(user))
+                .append("&password=").append(enc(password))
+                .append("&mutations_sync=0");
+        for (Map.Entry<String, String> e : params.entrySet()) {
+            url.append("&param_").append(enc(e.getKey())).append('=').append(enc(e.getValue()));
+        }
+        HttpURLConnection conn = (HttpURLConnection) URI.create(url.toString()).toURL()
+                .openConnection();
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
+        conn.setConnectTimeout(5_000);
+        conn.setReadTimeout(30_000);
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(sql.getBytes(StandardCharsets.UTF_8));
+        }
+        int code = conn.getResponseCode();
+        if (code < 200 || code >= 300) {
+            try (var err = conn.getErrorStream()) {
+                String body = err == null ? ""
+                        : new String(err.readAllBytes(), StandardCharsets.UTF_8);
+                throw new IOException("ClickHouse 变更失败,HTTP " + code + ": "
+                        + body.lines().findFirst().orElse(""));
+            }
+        }
+        conn.getInputStream().close();
+    }
+
     private static String enc(String s) {
         return URLEncoder.encode(s == null ? "" : s, StandardCharsets.UTF_8);
     }

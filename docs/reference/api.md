@@ -183,7 +183,43 @@
 
 ---
 
-## 7. 错误码
+## 7. 数据主体权利
+
+| 方法 | 路径 | 权限 |
+|---|---|---|
+| GET | `/api/v2/privacy/subject/{type}/{value}/export` | ADMIN |
+| DELETE | `/api/v2/privacy/subject/{type}/{value}` | ADMIN |
+
+`type` 取名单的主体类型 `IP` / `USER` / `DeviceID` / `OrderID`(旧写法 `ip` / `uid` / `did`
+仍然可用)。两个接口都记审计,审计里存的是<b>掩码后</b>的主体值。
+
+导出返回该主体的事件明细与风险告警:
+
+```json
+{
+  "subject": {"type": "USER", "value": "u-10086"},
+  "events": [{"event_time": "2026-07-26 12:00:00.000", "event_name": "ACCOUNT_LOGIN", "...": "..."}],
+  "notices": [{"notice_time": "...", "strategy_name": "...", "decision": "deny", "...": "..."}]
+}
+```
+
+删除返回实际清理的范围:
+
+```json
+{
+  "subject": {"type": "IP", "value": "203.0.113.7"},
+  "redis_keys_removed": 2,
+  "rollup_tables_purged": ["events_hourly"],
+  "irreversible": true
+}
+```
+
+**ClickHouse 的删除是异步 mutation**,接口返回不代表数据已经消失。删得掉什么、删不掉
+什么(以及 HMAC 密钥轮换带来的不可逆后果)见[隐私设计](../security/privacy.md#四数据主体权利)。
+
+---
+
+## 8. 错误码
 
 | 码 | 含义 |
 |---|---|
@@ -195,15 +231,17 @@
 | 502 | 下游存储(ClickHouse)不可用 |
 | 503 | 未配置 ClickHouse 凭据,告警查询不可用 |
 
-**限流尚未实现。** 登录失败也没有限速与锁定 —— 见 [SECURITY.md](../../SECURITY.md) 的
-「规划中」一节。暴露到不可信网络前请在前置代理上做。
+| 429 | 登录失败次数超限,该「来源 IP + 账号」组合已被锁定 |
+
+**登录失败已有计数与锁定**(按「来源 IP + 账号」组合),但**管理接口的全局限流尚未实现**
+—— 见 [SECURITY.md](../../SECURITY.md) 的「规划中」一节。暴露到不可信网络前请在前置代理上做。
 
 ---
 
 ## 尚未实现
 
-名单的手工加白 / 加黑与批量导入、事件模型与变量的写接口、数据主体导出与删除接口、
-OpenAPI 自动生成、限流。
+名单的手工加白 / 加黑与批量导入、事件模型与变量的写接口、OpenAPI 自动生成、
+管理接口的全局限流。
 
 ---
 
