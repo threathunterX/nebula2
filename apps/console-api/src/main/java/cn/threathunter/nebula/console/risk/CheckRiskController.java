@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,6 +41,7 @@ public class CheckRiskController {
 
     @PostMapping("/checkRisk")
     public ResponseEntity<Map<String, Object>> check(@RequestBody CheckRiskRequest req,
+                                                     Authentication auth,
                                                      HttpServletRequest http) {
         Map<String, Object> resp = new LinkedHashMap<>();
         resp.put("success", true);
@@ -87,7 +89,8 @@ public class CheckRiskController {
         resp.put("final_desc", strongest == null ? "" : strongest.get("remark"));
 
         // 只记录查询条件与命中量,不记录返回的个人信息本身
-        audit.record("system", "checkRisk", "notice",
+        // 记录是哪个服务令牌发起的查询
+        audit.record(auth == null ? "anonymous" : auth.getName(), "checkRisk", "notice",
                 req.scene_type() == null ? "" : req.scene_type(),
                 Map.of("items", req.check_item() == null ? 0 : req.check_item().size(),
                         "hits", hits.size(), "decision", finalDecision),

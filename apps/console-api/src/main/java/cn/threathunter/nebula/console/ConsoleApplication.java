@@ -2,6 +2,7 @@ package cn.threathunter.nebula.console;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 /**
  * 星云 2.0 控制面。
@@ -18,6 +19,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * </ul>
  */
 @SpringBootApplication
+@EnableMethodSecurity
 public class ConsoleApplication {
 
     public static void main(String[] args) {

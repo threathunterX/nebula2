@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -66,6 +67,7 @@ public class MetadataController {
     public ResponseEntity<Map<String, Object>> updateStatus(
             @PathVariable String name,
             @RequestBody StatusUpdate body,
+            Authentication auth,
             HttpServletRequest http) {
         String status = body == null ? null : body.status();
         if (status == null || !VALID_STATUS.contains(status)) {
@@ -75,7 +77,9 @@ public class MetadataController {
         }
         int n = store.updateStrategyStatus(name, status);
         boolean ok = n > 0;
-        audit.record("admin", "update_strategy_status", "strategy", name,
+        // 记录真实操作者,不是硬编码 —— 审计的意义就在于能追溯到人
+        audit.record(auth == null ? "anonymous" : auth.getName(),
+                "update_strategy_status", "strategy", name,
                 Map.of("status", status), http.getRemoteAddr(), ok);
         if (!ok) {
             return ResponseEntity.notFound().build();

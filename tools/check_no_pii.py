@@ -33,7 +33,7 @@ CHECKS = [
     ("银行卡号", re.compile(r"(?<!\d)(62|4\d|5[1-5])\d{14,17}(?!\d)"),
      lambda m, line: True),
 
-    ("公网 IP 字面量", re.compile(r"(?<![\d.])((?!10\.|127\.|0\.|169\.254\.|192\.168\.|198\.51\.100\.|203\.0\.113\.|224\.|255\.)"
+    ("公网 IP 字面量", re.compile(r"(?<![\d.])((?!10\.|127\.|0\.|169\.254\.|192\.168\.|192\.0\.2\.|198\.51\.100\.|203\.0\.113\.|224\.|255\.)"
                                  r"(?:\d{1,3}\.){3}\d{1,3})(?![\d.])"),
      lambda m, line: _is_public_ip(m.group(0)) and not _looks_like_version(m, line)),
 
@@ -97,7 +97,8 @@ def main():
             print(f"  {p}:{ln}  [{label}]  {val}")
         if len(hits) > 80:
             print(f"  ... 另有 {len(hits) - 80} 处")
-        print("\n请改用示例值:域名 example.com,IP 198.51.100.x / 203.0.113.x,手机号 13800138000。")
+        print("\n请改用示例值:域名 example.com,手机号 13800138000。")
+        print("IP 用 RFC 5737 保留的文档段:192.0.2.x / 198.51.100.x / 203.0.113.x。")
         print("如为误报,请在 tools/check_no_pii.py 的允许列表中说明原因后添加。")
         return 1
 

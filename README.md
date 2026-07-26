@@ -28,9 +28,9 @@
 | [ClickHouse 落库](deploy/schema/)(事件、告警、物化视图小时聚合、TTL) | ✅ 可用 |
 | [控制面 API](apps/console-api/)(策略管理、/checkRisk、审计) | ✅ 可用 |
 | PostgreSQL 元数据(JSONB + 约束 + 审计分区) | ✅ 可用 |
-| 认证授权、管理前端、CEP 序列检测 | 🚧 未开始 |
+| [认证授权](apps/console-api/#认证)(Argon2id 口令、角色、服务令牌 + 网段绑定) | ✅ 可用 |
+| 管理前端、CEP 序列检测 | 🚧 未开始 |
 | 采集器的 Kafka / syslog / Zeek 数据源 | 🚧 未开始 |
-| 控制面 API 与管理界面 | 🚧 未开始 |
 | 部署编排(compose / Helm) | 🚧 未开始 |
 
 **能做什么**:理解这套风控系统的数据模型与策略设计,用参考引擎跑通检测逻辑,评估内置策略资产是否适合你的业务。

@@ -12,11 +12,12 @@
 | 变量查询(按模块 / 敏感级别) | ✅ |
 | `/checkRisk` 同步风险查询 | ✅ |
 | 审计日志 | ✅ |
-| 认证与授权(OIDC / RBAC) | 🚧 |
+| 认证与授权(Argon2id 口令 + 角色 + 服务令牌) | ✅ |
+| OIDC 对接企业身份源 | 🚧 |
 | 策略创建与编辑(需接 schema 校验) | 🚧 |
 | 告警查询与报表(需接 ClickHouse) | 🚧 |
 
-**当前没有认证**,不可暴露到可信网络之外。
+所有接口默认拒绝。未认证请求返回 401,认证但越权返回 403,只有 `/actuator/health` 匿名可读。
 
 ## 运行
 
@@ -27,6 +28,55 @@ java -jar target/nebula-console-api-0.1.0-SNAPSHOT.jar
 ```
 
 凭据只从环境变量注入,配置文件里不含任何可用凭据。缺少 `REDIS_PASSWORD` 时**启动即失败**,不会静默连接无密码实例。
+
+## 认证
+
+**两类主体,权限互不重叠。**
+
+- **人**(管理员 / 操作员 / 观察员)—— 口令登录,访问 `/api/v2/**` 管理接口,**不能**调用 `/checkRisk`
+- **服务**(业务系统)—— Bearer 令牌,调用 `/checkRisk`,**不能**访问任何管理接口
+
+分开的理由:业务系统的令牌散布在几十台应用服务器上,泄露概率远高于管理员账号。1.x 把两者混在一起 —— 拿到那 5 个硬编码 token 中的任意一个,就能同时查询名单和修改策略。
+
+### 首次启动
+
+库中没有任何用户时,自动创建 `admin` 并把随机口令**打印一次**到启动日志:
+
+```
+已创建初始管理员账号。此口令只显示这一次,请立即记录并尽快更换。
+  用户名: admin
+  口令:   <24 字节随机数的 Base64url>
+```
+
+口令以 Argon2id 存储,日志之外任何地方都取不回明文。丢了只能直接改库中的哈希。
+
+### 角色
+
+| 角色 | 读元数据 | 改策略状态 | 签发令牌 |
+|---|---|---|---|
+| `VIEWER` | ✅ | ✖ | ✖ |
+| `OPERATOR` | ✅ | ✅ | ✖ |
+| `ADMIN` | ✅ | ✅ | ✅ |
+
+### 服务令牌
+
+```bash
+curl -u admin:<口令> -XPOST localhost:8080/api/v2/tokens \
+  -H 'Content-Type: application/json' \
+  -d '{"description":"订单系统","scopes":["checkRisk"],"allowed_cidrs":["10.1.0.0/16"]}'
+```
+
+响应中的 `token` 是 `svc_<id>.<密文>` 格式,**只出现这一次**;库里只存密文的 SHA-256。
+
+`allowed_cidrs` 与令牌是 **AND** 关系:令牌正确但来源 IP 不在网段内,一样 401。1.x 的判定是「IP 在白名单 **或** token 匹配」,任一成立即放行 —— 拿到 token 就能从任意公网地址冒充内部服务。
+
+调用时:
+
+```bash
+curl -H "Authorization: Bearer svc_xxx.yyy" -XPOST localhost:8080/checkRisk ...
+```
+
+令牌校验的所有失败路径(不存在、已吊销、已过期、密文不符、来源不匹配)返回同一个 401,不透露失败原因 —— 否则攻击者可以用错误信息区分「令牌不存在」和「令牌对但 IP 不对」,后者等于确认了一个有效令牌。密文比对走常量时间。
 
 ## 接口
 
@@ -53,6 +103,7 @@ curl -XPOST localhost:8080/checkRisk -H 'Content-Type: application/json' \
 | PUT | `/api/v2/strategies/{name}/status` | 切换状态,记审计 |
 | GET | `/api/v2/variables` | 变量列表,可按 `module` / `sensitivity` 过滤 |
 | GET | `/api/v2/variables/{name}` | 变量完整定义 |
+| POST | `/api/v2/tokens` | 签发服务令牌,仅 ADMIN,记审计 |
 
 ## 元数据为什么用 JSONB
 
