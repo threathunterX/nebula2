@@ -38,6 +38,9 @@ docker compose ps     # 等四个组件都是 healthy
 ## 跑通端到端链路
 
 ```bash
+# 0. 建表(幂等)
+../schema/apply.sh
+
 # 1. 建主题
 docker compose exec -T redpanda rpk topic create nebula.events nebula.notice --brokers localhost:29092
 
@@ -57,8 +60,15 @@ cd ../.. && java --add-opens java.base/java.util=ALL-UNNAMED \
   cn.threathunter.nebula.engine.flink.NebulaJob \
   --brokers localhost:9092 --seeds seeds
 
-# 5. 看告警
+# 5. 看告警(Kafka)
 docker compose exec -T redpanda rpk topic consume nebula.notice --brokers localhost:29092 -o start -n 10 -f '%v\n'
+
+# 6. 查 ClickHouse(事件与告警都已落库)
+set -a; . .env; set +a
+curl -s "http://127.0.0.1:8123/?user=$CLICKHOUSE_USER&password=$CLICKHOUSE_PASSWORD" \
+  --data-binary "SELECT c_ip, uniqMerge(uid_count) AS uids, countMerge(request_count) AS reqs
+                 FROM nebula.events_hourly WHERE event_name='ACCOUNT_LOGIN'
+                 GROUP BY c_ip HAVING uids > 3 FORMAT TSVWithNames"
 ```
 
 ## 已知限制
@@ -66,7 +76,7 @@ docker compose exec -T redpanda rpk topic consume nebula.notice --brokers localh
 - **引擎并行度必须为 1**。变量按不同维度分组,一次 keyBy 无法同时满足,见 [engine README](../../apps/engine/README.md#并行化--这套架构最实质的工程难点)。
 - **Flink 未容器化**。当前用宿主机 JVM 直接跑作业,尚未提供 JobManager / TaskManager 容器。
 - **控制面与前端尚未实现**,因此 PostgreSQL 目前是空库 —— 它已就位但还没有表结构。
-- **ClickHouse 尚未接入**,事件明细还没有写入链路。
+- **Flink 未容器化**,当前用宿主机 JVM 直接跑作业。
 
 ## 清理
 

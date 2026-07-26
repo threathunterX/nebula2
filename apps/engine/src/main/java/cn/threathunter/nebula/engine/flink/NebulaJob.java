@@ -1,6 +1,8 @@
 package cn.threathunter.nebula.engine.flink;
 
 import cn.threathunter.nebula.engine.rule.StrategyEngine;
+import cn.threathunter.nebula.engine.sink.ClickHouseRows;
+import cn.threathunter.nebula.engine.sink.ClickHouseSink;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -53,6 +55,12 @@ public final class NebulaJob {
         String sinkTopic = opts.getOrDefault("sink-topic", "nebula.notice");
         String seeds = opts.getOrDefault("seeds", "seeds");
         String group = opts.getOrDefault("group", "nebula-engine");
+        // ClickHouse 凭据只从环境变量取,不接受命令行传入 —— 命令行会进程列表可见
+        String chUrl = System.getenv().getOrDefault("CLICKHOUSE_URL", "http://127.0.0.1:8123");
+        String chUser = System.getenv("CLICKHOUSE_USER");
+        String chPassword = System.getenv("CLICKHOUSE_PASSWORD");
+        boolean toClickHouse = chUser != null && !chUser.isBlank()
+                && chPassword != null && !chPassword.isBlank();
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1); // 见类注释:多维度分区尚未实现
@@ -65,8 +73,32 @@ public final class NebulaJob {
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
-        DataStream<StrategyEngine.Notice> notices =
-                build(env, source, seeds, "kafka-source");
+        DataStream<String> raw = env.fromSource(
+                source, WatermarkStrategy.noWatermarks(), "kafka-source");
+        DataStream<Map<String, Object>> events = raw
+                .map(NebulaJob::parse)
+                .returns(TypeInformation.of(new org.apache.flink.api.common.typeinfo.TypeHint<>() {
+                }))
+                .filter(e -> e != null && e.get("name") != null && e.get("timestamp") != null);
+
+        if (toClickHouse) {
+            // 事件明细落库。小时聚合由 ClickHouse 的物化视图自动维护,不需要批任务。
+            events.addSink(new ClickHouseSink<Map<String, Object>>(
+                    "nebula.events", ClickHouseRows::event, 500, 2000,
+                    chUrl, chUser, chPassword)).name("clickhouse-events");
+        }
+
+        DataStream<StrategyEngine.Notice> notices = events.process(
+                new RiskDetectionFunction(
+                        loadDir(seeds, "strategies"),
+                        loadDir(seeds, "variables"),
+                        loadDir(seeds, "events")));
+
+        if (toClickHouse) {
+            notices.addSink(new ClickHouseSink<StrategyEngine.Notice>(
+                    "nebula.notices", ClickHouseRows::notice, 200, 2000,
+                    chUrl, chUser, chPassword)).name("clickhouse-notices");
+        }
 
         KafkaSink<String> sink = KafkaSink.<String>builder()
                 .setBootstrapServers(brokers)

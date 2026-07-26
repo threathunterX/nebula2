@@ -25,7 +25,8 @@
 | Kafka 端到端链路(采集器 → Kafka → 引擎 → 告警) | ✅ 已实跑验证 |
 | [多维度分区并行拓扑](apps/engine/#并行化)(并行度 1/2/4 结果一致) | ✅ 可用 |
 | Checkpoint(算子与窗口快照恢复) | ✅ 可用 |
-| CEP 序列检测、ClickHouse 写入、控制面与前端 | 🚧 未开始 |
+| [ClickHouse 落库](deploy/schema/)(事件、告警、物化视图小时聚合、TTL) | ✅ 可用 |
+| CEP 序列检测、控制面 API 与管理前端 | 🚧 未开始 |
 | 采集器的 Kafka / syslog / Zeek 数据源 | 🚧 未开始 |
 | 控制面 API 与管理界面 | 🚧 未开始 |
 | 部署编排(compose / Helm) | 🚧 未开始 |
