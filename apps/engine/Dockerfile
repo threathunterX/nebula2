@@ -1,5 +1,5 @@
 # 计算引擎 —— 提交到 Flink 的作业 jar
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3-eclipse-temurin-26 AS build
 WORKDIR /src
 COPY apps/engine/pom.xml apps/engine/pom.xml
 RUN cd apps/engine && mvn -B -q dependency:go-offline || true
