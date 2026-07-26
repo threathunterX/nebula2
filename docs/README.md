@@ -42,7 +42,7 @@
 | | |
 |---|---|
 | [隐私设计与合规](security/privacy.md) | 数据分级、脱敏、保留期、主体权利、法规对齐 |
-| [威胁模型](security/threat-model.md) 🚧 | 攻击面分析与加固清单 |
+| [威胁模型](security/threat-model.md) | 信任边界、攻击面、风控特有威胁、部署方检查清单 |
 
 ## 迁移与设计
 
