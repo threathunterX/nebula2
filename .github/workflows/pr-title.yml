@@ -87,7 +87,11 @@ jobs:
               fail('描述过短,请说明这个 PR 实际做了什么。')
           if desc.endswith(('.', '。')):
               fail('描述结尾不要加句号。')
-          if len(title) > 100:
+          # 长度上限是给人用的:标题写不下说明该把细节挪进正文。机器人生成的
+          # 依赖升级标题(artifact 坐标 + 两个版本号 + 路径)长度不携带任何信息,
+          # 卡它只会让一条本该自动合并的 PR 停在这里等人手改标题。
+          author = os.environ.get('PR_AUTHOR', '')
+          if len(title) > 100 and not author.endswith('[bot]'):
               fail(f'标题过长({len(title)} 字符),请控制在 100 字符以内,细节写进 PR 正文。')
 
           print(f'✅ 通过  type={m.group("type")}'
