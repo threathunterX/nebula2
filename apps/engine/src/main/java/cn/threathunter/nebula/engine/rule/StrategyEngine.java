@@ -3,6 +3,7 @@ package cn.threathunter.nebula.engine.rule;
 import cn.threathunter.nebula.engine.condition.Conditions;
 import cn.threathunter.nebula.engine.graph.EventModel;
 import cn.threathunter.nebula.engine.graph.VariableGraph;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -99,6 +100,20 @@ public final class StrategyEngine {
                            Map<String, Object> event, List<Trace> trace) {
     }
     private final List<Notice> notices = new ArrayList<>();
+
+    /**
+     * 告警历史索引,供 CEL 的 {@code checkNotice} 做策略级联判定。
+     *
+     * <p>只存判定需要的四个字段 —— 存整条告警会让这份索引跟着告警体积一起长。
+     * 保留期取全部策略里最大的那个回溯窗口:<b>不设上限就是内存泄漏</b>,一条长期
+     * 运行的流会把所有历史告警都留在内存里。没有策略用 checkNotice 时保留期为 0,
+     * 索引完全不建。
+     */
+    private record NoticeRef(long ts, String checkType, String key, String strategy) {
+    }
+
+    private final ArrayDeque<NoticeRef> noticeIndex = new ArrayDeque<>();
+    private final long noticeRetentionMs;
     private long watermark = Long.MIN_VALUE;
 
     public long evaluated;
@@ -152,6 +167,63 @@ public final class StrategyEngine {
         this.graph = graph;
         this.eventModel = eventModel;
         this.localValues = reuse != null ? reuse : new LocalValueProvider(graph);
+        this.noticeRetentionMs = maxCheckNoticeWindowMs(this.strategies);
+    }
+
+    /** 扫出全部 checkNotice 调用里最大的回溯窗口,用于界定历史保留期。 */
+    private static long maxCheckNoticeWindowMs(List<Map<String, Object>> strategies) {
+        long max = 0;
+        for (Map<String, Object> st : strategies) {
+            max = Math.max(max, scanCheckNotice(st));
+        }
+        return max;
+    }
+
+    private static final java.util.regex.Pattern CHECK_NOTICE_WINDOW =
+            java.util.regex.Pattern.compile("checkNotice\\s*\\([^)]*?,\\s*(\\d+)\\s*\\)");
+
+    private static long scanCheckNotice(Object node) {
+        long max = 0;
+        if (node instanceof Map<?, ?> m) {
+            Object cel = m.get("cel");
+            if (cel instanceof String expr) {
+                java.util.regex.Matcher mt = CHECK_NOTICE_WINDOW.matcher(expr);
+                while (mt.find()) {
+                    max = Math.max(max, Long.parseLong(mt.group(1)) * 1000L);
+                }
+            }
+            for (Object v : m.values()) {
+                max = Math.max(max, scanCheckNotice(v));
+            }
+        } else if (node instanceof List<?> l) {
+            for (Object v : l) {
+                max = Math.max(max, scanCheckNotice(v));
+            }
+        }
+        return max;
+    }
+
+    /**
+     * 供 CEL 求值时查询告警历史。
+     *
+     * <p>区间是 <b>[fromTs, toTs)</b> —— 起点含,终点<b>不含</b>。终点不含是关键:
+     * 当前这条事件正在被处理,同一条事件里先求值的策略可能刚产出一条告警。把它算
+     * 进来会让结果依赖<b>策略的求值顺序</b>,而顺序不是契约。
+     *
+     * <p>换句话说:checkNotice 看到的是「在这条事件之前已经报过的告警」。
+     * 语义与参考引擎逐条对齐。
+     */
+    private int countNotices(String checkType, String key, String strategyName,
+                             long fromTs, long toTs) {
+        int n = 0;
+        for (NoticeRef r : noticeIndex) {
+            if (r.ts() >= fromTs && r.ts() < toTs
+                    && r.checkType().equals(checkType) && r.key().equals(key)
+                    && r.strategy().equals(strategyName)) {
+                n++;
+            }
+        }
+        return n;
     }
 
     /** 供热更新复用,以保住内联 counter 的窗口状态。 */
@@ -426,7 +498,7 @@ public final class StrategyEngine {
         }
 
         if (cond.get("cel") != null) {
-            return Cel.eval(String.valueOf(cond.get("cel")), event);
+            return Cel.eval(String.valueOf(cond.get("cel")), event, this::countNotices);
         }
 
         Map<String, Object> left = (Map<String, Object>) cond.get("left");
@@ -510,6 +582,17 @@ public final class StrategyEngine {
                 (List<String>) st.getOrDefault("tags", List.of()),
                 "test".equals(String.valueOf(st.get("status"))),
                 vv));
+
+        // 登记到历史索引。放在去重判定之后 —— 数的是**已产出**的告警,被去重压掉的
+        // 那些不算(与参考引擎一致,理由见 Cel.call 里 checkNotice 的说明)。
+        if (noticeRetentionMs > 0) {
+            noticeIndex.addLast(new NoticeRef(ts,
+                    String.valueOf(action.get("check_type")), key, name));
+            long cutoff = ts - noticeRetentionMs;
+            while (!noticeIndex.isEmpty() && noticeIndex.peekFirst().ts() < cutoff) {
+                noticeIndex.pollFirst();
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")

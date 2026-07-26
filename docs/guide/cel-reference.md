@@ -60,16 +60,39 @@ ipLocation(c_ip, "province")
 
 ---
 
-## 3. 尚未实现
+## 3. `checkNotice` —— 策略级联
 
-| 函数 | 用途 | 状态 |
-|---|---|---|
-| `checkNotice(strategy, seconds)` | 过去 N 秒内是否命中过某策略,用于策略级联 | **未实现** |
+```
+checkNotice(keyType, keyValue, strategyName, withinSeconds) -> int
+```
+
+该主体在过去 `withinSeconds` 内命中 `strategyName` 的次数。用于「先命中了 A,
+现在又出现 B」这类组合判定。
+
+```javascript
+// 该 IP 一小时内曾被判定为爬虫
+checkNotice("ip", c_ip, "IP大量访问", 3600) > 0
+```
+
+`keyType` 取名单的 check_type(`IP` / `USER` / `DeviceID` / `OrderID`),也接受 1.x 的
+别名 `ip` / `uid` / `did` / `order_id`。**未知取值抛错**,不静默当成某个默认值。
+
+三条容易踩的语义:
+
+- 时间窗 **[now − withinSeconds×1000, now)**,终点**不含** —— 同一条事件里先求值的
+  策略刚产出的告警不算,否则结果会依赖策略的求值顺序。
+- **数的是已产出的告警**,被去重压掉的不算。
+- 引擎在内存里保留告警历史,保留期取全部策略里最大的那个 `withinSeconds`。
+
+完整定义见 [`packages/cel-functions/`](../../packages/cel-functions/)。
+
+## 4. 尚未实现
 
 调用未实现的函数会抛 `IllegalArgumentException`,消息里指出函数名 —— **不会静默返回
 false**。静默返回假会让一条级联策略永远不命中且没人发现。
 
-完整的语义定义(含尚未实现的)见 [`packages/cel-functions/`](../../packages/cel-functions/)。
+`checkNotice` 的**单次求值调用次数上限**规格里写了但尚未实现:当前没有任何地方限制
+一条策略里调用几次。
 
 CEL 语言本身的算术、宏(`has`、`all`、`exists`)、列表与映射操作目前都**没有**支持。
 需要复杂逻辑时用条件树的 and / or / not 嵌套。
