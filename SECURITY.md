@@ -4,7 +4,13 @@
 
 **请不要通过公开 issue 报告安全漏洞。**
 
-请发送邮件至 **security@threathunter.cn**,包含:
+两个渠道任选其一:
+
+- **GitHub 私密漏洞报告**(推荐):在仓库的 Security 页面点「Report a vulnerability」。
+  报告只有维护者可见,修复前不会公开。
+- 邮件至 **security@threathunter.cn**
+
+请包含:
 
 - 漏洞类型与影响范围
 - 复现步骤或 PoC
@@ -17,8 +23,10 @@
 
 | 版本 | 状态 |
 |---|---|
-| 2.x | 🚧 开发中,尚未发布 |
+| 0.1.x | ✅ 接受安全修复 |
 | 1.x | ❌ **已停止维护**,不再接受安全修复 |
+
+> 项目处于 0.x 阶段,只对**最新的 0.x 版本**提供安全修复,不做旧版本的向后移植。
 
 > **关于 1.x 的重要提示**:[Nebula 1.x](https://github.com/threathunterX/nebula) 于 2019 年后停止维护,其依赖的 Python 2、OpenResty 1.11、Esper 6、jackson 1.9、commons-collections 3.2.1 等组件均存在已知漏洞(其中 commons-collections 3.2.1 含经典反序列化利用链)。**请勿在生产环境部署 1.x。**
 

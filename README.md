@@ -4,13 +4,15 @@
 > 实时识别撞库、盗号、恶意注册、刷单、薅羊毛、爬虫等业务风险。
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-开发中%20WIP-orange.svg)](#项目状态)
+[![Release](https://img.shields.io/github/v/release/threathunterX/nebula2)](https://github.com/threathunterX/nebula2/releases/latest)
+[![CI](https://github.com/threathunterX/nebula2/actions/workflows/ci.yml/badge.svg)](https://github.com/threathunterX/nebula2/actions/workflows/ci.yml)
+[![Status](https://img.shields.io/badge/status-0.x%20早期版本-orange.svg)](#项目状态)
 
 ---
 
 ## ⚠️ 项目状态
 
-**本项目处于早期开发阶段,尚未发布可用于生产的版本。**
+**当前版本 [v0.1.0](https://github.com/threathunterX/nebula2/releases/latest),处于 0.x 早期阶段 —— 可以起完整系统做评估,但不能承接生产级流量。**
 
 | | 状态 |
 |---|---|
