@@ -10,6 +10,40 @@
 
 尚无。
 
+## [0.1.3] - 2026-07-26
+
+README 的准确性修正与可读性改造。**只改文档,没有代码行为变更。**
+
+### Fixed
+
+- README 写着「当前版本 v0.1.0」(实际已是 v0.1.2)、「52 个测试」(实际 139)、
+  以及「生产引擎(Flink)与 `docker compose` 部署仍在开发中」—— 最后这句在快速开始
+  的末尾,而两者都已实现并实跑验证过。
+- 仓库结构图把三个空占位目录画得像已实现(`apps/console-web`、`deploy/helm`、
+  `packages/cel-functions`),并漏了 `packages/reference-engine`。
+- 补上「管理员口令只在首次启动打印一次,错过了怎么办」。写重置步骤时发现照抄会失败:
+  `-e PGPASSWORD="$POSTGRES_PASSWORD"` 里的变量在宿主机 shell 展开,用户没 source 过
+  `.env` 就是空值。改为在容器内展开。
+
+### Changed
+
+- **「这是什么」提到「项目状态」之前**。原来访客要先滚过 21 行状态表才知道这是什么。
+- 状态表按领域分组并折叠,顶部只留「能做什么 / 不能做什么」。原表按实现的时间顺序
+  堆积,有重复项,🚧 夹在 ✅ 中间。
+- 「核心特点」改为「设计取向」。它原本也带一套 ✅/🚧,与状态表说同一件事 —— 两处各
+  维护一份状态正是日后不同步的来源,README 这次就是这么烂掉的。
+- 快速开始补上第二条路径(compose 起全栈),文档表补上此前新写的五篇。
+
+### Added
+
+- **6 张 Mermaid 图**:四层数据模型(带撞库场景的具体取值)、一条告警的完整时序、
+  系统架构(虚线框 = 尚未实现)、compose 启动依赖顺序、多维度并行拓扑、策略生命周期
+  状态机。此前仓库零张图,只有 ASCII 框线 —— 而 ASCII 在中文下对齐会坏,想给架构图
+  标注未实现部分时整张图直接错位。
+- **`tools/check_mermaid.py`** 与 CI 的「文档图渲染」栏。GitHub 原生渲染 Mermaid,但
+  语法错误不会以任何方式告诉作者,页面上只是一块红色错误区。检查器把每张图真正
+  编译一遍。
+
 ## [0.1.2] - 2026-07-26
 
 对外表述的复审。**只改文档与注释,没有任何代码行为变更。**
@@ -285,7 +319,8 @@
 - 另有页面路径写成字面量、备注与实际条件不符等 4 类数据问题,逐条记录在
   `seeds/INVENTORY.md`。
 
-[Unreleased]: https://github.com/threathunterX/nebula2/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/threathunterX/nebula2/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/threathunterX/nebula2/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/threathunterX/nebula2/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/threathunterX/nebula2/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/threathunterX/nebula2/releases/tag/v0.1.0
