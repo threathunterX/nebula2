@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,6 +15,12 @@ import cn.threathunter.nebula.console.api.TokenController;
 import cn.threathunter.nebula.console.audit.AuditLog;
 import cn.threathunter.nebula.console.risk.CheckRiskController;
 import cn.threathunter.nebula.console.risk.NoticeStore;
+import cn.threathunter.nebula.console.privacy.EventFieldResolver;
+import cn.threathunter.nebula.console.privacy.NoticePurger;
+import cn.threathunter.nebula.console.privacy.SubjectHasher;
+import cn.threathunter.nebula.console.privacy.SubjectRightsController;
+import cn.threathunter.nebula.console.privacy.SubjectTypes;
+import cn.threathunter.nebula.console.store.ClickHouseClient;
 import cn.threathunter.nebula.console.store.MetadataStore;
 import cn.threathunter.nebula.console.store.StrategyValidator;
 import java.util.List;
@@ -37,7 +44,7 @@ import org.springframework.test.web.servlet.MockMvc;
  * 变成匿名可写。这份测试把矩阵钉死,任何放宽都必须先改测试。
  */
 @WebMvcTest(controllers = {MetadataController.class, TokenController.class,
-        CheckRiskController.class})
+        CheckRiskController.class, SubjectRightsController.class})
 @Import({SecurityConfig.class, ServiceTokenFilter.class, LoginThrottleFilter.class})
 class AuthorizationMatrixTest {
 
@@ -60,6 +67,16 @@ class AuthorizationMatrixTest {
     private NoticeStore notices;
     @MockitoBean
     private AuditLog audit;
+    @MockitoBean
+    private ClickHouseClient clickhouse;
+    @MockitoBean
+    private SubjectHasher hasher;
+    @MockitoBean
+    private NoticePurger purger;
+    @MockitoBean
+    private SubjectTypes subjectTypes;
+    @MockitoBean
+    private EventFieldResolver fields;
 
     private static final String SVC = "svc_test.secret";
 
@@ -150,5 +167,39 @@ class AuthorizationMatrixTest {
         mvc.perform(get("/whatever").with(httpBasic("admin", "pw")))
                 .andExpect(status().isForbidden());
         mvc.perform(get("/actuator/env")).andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * 主体权利接口只对 ADMIN 开放。
+     *
+     * <p>OPERATOR 能改策略、能处理告警,那是日常运营;导出一个人的全部数据、或者
+     * 把它删掉,不是日常运营 —— 它是一次性的、不可逆的、需要留痕的动作。
+     *
+     * <p>这条规则在两个地方各写了一遍({@code SecurityConfig} 的路径匹配与控制器上的
+     * {@code @PreAuthorize}),漏一道还有另一道。测试要保证的是<b>结果</b>,不是
+     * 哪一道拦下的。
+     */
+    @Test
+    @DisplayName("主体权利接口仅 ADMIN —— OPERATOR 与 VIEWER 都不行")
+    void subjectRightsAreAdminOnly() throws Exception {
+        for (String who : new String[] {"operator", "viewer"}) {
+            mvc.perform(get("/api/v2/privacy/subject/USER/u-1/export").with(httpBasic(who, "pw")))
+                    .andExpect(status().isForbidden());
+            mvc.perform(delete("/api/v2/privacy/subject/USER/u-1").with(httpBasic(who, "pw")))
+                    .andExpect(status().isForbidden());
+        }
+        mvc.perform(get("/api/v2/privacy/subject/USER/u-1/export"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(delete("/api/v2/privacy/subject/USER/u-1"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /** 服务令牌只用于 /checkRisk,拿它删人的数据必须被拒。 */
+    @Test
+    @DisplayName("服务令牌不能调主体权利接口")
+    void serviceTokenCannotEraseSubjects() throws Exception {
+        mvc.perform(delete("/api/v2/privacy/subject/USER/u-1")
+                .header("Authorization", "Bearer " + SVC))
+                .andExpect(status().isForbidden());
     }
 }

@@ -108,4 +108,25 @@ class PiiHmacTest {
         assertEquals(a1, a2);
         assertNotEquals(a1, b);
     }
+
+    /**
+     * 与控制面共用的金标准向量。
+     *
+     * <p>控制面的 {@code SubjectHasher} 要用同一把密钥反算出库里的值,才能按主体
+     * 导出或删除。两者在不同模块,测试引用不到对方,所以各自钉住同一组
+     * (密钥, 输入) -> 输出。改动本类的算法会让<b>这一侧</b>先红,提醒去看另一侧。
+     *
+     * <p>对应断言见 console-api 的 {@code SubjectHasherTest#与引擎共用的金标准向量}。
+     */
+    @Test
+    void matchesConsoleGoldenVector() {
+        PiiHmac h = PiiHmac.of("nebula-golden-key", java.util.Set.of("uid"));
+        assertEquals("74e7cd01745295c4d3174b0d00f1bea8d64e411d55d70051caf8e86a64632094", h.apply("uid", "alice"));
+    }
+
+    /** 默认列与控制面 SubjectHasher.DEFAULT_COLUMNS 钉在一起。 */
+    @Test
+    void defaultColumnsMatchConsole() {
+        assertEquals("uid,did,sid", PiiHmac.DEFAULT_COLUMNS);
+    }
 }

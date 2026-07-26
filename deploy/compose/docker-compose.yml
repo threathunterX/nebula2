@@ -156,6 +156,10 @@ services:
       NEBULA_CLICKHOUSE_URL: http://clickhouse:8123
       NEBULA_CLICKHOUSE_USER: ${CLICKHOUSE_USER:?}
       NEBULA_CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?}
+      # 主体权利接口要按引擎写库时用的同一把密钥反算哈希。两边不一致时
+      # 表现为「导出为空、删除删不掉」而不报错 —— 所以引用的是同一个变量。
+      NEBULA_HMAC_KEY: ${NEBULA_HMAC_KEY:?}
+      NEBULA_PII_HMAC_COLUMNS: ${NEBULA_PII_HMAC_COLUMNS:-uid,did,sid}
     ports:
       - "8080:8080"
     healthcheck:
