@@ -10,6 +10,51 @@
 
 尚无。
 
+## [0.1.1] - 2026-07-26
+
+发布后按访客的实际路径从零走了一遍(全新 clone → 快速开始 → `make validate` →
+逐项核对 README 声称),修复发现的问题。**只含缺陷修复与文档修正,没有行为变更。**
+
+### Fixed
+
+- **隐私检查器的邮箱白名单可绕过**:`ALLOWED_DOMAINS.search(整个邮箱地址)` 是子串
+  匹配,把允许域名嵌进自己的域名里(前面加前缀、后面接别的后缀)就会被放行。用探针
+  实测确认两种伪装都能溜过去。改为取 `@` 后的域名精确比对,子域放行、伪装不放行。
+  这个缺陷在 v0.1.0 前的审查中已记录,当时归为「不阻塞发布」—— 但它是**可绕过的
+  门禁**,而门禁静默失效比没有门禁更糟,因为它让人相信已经检查过了。
+- **链接检查器不验证锚点,也不验证路径大小写**:24 个指向章节的链接从未被检查。
+  补上后立刻抓到一个真实坏链(`#并行化--这套架构最实质的工程难点`,而目标标题
+  早已改为「并行化」)。大小写方面,macOS 默认文件系统不区分大小写,`Path.exists()`
+  会放行拼错的链接,推到 CI(Linux)才失败。
+- **`apps/engine/README.md` 自相矛盾**:一处写「只支持单并行度,没有接 Kafka /
+  ClickHouse,没有 Checkpoint 配置」,而同文件的状态表里这三项都标着 ✅。
+- **快速开始的测试数量与示例输出失实**:称「52 个测试」实际 139;`variable_values`
+  示例漏了一个条目。
+- **`seeds/PLACEHOLDERS.md` 漏掉一整类占位符**:`index.json` 标记 10 条策略需要
+  配置,文档只解释了 7 条。剩下 3 条的条件是 `page == "A"` 字面量,不替换就永不
+  命中 —— 且不产生任何噪音,比恒真的那一类更难被发现。同时全文改为中文。
+
+### Changed
+
+- **不再把未实现的能力写成现状**:README 的技术选型表称采集器「支持 Kafka /
+  syslog / OpenResty Lua / Zeek 旁路」(四项均未实现);架构图把 `console-web`、
+  CEP、画像更新画成现状;`architecture.md` 用现在时写「序列模式走 Flink CEP」。
+  全部改为标注实际状态。README 的「两种部署形态」从 🚧 改为「✅ Lite 已实现」。
+- **`SECURITY.md`**:支持版本表由「2.x 尚未发布」改为「0.1.x 接受安全修复」;
+  补上 GitHub 私密漏洞报告渠道(此前要求「不要通过公开 issue 报告」却只给了一个
+  邮箱,而仓库的私密报告功能是关闭的)。
+- 隐私检查器补 Luhn 与 GB 11643 校验位、补齐组播 `224.0.0.0/4` 与保留段
+  `240.0.0.0/4`。这是提高精确率而不降低召回率的改动 —— 误报多了,人就会往允许
+  列表里加例外。
+
+### Added
+
+- **`tools/test/`**:两个校验工具自身的测试,14 项,每条成对断言(该抓的抓到、
+  不该抓的不误报)。只测一个方向的话,把判定函数改成恒真或恒假都能让测试通过。
+  接进 `make validate` 与 CI 的新增「校验工具自测」栏。
+- **dependabot**:并对刻意钉住的版本逐条写明忽略理由(Flink 大版本、连接器、
+  Jackson、Spring Boot 大版本、含 Java 版本约束的基础镜像)。
+
 ## [0.1.0] - 2026-07-26
 
 首个公开版本。**0.x 阶段的兼容性承诺见[发布流程](docs/development/release-process.md)
@@ -219,5 +264,6 @@
 - 另有页面路径写成字面量、备注与实际条件不符等 4 类数据问题,逐条记录在
   `seeds/INVENTORY.md`。
 
-[Unreleased]: https://github.com/threathunterX/nebula2/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/threathunterX/nebula2/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/threathunterX/nebula2/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/threathunterX/nebula2/releases/tag/v0.1.0
