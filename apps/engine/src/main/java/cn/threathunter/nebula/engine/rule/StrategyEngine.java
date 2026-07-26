@@ -3,9 +3,6 @@ package cn.threathunter.nebula.engine.rule;
 import cn.threathunter.nebula.engine.condition.Conditions;
 import cn.threathunter.nebula.engine.graph.EventModel;
 import cn.threathunter.nebula.engine.graph.VariableGraph;
-import cn.threathunter.nebula.engine.operator.EventMeta;
-import cn.threathunter.nebula.engine.window.Period;
-import cn.threathunter.nebula.engine.window.WindowedAggregate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -47,7 +44,7 @@ public final class StrategyEngine {
     private final List<Map<String, Object>> strategies = new ArrayList<>();
     private final VariableGraph graph;
     private final EventModel eventModel;
-    private final Map<String, WindowedAggregate> counters = new HashMap<>();
+    private final LocalValueProvider localValues;
     private final Map<String, Long> dedup = new HashMap<>();
     private final List<Notice> notices = new ArrayList<>();
     private long watermark = Long.MIN_VALUE;
@@ -55,6 +52,20 @@ public final class StrategyEngine {
     public long evaluated;
     public long hits;
     public long deduped;
+
+    /**
+     * 是否在本引擎内做告警去重。
+     *
+     * <p>单并行度时为 true。并行拓扑中必须置为 false —— 去重的分组键是「策略 + 主体」,
+     * 而汇聚阶段按事件 ID 分区,同一主体的事件会落到不同实例上,各自持有一份去重
+     * 状态、互相看不见,结果是同一主体被重复告警。并行拓扑把去重独立成一个按主体
+     * 分区的阶段。
+     */
+    private boolean dedupEnabled = true;
+
+    public void setDedupEnabled(boolean enabled) {
+        this.dedupEnabled = enabled;
+    }
 
     public StrategyEngine(List<Map<String, Object>> strategies,
                           VariableGraph graph,
@@ -68,6 +79,7 @@ public final class StrategyEngine {
         }
         this.graph = graph;
         this.eventModel = eventModel;
+        this.localValues = new LocalValueProvider(graph);
     }
 
     public List<Notice> notices() {
@@ -76,12 +88,30 @@ public final class StrategyEngine {
 
     // ---------------------------------------------------------------- 主流程
 
-    @SuppressWarnings("unchecked")
+    /** 单并行度:变量图与计数器都在本进程现算。 */
     public void process(Map<String, Object> event, String eventName, long ts) {
         watermark = Math.max(watermark, ts);
+        localValues.advanceWatermark(ts);
         if (graph != null) {
             graph.process(event, eventName, ts); // 变量图先于策略求值
         }
+        evaluate(event, eventName, ts, localValues);
+    }
+
+    /**
+     * 并行模式:变量与计数器的值已在各维度分区中算好。
+     *
+     * <p>判定逻辑与上面完全相同 —— 差别只在值从哪来。
+     */
+    public void processWith(Map<String, Object> event, String eventName, long ts,
+                            ValueProvider values) {
+        watermark = Math.max(watermark, ts);
+        evaluate(event, eventName, ts, values);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void evaluate(Map<String, Object> event, String eventName, long ts,
+                          ValueProvider values) {
 
         for (Map<String, Object> st : strategies) {
             Map<String, Object> trigger = (Map<String, Object>) st.get("trigger");
@@ -97,7 +127,7 @@ public final class StrategyEngine {
             boolean ok;
             try {
                 ok = evalCondition((Map<String, Object>) st.get("condition"),
-                        event, ts, String.valueOf(st.get("name")), "c", trace);
+                        event, ts, String.valueOf(st.get("name")), "c", trace, values);
             } catch (RuntimeException e) {
                 throw new IllegalStateException(
                         "策略「" + st.get("name") + "」求值失败: " + e.getMessage(), e);
@@ -111,7 +141,7 @@ public final class StrategyEngine {
     @SuppressWarnings("unchecked")
     private boolean evalCondition(Map<String, Object> cond, Map<String, Object> event,
                                   long ts, String strategyName, String path,
-                                  List<Trace> trace) {
+                                  List<Trace> trace, ValueProvider values) {
         if (cond == null) {
             return true;
         }
@@ -123,7 +153,7 @@ public final class StrategyEngine {
             }
             if ("and".equals(op)) {
                 for (int i = 0; i < subs.size(); i++) {
-                    if (!evalCondition(subs.get(i), event, ts, strategyName, path + "." + i, trace)) {
+                    if (!evalCondition(subs.get(i), event, ts, strategyName, path + "." + i, trace, values)) {
                         return false; // 短路
                     }
                 }
@@ -131,14 +161,14 @@ public final class StrategyEngine {
             }
             if ("or".equals(op)) {
                 for (int i = 0; i < subs.size(); i++) {
-                    if (evalCondition(subs.get(i), event, ts, strategyName, path + "." + i, trace)) {
+                    if (evalCondition(subs.get(i), event, ts, strategyName, path + "." + i, trace, values)) {
                         return true; // 短路
                     }
                 }
                 return false;
             }
             return !subs.isEmpty()
-                    && !evalCondition(subs.get(0), event, ts, strategyName, path + ".0", trace);
+                    && !evalCondition(subs.get(0), event, ts, strategyName, path + ".0", trace, values);
         }
 
         if (cond.get("cel") != null) {
@@ -147,8 +177,8 @@ public final class StrategyEngine {
 
         Map<String, Object> left = (Map<String, Object>) cond.get("left");
         Map<String, Object> right = (Map<String, Object>) cond.get("right");
-        Object lv = resolve(left, event, ts, strategyName, path);
-        Object rv = right == null ? null : resolve(right, event, ts, strategyName, path);
+        Object lv = resolve(left, event, ts, strategyName, path, values);
+        Object rv = right == null ? null : resolve(right, event, ts, strategyName, path, values);
         boolean result = Conditions.eval(String.valueOf(op), lv, rv);
 
         if (left != null && !"constant".equals(left.get("kind"))) {
@@ -159,7 +189,7 @@ public final class StrategyEngine {
 
     @SuppressWarnings("unchecked")
     private Object resolve(Map<String, Object> operand, Map<String, Object> event,
-                           long ts, String strategyName, String path) {
+                           long ts, String strategyName, String path, ValueProvider values) {
         if (operand == null) {
             return null;
         }
@@ -167,57 +197,11 @@ public final class StrategyEngine {
         return switch (kind) {
             case "constant" -> operand.get("value");
             case "event_field" -> event.get(String.valueOf(operand.get("field")));
-            case "variable" -> graph == null
-                    ? null
-                    : graph.valueOf(String.valueOf(operand.get("variable")), event, ts);
-            case "counter" -> counter((Map<String, Object>) operand.get("counter"),
-                    event, ts, strategyName, path);
+            case "variable" -> values.variable(
+                    String.valueOf(operand.get("variable")), event, ts);
+            case "counter" -> values.counter(strategyName, path,
+                    (Map<String, Object>) operand.get("counter"), event, ts);
             default -> throw new IllegalArgumentException("未知的操作数类型: " + kind);
-        };
-    }
-
-    /** 内联计数器:策略内现场定义的窗口统计,等价于临时变量。 */
-    @SuppressWarnings("unchecked")
-    private Object counter(Map<String, Object> c, Map<String, Object> event,
-                           long ts, String strategyName, String path) {
-        List<String> groupby = (List<String>) c.getOrDefault("groupby", List.of());
-        StringBuilder id = new StringBuilder(strategyName).append('|').append(path).append('|');
-        for (String g : groupby) {
-            Object v = event.get(g);
-            id.append(v == null ? "" : v);
-        }
-        WindowedAggregate agg = counters.computeIfAbsent(id.toString(), k ->
-                new WindowedAggregate(String.valueOf(c.get("algorithm")),
-                        Period.parse("last_n_seconds", String.valueOf(c.get("window"))),
-                        Map.of()));
-
-        Map<String, Object> filter = (Map<String, Object>) c.get("filter");
-        if (evalCounterFilter(filter, event)) {
-            List<String> operand = (List<String>) c.getOrDefault("operand", List.of());
-            Object v = operand.isEmpty() ? Long.valueOf(1) : event.get(operand.get(0));
-            agg.add(v, new EventMeta(ts, watermark, null));
-        }
-        return agg.value(ts);
-    }
-
-    @SuppressWarnings("unchecked")
-    private boolean evalCounterFilter(Map<String, Object> f, Map<String, Object> event) {
-        if (f == null || f.isEmpty()) {
-            return true;
-        }
-        String type = String.valueOf(f.getOrDefault("type", "simple"));
-        if ("simple".equals(type)) {
-            Object field = f.get("object");
-            return Conditions.eval(String.valueOf(f.get("operation")),
-                    field == null ? null : event.get(String.valueOf(field)), f.get("value"));
-        }
-        List<Map<String, Object>> subs =
-                (List<Map<String, Object>>) f.getOrDefault("condition", List.of());
-        return switch (type) {
-            case "and" -> subs.stream().allMatch(s -> evalCounterFilter(s, event));
-            case "or" -> subs.stream().anyMatch(s -> evalCounterFilter(s, event));
-            case "not" -> !subs.isEmpty() && !evalCounterFilter(subs.get(0), event);
-            default -> throw new IllegalArgumentException("未知的条件组合类型: " + type);
         };
     }
 
@@ -238,12 +222,14 @@ public final class StrategyEngine {
         long dedupWindow = st.get("dedup_window") instanceof Number n
                 ? n.longValue() * 1000L : 300_000L;
         String dedupKey = name + "|" + key;
-        Long last = dedup.get(dedupKey);
-        if (last != null && ts - last < dedupWindow) {
-            deduped++;
-            return;
+        if (dedupEnabled) {
+            Long last = dedup.get(dedupKey);
+            if (last != null && ts - last < dedupWindow) {
+                deduped++;
+                return;
+            }
+            dedup.put(dedupKey, ts);
         }
-        dedup.put(dedupKey, ts);
         hits++;
 
         long ttl = action.get("ttl") instanceof Number n ? n.longValue() : 300L;
