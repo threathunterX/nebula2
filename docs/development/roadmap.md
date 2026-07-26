@@ -155,7 +155,6 @@ ADR 的原则。
 | 项 | 说明 |
 |---|---|
 | 可视化策略编辑器 | 当前是 JSON 文本框。做成表单需要从 schema 派生校验规则 |
-| 威胁模型文档 | [`docs/security/threat-model.md`](../security/threat-model.md) 当前 15 行占位 |
 | 采集器的 syslog / Zeek / OpenResty 接入 | 1.x 的 `sniffer` 承担过这个角色 |
 
 ---
