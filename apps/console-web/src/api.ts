@@ -148,6 +148,44 @@ export interface StrategyDetail {
   definition: Record<string, unknown>;
 }
 
+export interface Me {
+  username: string;
+  roles: string[];
+}
+
+export interface UserRow {
+  username: string;
+  display_name: string;
+  roles: string[];
+  enabled: boolean;
+  created_at: string;
+}
+
+export interface TokenRow {
+  token_id: string;
+  description: string;
+  scopes: string[];
+  allowed_cidrs: string[];
+  enabled: boolean;
+  expires_at: string;
+  last_used_at: string;
+  created_at: string;
+}
+
+/** 建账号与签发令牌的响应。明文字段只在这一次出现,之后服务端也拿不到。 */
+export interface CreatedUser {
+  username: string;
+  roles: string[];
+  password: string;
+}
+
+export interface IssuedToken {
+  token_id: string;
+  token: string;
+  scopes: string[];
+  allowed_cidrs: string[];
+}
+
 export interface Revision {
   version: number;
   status: string;
@@ -201,4 +239,37 @@ export const api = {
     request<{ buckets: TrendBucket[] }>(`/api/v2/alerts/trend?${qs(p)}`),
 
   metadataVersion: () => request<{ version: number }>('/api/v2/metadata/version'),
+
+  me: () => request<Me>('/api/v2/users/me'),
+
+  users: () => request<{ users: UserRow[] }>('/api/v2/users'),
+
+  createUser: (username: string, displayName: string, roles: string[]) =>
+    request<CreatedUser>('/api/v2/users', {
+      method: 'POST',
+      body: JSON.stringify({ username, display_name: displayName, roles }),
+    }),
+
+  setUserEnabled: (username: string, enabled: boolean) =>
+    request<unknown>(`/api/v2/users/${encodeURIComponent(username)}/enabled`, {
+      method: 'PUT',
+      body: JSON.stringify({ enabled }),
+    }),
+
+  resetPassword: (username: string) =>
+    request<CreatedUser>(`/api/v2/users/${encodeURIComponent(username)}/password`, {
+      method: 'POST',
+      body: '{}',
+    }),
+
+  tokens: () => request<{ tokens: TokenRow[] }>('/api/v2/tokens'),
+
+  issueToken: (description: string, scopes: string[], allowedCidrs: string[]) =>
+    request<IssuedToken>('/api/v2/tokens', {
+      method: 'POST',
+      body: JSON.stringify({ description, scopes, allowed_cidrs: allowedCidrs }),
+    }),
+
+  revokeToken: (tokenId: string) =>
+    request<unknown>(`/api/v2/tokens/${encodeURIComponent(tokenId)}`, { method: 'DELETE' }),
 };

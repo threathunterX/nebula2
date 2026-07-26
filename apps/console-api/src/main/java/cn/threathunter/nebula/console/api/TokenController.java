@@ -9,6 +9,9 @@ import java.util.Set;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +34,38 @@ public class TokenController {
 
     public record IssueRequest(String description, List<String> scopes,
                                List<String> allowed_cidrs) {
+    }
+
+    /** 列出全部令牌的元数据。绝不返回明文或哈希 —— 明文只在签发那一次出现过。 */
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> list() {
+        return ResponseEntity.ok(Map.of("tokens", tokens.list()));
+    }
+
+    /**
+     * 吊销令牌。
+     *
+     * <p>用 {@code DELETE} 是因为它在语义上就是「让这个令牌不再存在」,但落到存储上
+     * 是置 {@code enabled = false} 而非删行 —— 理由见 {@code ServiceTokenStore#revoke}。
+     *
+     * <p>重复吊销返回 404 而不是 200:调用方以为自己刚吊销了一个还在用的令牌,和
+     * 「它早就吊销了」是两种不同的处境,不该看到同样的结果。
+     */
+    @DeleteMapping("/{tokenId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> revoke(@PathVariable String tokenId,
+                                                      Authentication auth,
+                                                      HttpServletRequest http) {
+        boolean changed = tokens.revoke(tokenId);
+        audit.record(auth == null ? "anonymous" : auth.getName(),
+                "revoke_service_token", "service_token", tokenId,
+                Map.of(), http.getRemoteAddr(), changed);
+        if (!changed) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "error", "令牌不存在,或已经是吊销状态"));
+        }
+        return ResponseEntity.ok(Map.of("token_id", tokenId, "enabled", false));
     }
 
     /**

@@ -87,6 +87,11 @@ public class SecurityConfig {
                             "/api/v2/metadata/**")
                         .hasAnyAuthority("SCOPE_metadata:read",
                                 "ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_VIEWER")
+                    // 「我是谁」:任何已认证角色都能读自己的信息。必须排在下面
+                    // /api/v2/** 的角色规则之前 —— 服务令牌也会打到这里,让它拿到
+                    // 401/403 而不是一个空的角色列表,前端才好区分。
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v2/users/me")
+                        .hasAnyRole("ADMIN", "OPERATOR", "VIEWER")
                     // 主体权利接口仅管理员 —— 导出与删除个人信息不是日常运营操作。
                     //
                     // 必须排在下面那条通用 GET 规则<b>之前</b>:匹配是首条命中即生效,

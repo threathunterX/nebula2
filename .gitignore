@@ -52,3 +52,6 @@ console-api/target/
 # 管理界面的构建产物与依赖
 apps/console-web/dist/
 apps/console-web/node_modules/
+
+# TypeScript 增量编译缓存 —— 构建产物,内容随机器而变,进版本库只会制造冲突
+*.tsbuildinfo

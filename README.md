@@ -132,8 +132,9 @@ echo '{"name":"ACCOUNT_LOGIN","timestamp":1784944800000,"c_ip":"198.51.100.1",
 | [告警查询与趋势](apps/console-api/#告警查询)(分级脱敏) | ✅ |
 | [策略编辑](apps/console-api/#策略编辑)(schema 校验、乐观并发、修订历史) | ✅ |
 | [元数据下发](apps/console-api/#元数据下发)(引擎从控制面加载,单一事实来源) | ✅ |
-| [管理界面](apps/console-web/)(登录、策略管理、告警查询、变量浏览) | ✅ |
+| [管理界面](apps/console-web/)(登录、策略管理、告警查询、变量浏览、账号与令牌) | ✅ |
 | [策略热更新](docs/development/roadmap.md)(改完无需重启作业,窗口状态不丢) | ✅ |
+| [数据主体权利](docs/security/privacy.md#四数据主体权利)(按主体导出与删除) | ✅ |
 | 可视化策略编辑器 | 🚧 |
 
 **存储与部署**
