@@ -16,6 +16,24 @@ const { evalCel } = require('./cel');
 const { VariableGraph } = require('./variables');
 const { EventModel } = require('./events');
 
+/** 扫出全部 checkNotice 调用里最大的回溯窗口,用于界定历史保留期。 */
+function maxCheckNoticeWindowMs(strategies) {
+  let max = 0;
+  const walk = (n) => {
+    if (!n || typeof n !== 'object') return;
+    if (typeof n.cel === 'string') {
+      const re = /checkNotice\s*\([^)]*?,\s*(\d+)\s*\)/g;
+      let m;
+      while ((m = re.exec(n.cel)) !== null) {
+        max = Math.max(max, parseInt(m[1], 10) * 1000);
+      }
+    }
+    for (const v of Object.values(n)) walk(v);
+  };
+  for (const st of strategies) walk(st);
+  return max;
+}
+
 class Engine {
   /**
    * @param {object} opts
@@ -32,6 +50,13 @@ class Engine {
     // 序列匹配状态:`${策略名}|${分组键}` -> 未完成匹配数组
     // 每个未完成匹配是 { stepIndex, startedAt, events: [...] }
     this.partials = new Map();
+
+    // 告警历史索引,供 CEL 的 checkNotice 做策略级联判定。
+    // 只存判定需要的四个字段 —— 存整条告警会让这份索引跟着告警体积一起长。
+    this.noticeIndex = [];
+    // 保留期取全部策略里最大的那个回溯窗口。不设上限就是内存泄漏:
+    // 一条长期运行的流会把所有历史告警都留在内存里。
+    this.noticeRetentionMs = maxCheckNoticeWindowMs(this.strategies);
     this.now = now;
     this.watermark = -Infinity;     // 流级水位线
     this.eventModel = events && events.length ? new EventModel(events) : null;
@@ -130,7 +155,7 @@ class Engine {
 
     // CEL 表达式
     if (cond.cel) {
-      return !!evalCel(cond.cel, ctx.event);
+      return !!evalCel(cond.cel, ctx.event, this);
     }
 
     // 二元比较
@@ -160,6 +185,26 @@ class Engine {
   }
 
   // ---------------------------------------------------------------- 主流程
+
+  /**
+   * 供 CEL 求值时查询告警历史。
+   *
+   * 区间是 **[fromTs, toTs)** —— 起点含,终点**不含**。终点不含是关键:当前这条
+   * 事件正在被处理,同一条事件里先求值的策略可能刚产出一条告警。把它算进来会让
+   * 结果依赖**策略的求值顺序**,而顺序不是契约(策略是从目录里按文件名读进来的)。
+   *
+   * 换句话说:checkNotice 看到的是「在这条事件之前已经报过的告警」。
+   */
+  countNotices(checkType, key, strategyName, fromTs, toTs) {
+    let n = 0;
+    for (const r of this.noticeIndex) {
+      if (r.ts >= fromTs && r.ts < toTs
+          && r.checkType === checkType && r.key === key && r.strategy === strategyName) {
+        n += 1;
+      }
+    }
+    return n;
+  }
 
   process(event) {
     this.stats.events += 1;
@@ -315,6 +360,17 @@ class Engine {
     }
     this.dedup.set(dedupKey, ts);
     this.stats.hits += 1;
+    // 登记到历史索引。放在去重判定之后 —— 数的是**已产出**的告警,
+    // 被去重压掉的那些不算(见 cel.js 里 checkNotice 的说明)。
+    if (this.noticeRetentionMs > 0) {
+      this.noticeIndex.push({
+        ts, checkType: action.check_type, key: String(key), strategy: strategy.name,
+      });
+      const cutoff = ts - this.noticeRetentionMs;
+      while (this.noticeIndex.length && this.noticeIndex[0].ts < cutoff) {
+        this.noticeIndex.shift();
+      }
+    }
 
     const notice = {
       timestamp: ts,

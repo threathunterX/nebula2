@@ -1,0 +1,341 @@
+{
+  "$comment": "checkNotice(策略级联)的跨引擎对照向量。每个场景两条策略:setup 命中后产出告警,probe 用 checkNotice 查它。参考引擎(JS)与生产引擎(Java)跑同一批场景,probe 的命中次数必须逐条一致。语义见 packages/cel-functions/README.md。",
+  "version": "1.0",
+  "base_timestamp": 1700000000000,
+  "cases": [
+    {
+      "name": "曾命中则级联成立",
+      "note": "setup 在 t=0 命中,probe 在 t=10 查 60 秒内",
+      "setup_strategy": {
+        "name": "前置策略",
+        "condition": {
+          "left": {
+            "kind": "event_field",
+            "field": "page"
+          },
+          "op": "==",
+          "right": {
+            "kind": "constant",
+            "value": "/a"
+          }
+        },
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "probe_strategy": {
+        "name": "级联判定",
+        "cel": "checkNotice(\"ip\", c_ip, \"前置策略\", 60) > 0",
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "events": [
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1",
+          "page": "/a"
+        },
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 10,
+          "c_ip": "198.51.100.1",
+          "page": "/b"
+        }
+      ],
+      "expect_hits": 1
+    },
+    {
+      "name": "从未命中则不成立",
+      "note": "setup 一次都没命中",
+      "setup_strategy": {
+        "name": "前置策略",
+        "condition": {
+          "left": {
+            "kind": "event_field",
+            "field": "page"
+          },
+          "op": "==",
+          "right": {
+            "kind": "constant",
+            "value": "/a"
+          }
+        },
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "probe_strategy": {
+        "name": "级联判定",
+        "cel": "checkNotice(\"ip\", c_ip, \"前置策略\", 60) > 0",
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "events": [
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1",
+          "page": "/x"
+        },
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 10,
+          "c_ip": "198.51.100.1",
+          "page": "/b"
+        }
+      ],
+      "expect_hits": 0
+    },
+    {
+      "name": "超出回溯窗口不算",
+      "note": "t=0 命中,t=100 查 60 秒 —— 已出窗",
+      "setup_strategy": {
+        "name": "前置策略",
+        "condition": {
+          "left": {
+            "kind": "event_field",
+            "field": "page"
+          },
+          "op": "==",
+          "right": {
+            "kind": "constant",
+            "value": "/a"
+          }
+        },
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "probe_strategy": {
+        "name": "级联判定",
+        "cel": "checkNotice(\"ip\", c_ip, \"前置策略\", 60) > 0",
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "events": [
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1",
+          "page": "/a"
+        },
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 100,
+          "c_ip": "198.51.100.1",
+          "page": "/b"
+        }
+      ],
+      "expect_hits": 0
+    },
+    {
+      "name": "恰好卡在窗口边界上算",
+      "note": "t=0 命中,t=60 查 60 秒 —— 起点含",
+      "setup_strategy": {
+        "name": "前置策略",
+        "condition": {
+          "left": {
+            "kind": "event_field",
+            "field": "page"
+          },
+          "op": "==",
+          "right": {
+            "kind": "constant",
+            "value": "/a"
+          }
+        },
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "probe_strategy": {
+        "name": "级联判定",
+        "cel": "checkNotice(\"ip\", c_ip, \"前置策略\", 60) > 0",
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "events": [
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1",
+          "page": "/a"
+        },
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 60,
+          "c_ip": "198.51.100.1",
+          "page": "/b"
+        }
+      ],
+      "expect_hits": 1
+    },
+    {
+      "name": "别的主体的告警不算",
+      "note": "setup 命中的是另一个 IP",
+      "setup_strategy": {
+        "name": "前置策略",
+        "condition": {
+          "left": {
+            "kind": "event_field",
+            "field": "page"
+          },
+          "op": "==",
+          "right": {
+            "kind": "constant",
+            "value": "/a"
+          }
+        },
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "probe_strategy": {
+        "name": "级联判定",
+        "cel": "checkNotice(\"ip\", c_ip, \"前置策略\", 60) > 0",
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "events": [
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.9",
+          "page": "/a"
+        },
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 10,
+          "c_ip": "198.51.100.1",
+          "page": "/b"
+        }
+      ],
+      "expect_hits": 0
+    },
+    {
+      "name": "别的策略的告警不算",
+      "note": "查的策略名对不上",
+      "setup_strategy": {
+        "name": "前置策略",
+        "condition": {
+          "left": {
+            "kind": "event_field",
+            "field": "page"
+          },
+          "op": "==",
+          "right": {
+            "kind": "constant",
+            "value": "/a"
+          }
+        },
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "probe_strategy": {
+        "name": "级联判定",
+        "cel": "checkNotice(\"ip\", c_ip, \"另一条策略\", 60) > 0",
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "events": [
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1",
+          "page": "/a"
+        },
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 10,
+          "c_ip": "198.51.100.1",
+          "page": "/b"
+        }
+      ],
+      "expect_hits": 0
+    },
+    {
+      "name": "计数可以比较大于 1",
+      "note": "两次前置命中之后再查 > 1",
+      "setup_strategy": {
+        "name": "前置策略",
+        "condition": {
+          "left": {
+            "kind": "event_field",
+            "field": "page"
+          },
+          "op": "==",
+          "right": {
+            "kind": "constant",
+            "value": "/a"
+          }
+        },
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "probe_strategy": {
+        "name": "级联判定",
+        "cel": "checkNotice(\"ip\", c_ip, \"前置策略\", 60) > 1",
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "events": [
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1",
+          "page": "/a"
+        },
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 5,
+          "c_ip": "198.51.100.1",
+          "page": "/a"
+        },
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 10,
+          "c_ip": "198.51.100.1",
+          "page": "/b"
+        }
+      ],
+      "expect_hits": 1
+    },
+    {
+      "name": "用 check_type 本身也可以",
+      "note": "keyType 传 IP 而不是 1.x 的别名 ip",
+      "setup_strategy": {
+        "name": "前置策略",
+        "condition": {
+          "left": {
+            "kind": "event_field",
+            "field": "page"
+          },
+          "op": "==",
+          "right": {
+            "kind": "constant",
+            "value": "/a"
+          }
+        },
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "probe_strategy": {
+        "name": "级联判定",
+        "cel": "checkNotice(\"IP\", c_ip, \"前置策略\", 60) > 0",
+        "check_type": "IP",
+        "check_value": "c_ip"
+      },
+      "events": [
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 0,
+          "c_ip": "198.51.100.1",
+          "page": "/a"
+        },
+        {
+          "name": "HTTP_DYNAMIC",
+          "offset_seconds": 10,
+          "c_ip": "198.51.100.1",
+          "page": "/b"
+        }
+      ],
+      "expect_hits": 1
+    }
+  ]
+}
