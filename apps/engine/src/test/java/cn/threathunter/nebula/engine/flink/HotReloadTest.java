@@ -136,7 +136,9 @@ class HotReloadTest {
             throws Exception {
         RiskDetectionFunction f = new RiskDetectionFunction(
                 strategies, loadDir("variables"), loadDir("events"));
-        f.open(new org.apache.flink.configuration.Configuration());
+        // 用 openWithout:单元测试里没有 Flink 的 runtime context,取不到指标组。
+        // 指标的注册路径由容器里的实跑验证。
+        f.openWithout(new org.apache.flink.configuration.Configuration());
         return f;
     }
 
