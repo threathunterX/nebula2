@@ -100,7 +100,96 @@ services:
     volumes:
       - redis-data:/data
 
+  # ---------------------------------------------------------------- 应用组件
+  # 只有 infra 的 compose 起不了一个能用的系统:三个组件此前都得手工启动,
+  # 「本地能跑」与「可部署」之间差的就是这一段。
+
+  # schema 初始化。一次性任务,建表完就退出。
+  # 应用容器 depends_on 它 completed_successfully —— 控制面在表还不存在时启动
+  # 会连上库、通过健康检查、然后每个请求都报错,比起不来更难查。
+  schema-init:
+    build:
+      context: ../schema
+      dockerfile: Dockerfile
+    depends_on:
+      postgres: {condition: service_healthy}
+      clickhouse: {condition: service_healthy}
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:-nebula}
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:?}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?}
+    restart: "no"
+
+  console-api:
+    build:
+      context: ../..
+      dockerfile: apps/console-api/Dockerfile
+    depends_on:
+      schema-init: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:-nebula}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?}
+      NEBULA_CLICKHOUSE_URL: http://clickhouse:8123
+      NEBULA_CLICKHOUSE_USER: ${CLICKHOUSE_USER:?}
+      NEBULA_CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "/opt/java/openjdk/bin/java", "-version"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  # ---------------------------------------------------------------- Flink
+  # 引擎作业提交到这里。JobManager 与 TaskManager 共用同一份配置,靠
+  # FLINK_PROPERTIES 注入 —— 不挂载 flink-conf.yaml,少一个要同步的文件。
+  jobmanager:
+    build:
+      context: ../..
+      dockerfile: apps/engine/Dockerfile
+    command: jobmanager
+    depends_on:
+      console-api: {condition: service_started}
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        state.backend: rocksdb
+        state.checkpoints.dir: file:///flink-checkpoints
+        execution.checkpointing.interval: 30s
+    ports:
+      - "8081:8081"
+    volumes:
+      - flink-checkpoints:/flink-checkpoints
+
+  taskmanager:
+    build:
+      context: ../..
+      dockerfile: apps/engine/Dockerfile
+    command: taskmanager
+    depends_on:
+      jobmanager: {condition: service_started}
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 4
+        state.backend: rocksdb
+        state.checkpoints.dir: file:///flink-checkpoints
+    volumes:
+      - flink-checkpoints:/flink-checkpoints
+    deploy:
+      replicas: 1
+
 volumes:
+  flink-checkpoints:
   redpanda-data:
   postgres-data:
   clickhouse-data:

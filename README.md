@@ -34,11 +34,14 @@
 | [元数据下发](apps/console-api/#元数据下发)(引擎从控制面加载,单一事实来源) | ✅ 可用 |
 | 策略热更新(改完无需重启作业)、管理前端、CEP 序列检测 | 🚧 未开始 |
 | 采集器的 Kafka / syslog / Zeek 数据源 | 🚧 未开始 |
-| 部署编排(compose / Helm) | 🚧 未开始 |
+| [部署编排](deploy/compose/)(三个组件容器化,compose 一键起全栈) | ✅ 可用 |
+| Helm / Kubernetes 编排 | 🚧 未开始 |
 
-**能做什么**:理解这套风控系统的数据模型与策略设计,用参考引擎跑通检测逻辑,评估内置策略资产是否适合你的业务。
+**能做什么**:`docker compose up` 起一套完整系统(采集 → Kafka → Flink → 告警 →
+控制面),接入自己的流量做评估,在控制面管理策略与账号、查告警。
 
-**不能做什么**:接入真实流量、生产部署。
+**不能做什么**:承接生产级流量。Lite 模式全部组件单节点、无高可用,策略改动需要
+重启作业才生效;Helm / Kubernetes 编排尚未开始。
 
 如果你现在就需要一个完整实现,可以参考 [Nebula 1.x](https://github.com/threathunterX/nebula) —— 但它已于 2019 年停止维护,依赖的技术栈(Python 2、OpenResty 1.11、Esper 6、commons-collections 3.2.1)均已 EOL 且存在已知漏洞,**不建议用于生产环境**。
 

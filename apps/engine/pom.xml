@@ -14,7 +14,11 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>21</maven.compiler.release>
+    <!-- 17,不是 21。引擎的 jar 要提交给 Flink 执行,而 Flink 1.20 官方镜像最高
+         只到 Java 17 —— 用 21 编出来的 class 文件(版本 65)在那上面根本加载不了,
+         而且报错发生在提交作业时,不是构建时。这是运行环境施加的约束,不是偏好。
+         控制面(console-api)不受此限,它是独立进程,用的是 21。 -->
+    <maven.compiler.release>17</maven.compiler.release>
     <junit.version>5.11.3</junit.version>
     <!-- 必须与 Flink 运行时自带的 jackson-core 对齐(Flink 1.20 为 2.15.2),
          否则运行期报 NoSuchMethodError -->
@@ -44,11 +48,14 @@
       <version>${flink.version}</version>
       <scope>provided</scope>
     </dependency>
+    <!-- 连接器必须打进作业 jar。Flink 发行版只含运行时,连接器是单独发布的
+         构件,官方镜像的 /opt/flink/lib 里没有 —— 用 provided 会在提交作业时
+         报 ClassNotFoundException,而本地测试(依赖都在 classpath 上)完全正常。
+         官方文档也是这么建议的:连接器随作业走,不随集群走。 -->
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-connector-kafka</artifactId>
       <version>3.3.0-1.20</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.flink</groupId>
@@ -60,12 +67,17 @@
     <!-- 算子层刻意保持零运行时依赖:它是纯计算,越少依赖越容易被 Flink 之外的
          场景复用,也越容易与参考引擎逐行对照。Jackson 只用于测试读取共享向量。 -->
     <!-- flink/ 包用它做 JSON 编解码。算子、条件、窗口、图、规则五层仍不依赖任何
-         第三方库 —— 这一点由 ArchitectureTest 强制。 -->
+         第三方库 —— 这一点由 ArchitectureTest 强制。
+
+         打进作业 jar,不用 provided。官方 Flink 发行版里的 Jackson 被重定位到了
+         org.apache.flink.shaded.jackson2.*,com.fasterxml.jackson 并不在运行时
+         classpath 上。本地用完整依赖 classpath 跑时它在,提交到集群就
+         NoClassDefFoundError —— 差异只在部署时暴露,本地测试一路绿灯。
+         版本仍与 Flink 内部的 2.15.2 对齐,避免 shaded 与非 shaded 行为分叉。 -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>${jackson.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

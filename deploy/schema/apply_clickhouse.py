@@ -11,8 +11,16 @@ import sys
 import urllib.parse
 import urllib.request
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-URL = "http://127.0.0.1:8123/?" + urllib.parse.urlencode({
+ROOT = pathlib.Path(__file__).resolve().parent
+
+# 地址可配置:宿主机上是 127.0.0.1,schema-init 容器里是 clickhouse。
+# 写死 127.0.0.1 会让这个脚本只在其中一种场景成立。
+_missing = [k for k in ("CLICKHOUSE_USER", "CLICKHOUSE_PASSWORD") if not os.environ.get(k)]
+if _missing:
+    raise SystemExit("缺少环境变量:" + ", ".join(_missing)
+                     + "(见 deploy/compose/gen-env.sh)")
+BASE = os.environ.get("CLICKHOUSE_URL", "http://127.0.0.1:8123").rstrip("/")
+URL = BASE + "/?" + urllib.parse.urlencode({
     "user": os.environ["CLICKHOUSE_USER"],
     "password": os.environ["CLICKHOUSE_PASSWORD"],
 })
@@ -43,7 +51,7 @@ def execute(stmt: str):
 
 
 def main():
-    for f in sorted((ROOT / "schema" / "clickhouse").glob("*.sql")):
+    for f in sorted((ROOT / "clickhouse").glob("*.sql")):
         print(f"  应用 {f.name}")
         for stmt in statements(f.read_text(encoding="utf-8")):
             execute(stmt)

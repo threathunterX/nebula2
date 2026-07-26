@@ -85,3 +85,52 @@ docker compose down          # 停止,保留数据
 docker compose down -v       # 停止并删除数据卷
 colima stop                  # 停止虚拟机
 ```
+
+## 提交引擎作业
+
+infra 起来后,Flink 集群在 http://localhost:8081,作业 jar 已经在镜像的
+`/opt/flink/usrlib/` 里。提交前需要一个 `metadata:read` 作用域的服务令牌:
+
+```bash
+curl -u admin:<首次启动打印的口令> -XPOST localhost:8080/api/v2/tokens \
+  -H 'Content-Type: application/json' \
+  -d '{"description":"计算引擎","scopes":["metadata:read"],"allowed_cidrs":["172.18.0.0/16"]}'
+```
+
+`allowed_cidrs` 要写 **compose 网络的网段**,不是 `127.0.0.1`。作业跑在容器里,
+控制面看到的来源 IP 是容器网络地址;写成回环地址会一直 401,而错误信息(刻意)
+不会告诉你是哪一步不对。查网段:
+
+```bash
+docker network inspect nebula_default -f '{{(index .IPAM.Config 0).Subnet}}'
+```
+
+然后提交:
+
+```bash
+docker compose exec -e NEBULA_CONSOLE_TOKEN='svc_xxx.yyy' jobmanager \
+  flink run -d /opt/flink/usrlib/nebula-engine.jar \
+    --console-url http://console-api:8080 \
+    --brokers redpanda:29092 \
+    --source-topic nebula.events --sink-topic nebula.notice
+```
+
+启动日志里会打印一行 `元数据来源: 控制面 http://console-api:8080 v6(事件 17 /
+变量 253 / 策略 170)` —— 版本号对不上就是没拉到最新的。
+
+## 几个踩过的坑
+
+**引擎按 Java 17 编译,不是 21。** Flink 1.20 官方镜像最高只到 Java 17,用 21 编
+出来的 class 文件在上面加载不了,而且报错发生在提交作业时而不是构建时。控制面是
+独立进程,不受此限。
+
+**连接器和 Jackson 都打进作业 jar。** Flink 发行版只含运行时:连接器是单独发布的
+构件,Jackson 被重定位到了 `org.apache.flink.shaded.jackson2.*`。用 `provided` 时
+本地测试(依赖都在 classpath 上)一路绿灯,提交到集群才 ClassNotFoundException。
+
+**checkpoint 目录在镜像里就要建好并归 flink 所有。** 命名卷首次挂载会沿用镜像中该
+路径的属主;镜像里没有就新建一个 root 的空目录,而 Flink 以 flink 用户运行 ——
+作业能提交、能进 RUNNING,在第一次 checkpoint 时才失败。
+
+**建表脚本打进镜像,不从宿主 bind mount。** bind mount 让「能不能起来」取决于仓库
+在宿主上的位置和 Docker 的文件共享配置,失败表现为目录为空而不是报错。
