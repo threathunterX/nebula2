@@ -8,7 +8,7 @@ COPY packages/domain-schema packages/domain-schema
 COPY apps/console-api apps/console-api
 RUN cd apps/console-api && mvn -B -q -DskipTests package
 
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 RUN groupadd -r nebula && useradd -r -g nebula nebula
 COPY --from=build /src/apps/console-api/target/nebula-console-api-*.jar /app/console-api.jar
 USER nebula
