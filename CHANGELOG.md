@@ -10,6 +10,27 @@
 
 尚无。
 
+## [0.1.2] - 2026-07-26
+
+对外表述的复审。**只改文档与注释,没有任何代码行为变更。**
+
+### Changed
+
+- **不再公开 1.x 的可利用弱点细节。** 1.x 仍是公开仓库、383 个 fork、大概率还有部署
+  在跑,且已归档、永远不会再发补丁。在这种前提下写明它的认证绕过方式,帮到的是攻击者,
+  不是还在运行它的人。相关表述出现在 9 处(含 `SECURITY.md`、CHANGELOG、API 参考、
+  建表 SQL 与 Java 类注释),已全部改写为**只讲设计原则、不讲攻击路径** —— 例如
+  「令牌与来源网段是 AND 关系,写成 OR 的话两道防线各自都能被单独绕过」,而不是指出
+  1.x 在哪里有这个问题。设计理由一点没少,指向性没有了。
+- **`SECURITY.md` 增加 1.x 的处置指引**:说明我们刻意不展开这些细节,并给仍在运行
+  1.x 的使用者一条可执行的建议(限制管理端口暴露面、轮换从仓库配置继承的凭据、
+  迁移路径)。
+- **去掉「1.x 造成过实际泄露」的表述**(3 处)。「发生过数据泄露」是法律定性,不该在
+  工程文档里作为既定事实写下。改为让规则自己立得住:数据一旦进入公开仓库就不可撤销,
+  即便随后删除、重写历史,已被克隆和 fork 的副本仍然存在 —— 这个理由本身比援引一次
+  事件更有说服力。
+- 发布就绪度报告不再记录尚在处理中的运维状态。
+
 ## [0.1.1] - 2026-07-26
 
 发布后按访客的实际路径从零走了一遍(全新 clone → 快速开始 → `make validate` →
@@ -264,6 +285,7 @@
 - 另有页面路径写成字面量、备注与实际条件不符等 4 类数据问题,逐条记录在
   `seeds/INVENTORY.md`。
 
-[Unreleased]: https://github.com/threathunterX/nebula2/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/threathunterX/nebula2/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/threathunterX/nebula2/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/threathunterX/nebula2/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/threathunterX/nebula2/releases/tag/v0.1.0
