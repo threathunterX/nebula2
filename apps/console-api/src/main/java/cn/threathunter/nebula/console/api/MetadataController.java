@@ -51,10 +51,27 @@ public class MetadataController {
         return store.listStrategies(category, status, limit);
     }
 
+    /**
+     * 策略详情。
+     *
+     * <p>顶层的 {@code version} 是<b>行版本</b>,用于写入时的乐观并发;
+     * {@code definition.version} 是领域模型的版本号(当前是字符串 {@code "2.0"}),
+     * 两者不是一回事。
+     *
+     * <p>早先这个接口直接返回 definition,于是客户端拿不到行版本 —— 想做乐观并发只能
+     * 去猜,或者退回列表接口再查一次。第一个真实客户端(管理界面)一上来就撞上了:
+     * 把 {@code definition.version} 的 "2.0" 当成行版本发过去,PUT 稳定返回 409。
+     * 接口让正确用法无法表达时,错的是接口。
+     */
     @GetMapping("/strategies/{name}")
-    public ResponseEntity<JsonNode> getStrategy(@PathVariable String name) {
-        return store.getStrategy(name)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<Map<String, Object>> getStrategy(@PathVariable String name) {
+        return store.getStrategyDetail(name)
+                .map(d -> ResponseEntity.ok(Map.of(
+                        "name", d.name(),
+                        "version", d.version(),
+                        "status", d.status(),
+                        "requires_config", d.requiresConfig(),
+                        "definition", (Object) d.definition())))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

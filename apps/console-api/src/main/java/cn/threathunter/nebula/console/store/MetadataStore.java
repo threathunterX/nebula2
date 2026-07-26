@@ -75,6 +75,21 @@ public class MetadataStore {
         return jdbc.query(sql.toString(), MetadataStore::toSummary, args.toArray());
     }
 
+    /** 策略的行元数据 + 定义。行版本用于乐观并发,与定义里的领域模型版本是两回事。 */
+    public record StrategyDetail(String name, int version, String status,
+                                 boolean requiresConfig, JsonNode definition) {
+    }
+
+    public Optional<StrategyDetail> getStrategyDetail(String name) {
+        List<StrategyDetail> rows = jdbc.query(
+                "SELECT name, version, status, requires_config, definition::text "
+                        + "FROM strategies WHERE name = ?",
+                (rs, i) -> new StrategyDetail(rs.getString("name"), rs.getInt("version"),
+                        rs.getString("status"), rs.getBoolean("requires_config"),
+                        parse(rs.getString(5))), name);
+        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+    }
+
     public Optional<JsonNode> getStrategy(String name) {
         List<String> rows = jdbc.query(
                 "SELECT definition::text FROM strategies WHERE name = ?",
