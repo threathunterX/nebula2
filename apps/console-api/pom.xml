@@ -55,7 +55,7 @@
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk18on</artifactId>
-      <version>1.79</version>
+      <version>1.85</version>
     </dependency>
     <!-- 策略定义按 packages/domain-schema/ 的 JSON Schema 校验。用同一份 schema
          而不是在 Java 里另写一套字段检查 —— 后者正是 1.x 领域模型漂移的做法。 -->
