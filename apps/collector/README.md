@@ -13,6 +13,7 @@ Go 编写,零外部依赖,单二进制部署 —— 采集器要装到客户环�
 | 数据源:stdin、file、http | ✅ |
 | 输出:stdout、file(JSON Lines) | ✅ |
 | 运行指标与脱敏统计 | ✅ |
+| Prometheus 指标端点(零依赖,标准库实现) | ✅ |
 | 数据源:Kafka、syslog、Zeek 旁路 | 🚧 |
 | 输出:Kafka | 🚧 |
 | 配置热加载 | 🚧 |
