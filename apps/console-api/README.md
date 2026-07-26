@@ -25,7 +25,7 @@
 ```bash
 cd apps/console-api && mvn -q -DskipTests package
 set -a; . ../../deploy/compose/.env; set +a
-java -jar target/nebula-console-api-0.1.0-SNAPSHOT.jar
+java -jar target/nebula-console-api-0.4.0.jar
 ```
 
 凭据只从环境变量注入,配置文件里不含任何可用凭据。缺少 `REDIS_PASSWORD` 时**启动即失败**,不会静默连接无密码实例。
