@@ -120,7 +120,8 @@ echo '{"name":"ACCOUNT_LOGIN","timestamp":1784944800000,"c_ip":"198.51.100.1",
 | [参考引擎](packages/reference-engine/)(零依赖,验证语义规格) | ✅ |
 | [计算引擎](apps/engine/)(算子、条件、窗口、变量图、规则引擎) | ✅ |
 | Flink 接入、[多维度并行拓扑](apps/engine/#并行化)(并行度 1/2/4 结果一致)、Checkpoint | ✅ |
-| CEP 序列检测 | 🚧 |
+| [序列检测](docs/guide/strategy.md)(「做了 A 但 N 秒内没做 B」)| ✅ |
+| Flink CEP 的完整模式语法(多步序列、重复、分支) | 🚧 |
 
 **控制面**
 

@@ -55,7 +55,38 @@
 `algorithm` 的取值与精确语义见[算子语义规格](../reference/operators.md) —— 那份文档是
 规范性的,实现以它为准。
 
-### 2.3 CEL 表达式
+### 2.3 延迟判定:表达「缺席」
+
+「主体做了 A,但随后 N 秒内**没有**做 B」—— 这类模式条件树表达不了:条件树只能对
+当下这条事件求值,而「没有发生」要等一段时间之后才能确认。
+
+```jsonc
+{
+  "condition": { ... },              // 主条件:做了 A
+  "delay": {
+    "duration_seconds": 300,         // 等 5 分钟
+    "condition": {                   // 到期时求值:这 5 分钟里 B 出现过几次
+      "left": { "kind": "counter", "counter": {
+          "algorithm": "count", "event": "HTTP_DYNAMIC",
+          "filter": { "object": "page", "operation": "==", "value": "/order/submit" },
+          "groupby": ["c_ip"], "window": 300 } },
+      "op": "==", "right": { "kind": "constant", "value": "0" }   // 一次都没有
+    }
+  }
+}
+```
+
+主条件命中时挂起,到期时再求 `delay.condition` —— **那时窗口里已经积累了这段时间的
+数据**,「B 出现过没有」才有答案。
+
+典型用法:加入购物车但不下单、领券但不使用、注册后不激活。内置资产里有 3 条这样的
+模板,`A` / `B` 是要你替换的占位符,见 [`seeds/PLACEHOLDERS.md`](../../seeds/PLACEHOLDERS.md)。
+
+> **由事件时间驱动,不是挂钟时间。** 回放历史数据的结果必须与实时处理一致,否则同一批
+> 事件在两种模式下会产出不同的告警。代价是:流里长时间没有新事件时,已到期的延迟不会
+> 被触发 —— 这是事件时间语义的固有取舍。
+
+### 2.4 CEL 表达式
 
 用于时间窗口、地理位置等字段比较表达不了的判断。见
 [CEL 表达式参考](cel-reference.md)。

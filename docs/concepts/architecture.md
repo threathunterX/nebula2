@@ -63,7 +63,9 @@ Kafka 在架构中承担三个角色,这也是它取代 1.x 自研 babel 的原�
 
 **② 规则引擎**。策略条件求值。简单的阈值比较直接求值;复杂逻辑走 CEL 沙箱;跨事件的序列模式走 Flink CEP。命中后产出告警并写入名单。
 
-> 当前状态:阈值比较与 CEL 已实现(CEL 为子集,见 [CEL 参考](../guide/cel-reference.md));**Flink CEP 序列检测尚未实现 🚧**。
+> 当前状态:阈值比较、CEL(子集,见 [CEL 参考](../guide/cel-reference.md))、以及
+> **「做了 A 但 N 秒内没做 B」的延迟判定**都已实现。Flink CEP 的完整模式语法
+> (多步序列、重复、分支)🚧。
 
 **③ 画像更新**。维护长期行为基线(`profile` 模块的变量),写入 Redis 热层与 ClickHouse 冷层。
 

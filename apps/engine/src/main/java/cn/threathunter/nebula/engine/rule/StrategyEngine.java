@@ -46,6 +46,23 @@ public final class StrategyEngine {
     private final EventModel eventModel;
     private final LocalValueProvider localValues;
     private final Map<String, Long> dedup = new HashMap<>();
+
+    /**
+     * 已挂起、等待延迟到期的判定。
+     *
+     * <p>延迟策略表达的是<b>缺席</b>:「主体做了 A,但随后 N 秒内没有做 B」。这类模式
+     * 用条件树表达不了 —— 条件树只能对当下这条事件求值,而「没有发生」要等一段时间
+     * 之后才能确认。
+     *
+     * <p>语义与参考引擎一致:主条件命中时挂起,到期时再求 {@code delay.condition},
+     * <b>那时窗口里已经积累了这段时间的数据</b>,「B 出现过没有」才有答案。
+     */
+    private final List<Pending> pending = new ArrayList<>();
+
+    /** 一次挂起的判定。 */
+    private record Pending(long fireAt, Map<String, Object> strategy,
+                           Map<String, Object> event, List<Trace> trace) {
+    }
     private final List<Notice> notices = new ArrayList<>();
     private long watermark = Long.MIN_VALUE;
 
@@ -121,6 +138,7 @@ public final class StrategyEngine {
             graph.process(event, eventName, ts); // 变量图先于策略求值
         }
         evaluate(event, eventName, ts, localValues);
+        fireDueDelays(ts, localValues);
     }
 
     /**
@@ -132,6 +150,7 @@ public final class StrategyEngine {
                             ValueProvider values) {
         watermark = Math.max(watermark, ts);
         evaluate(event, eventName, ts, values);
+        fireDueDelays(ts, values);
     }
 
     @SuppressWarnings("unchecked")
@@ -157,8 +176,69 @@ public final class StrategyEngine {
                 throw new IllegalStateException(
                         "策略「" + st.get("name") + "」求值失败: " + e.getMessage(), e);
             }
+            // 延迟条件里的计数器必须在**每条事件**上累积,不能只在到期时算一次。
+            // 内联 counter 的状态是「求值时顺带累加」的,而延迟条件只在到期时求值一次 ——
+            // 那样它只能看到到期那一刻的那条事件,窗口内实际发生过什么完全不知道。
+            // 这里为副作用求值一次,结果丢弃;真正的判定在 fireDueDelays 里做。
+            Object delayDef = st.get("delay");
+            if (delayDef instanceof Map<?, ?> dd && dd.get("condition") != null) {
+                try {
+                    evalCondition((Map<String, Object>) dd.get("condition"), event, ts,
+                            String.valueOf(st.get("name")), "d", new ArrayList<>(), values);
+                } catch (RuntimeException ignored) {
+                    // 累积用的求值失败不该打断主判定;真正求值时会再抛一次
+                }
+            }
+
             if (ok) {
+                Object delay = st.get("delay");
+                if (delay instanceof Map<?, ?> d && d.get("condition") != null) {
+                    long seconds = d.get("duration_seconds") instanceof Number n
+                            ? n.longValue() : 0L;
+                    pending.add(new Pending(ts + seconds * 1000L, st, event, trace));
+                    continue;
+                }
                 emit(st, event, ts, trace);
+            }
+        }
+    }
+
+    /**
+     * 触发已到期的延迟判定。
+     *
+     * <p>由事件时间驱动,不是挂钟时间 —— 回放历史数据时结果必须与实时处理一致,
+     * 否则同一批事件在两种模式下会产出不同的告警。代价是:流里长时间没有新事件时,
+     * 已到期的延迟不会被触发。这是事件时间语义的固有取舍,不是缺陷。
+     */
+    @SuppressWarnings("unchecked")
+    private void fireDueDelays(long now, ValueProvider values) {
+        if (pending.isEmpty()) {
+            return;
+        }
+        List<Pending> due = new ArrayList<>();
+        pending.removeIf(p -> {
+            if (p.fireAt() <= now) {
+                due.add(p);
+                return true;
+            }
+            return false;
+        });
+        for (Pending p : due) {
+            Map<String, Object> delay = (Map<String, Object>) p.strategy().get("delay");
+            Map<String, Object> cond = (Map<String, Object>) delay.get("condition");
+            List<Trace> trace = new ArrayList<>(p.trace());
+            boolean ok;
+            try {
+                ok = evalCondition(cond, p.event(), p.fireAt(),
+                        String.valueOf(p.strategy().get("name")), "d", trace, values);
+            } catch (RuntimeException e) {
+                throw new IllegalStateException(
+                        "策略「" + p.strategy().get("name") + "」的延迟条件求值失败: "
+                                + e.getMessage(), e);
+            }
+            if (ok) {
+                // 告警时间用到期时刻而不是原事件时刻 —— 判定是在那一刻成立的
+                emit(p.strategy(), p.event(), p.fireAt(), trace);
             }
         }
     }
