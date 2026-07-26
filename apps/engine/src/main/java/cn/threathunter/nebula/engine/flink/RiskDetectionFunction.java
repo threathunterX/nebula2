@@ -44,6 +44,22 @@ public final class RiskDetectionFunction
     private transient VariableGraph graph;
     private transient EventModel model;
     private transient int emitted;
+
+    // ---- 指标。风控系统的失效往往是**静默**的:策略不再命中不会报错,只是告警变少。
+    // 没有这几个数,「今天怎么没告警」这个问题没有任何抓手。
+    private transient org.apache.flink.metrics.Counter eventsIn;
+    private transient org.apache.flink.metrics.Counter eventsSkipped;
+    private transient org.apache.flink.metrics.Counter noticesOut;
+    private transient org.apache.flink.metrics.Counter reloads;
+    private transient org.apache.flink.metrics.Counter coldVariables;
+    private transient long lastNoticeAt;
+
+    /** 计数器未注册时安全跳过 —— **埋点不该成为判定路径上的故障源**。 */
+    private static void bump(org.apache.flink.metrics.Counter c, long n) {
+        if (c != null) {
+            c.inc(n);
+        }
+    }
     /** 当前生效的元数据版本。仅用于日志与诊断,判定逻辑不依赖它。 */
     private transient long metadataVersion;
 
@@ -57,6 +73,11 @@ public final class RiskDetectionFunction
 
     @Override
     public void open(Configuration parameters) {
+        openCore();
+        initMetrics(getRuntimeContext().getMetricGroup());
+    }
+
+    private void openCore() {
         List<VariableDef> vars = new ArrayList<>();
         for (Map<String, Object> m : variableDefs) {
             vars.add(new VariableDef(m));
@@ -73,6 +94,35 @@ public final class RiskDetectionFunction
         engine = new StrategyEngine(strategies, graph, em);
         emitted = 0;
         metadataVersion = 0;
+    }
+
+    /**
+     * 注册指标。
+     *
+     * <p>单独抽出来是因为热更新时本函数被 {@link HotReloadFunction} 包着用 ——
+     * 那时它不是 Flink 直接管理的算子,{@code getRuntimeContext()} 会抛
+     * 「The runtime context has not been initialized」。指标组只能由外层传进来。
+     */
+    void initMetrics(org.apache.flink.metrics.MetricGroup parent) {
+        var group = parent.addGroup("nebula");
+        eventsIn = group.counter("eventsIn");
+        eventsSkipped = group.counter("eventsSkipped");
+        noticesOut = group.counter("noticesOut");
+        reloads = group.counter("metadataReloads");
+        coldVariables = group.counter("coldStartedVariables");
+        lastNoticeAt = 0;
+
+        // 距上次产出告警过去了多久。**这是最重要的一个** —— 事件在进、告警不出,
+        // 是策略配错或数据字段变化时最典型的表现,而它不会以任何方式报错。
+        group.gauge("secondsSinceLastNotice", () ->
+                lastNoticeAt == 0 ? -1L : (System.currentTimeMillis() - lastNoticeAt) / 1000);
+        // 当前生效的元数据版本 —— 排查「改的策略生效了吗」时第一个要看的
+        group.gauge("metadataVersion", () -> metadataVersion);
+    }
+
+    /** 供 {@link HotReloadFunction} 在自己的 open 里完成初始化。 */
+    void openWithout(org.apache.flink.configuration.Configuration parameters) {
+        openCore();
     }
 
     /**
@@ -115,6 +165,8 @@ public final class RiskDetectionFunction
         // 新建一个会让所有内联计数归零 —— 这正是热更新最容易出错、且失效最静默的地方。
         engine = new StrategyEngine(newStrategies, graph, model, engine.valueProvider());
         metadataVersion = version;
+        bump(reloads, 1);
+        bump(coldVariables, cold.size());
         return cold;
     }
 
@@ -126,10 +178,14 @@ public final class RiskDetectionFunction
     public void processElement(Map<String, Object> event,
                                Context ctx,
                                Collector<StrategyEngine.Notice> out) {
+        bump(eventsIn, 1);
         Object nameObj = event.get("name");
         Object tsObj = event.get("timestamp");
         if (nameObj == null || !(tsObj instanceof Number ts)) {
-            return; // 缺少事件名或时间戳的记录无法参与计算
+            // 缺少事件名或时间戳的记录无法参与计算。这个计数必须单独暴露:
+            // 上游字段改名会让全部事件落进这里,而链路本身看起来完全正常。
+            bump(eventsSkipped, 1);
+            return;
         }
         engine.process(event, String.valueOf(nameObj), ts.longValue());
 
@@ -137,6 +193,8 @@ public final class RiskDetectionFunction
         List<StrategyEngine.Notice> all = engine.notices();
         for (int i = emitted; i < all.size(); i++) {
             out.collect(all.get(i));
+            bump(noticesOut, 1);
+            lastNoticeAt = System.currentTimeMillis();
         }
         emitted = all.size();
     }

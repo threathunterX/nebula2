@@ -74,6 +74,11 @@ public class SecurityConfig {
                     // 改写成 401 并附上 Basic 挑战,调用方看到的错误与实际原因无关。
                     .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.ASYNC).permitAll()
                     .requestMatchers("/actuator/health").permitAll()
+                    // 指标端点**必须认证**。它会暴露请求量、错误率、各接口的调用分布 ——
+                    // 也就是业务量级。裸奔的 /actuator/prometheus 是一个免费的商业情报接口。
+                    // 抓取方用一个 VIEWER 账号即可。
+                    .requestMatchers("/actuator/prometheus")
+                        .hasAnyRole("ADMIN", "OPERATOR", "VIEWER")
                     // /checkRisk 只接受服务令牌,且必须带 checkRisk 权限
                     .requestMatchers("/checkRisk").hasAuthority("SCOPE_checkRisk")
                     // 元数据下发给引擎。引擎是服务不是人,走 metadata:read 作用域;

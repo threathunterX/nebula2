@@ -40,7 +40,12 @@ public final class HotReloadFunction
 
     @Override
     public void open(Configuration parameters) throws Exception {
-        inner.open(parameters);
+        // 不能调 inner.open():inner 不是 Flink 直接管理的算子,它的
+        // getRuntimeContext() 会抛「The runtime context has not been initialized」。
+        // 指标组由这里传进去 —— 这个坑是靠作业进入 RESTARTING 才发现的,
+        // 编译期与单元测试都不会暴露它。
+        inner.openWithout(parameters);
+        inner.initMetrics(getRuntimeContext().getMetricGroup());
     }
 
     @Override

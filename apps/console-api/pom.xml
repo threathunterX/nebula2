@@ -65,6 +65,13 @@
       <version>1.5.4</version>
     </dependency>
 
+    <!-- Prometheus 指标端点。actuator 只提供框架,导出格式要靠这个。 -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>

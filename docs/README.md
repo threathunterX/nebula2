@@ -35,7 +35,7 @@
 |---|---|
 | [部署](operations/deployment.md) | Lite 模式、凭据注入、暴露面、升级(Cluster 🚧) |
 | [容量规划](operations/capacity.md) 🚧 | 按流量估算资源 |
-| [监控告警](operations/monitoring.md) 🚧 | 指标、告警项、故障排查 |
+| [监控告警](operations/monitoring.md) | 指标清单、建议告警项、排查顺序 |
 
 ## 安全与合规
 
