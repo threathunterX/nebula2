@@ -1,4 +1,4 @@
-# 采集器 —— Go,零外部依赖,静态编译
+# 采集器 —— Go,静态编译。直接依赖只有 franz-go(Kafka 输出)
 FROM golang:1.26-alpine AS build
 WORKDIR /src
 COPY go.mod ./

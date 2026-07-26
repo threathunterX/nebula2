@@ -17,7 +17,7 @@ import (
 type Config struct {
 	// Source 数据源:stdin | file | http | syslog
 	Source SourceConfig `json:"source"`
-	// Sink 输出:stdout | file
+	// Sink 输出:stdout | file | kafka
 	Sink SinkConfig `json:"sink"`
 	// Masking 脱敏规则。缺省从严,见 mask.DefaultFieldRules。
 	Masking mask.Config `json:"masking"`
@@ -40,6 +40,12 @@ type SourceConfig struct {
 type SinkConfig struct {
 	Type string `json:"type"`
 	Path string `json:"path,omitempty"`
+	// Kafka 输出的配置,type=kafka 时使用。
+	Brokers     string `json:"brokers,omitempty"`
+	Topic       string `json:"topic,omitempty"`
+	ClientID    string `json:"client_id,omitempty"`
+	Acks        string `json:"acks,omitempty"`
+	Compression string `json:"compression,omitempty"`
 }
 
 // Default 缺省配置:从 stdin 读、写 stdout,便于用管道快速验证。

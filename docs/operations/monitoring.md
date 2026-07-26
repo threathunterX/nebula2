@@ -88,7 +88,7 @@ nebula-collector -source http -source-addr 0.0.0.0:9000 \
 
 `/healthz` 用于存活探针。
 
-> 端点由 Go 标准库实现,**没有引入 client_golang** —— 采集器至今零外部依赖,
+> 端点由 Go 标准库实现,**没有引入 client_golang** —— 采集器的依赖面刻意保持很小,
 > 而 Prometheus 的文本格式几十行就够。为这点格式引入一个需要长期跟踪 CVE 的依赖不划算。
 
 ---
