@@ -6,10 +6,18 @@
 版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)。发布流程与版本号规则见
 [发布流程](docs/development/release-process.md)。
 
-> **当前尚未发布任何版本。** 下面 `[Unreleased]` 段落中的内容全部来自尚未打 tag 的提交。
-> 首个 tag 计划为 `v0.1.0`,含义见发布流程文档中的「0.x 阶段的语义」。
-
 ## [Unreleased]
+
+尚无。
+
+## [0.1.0] - 2026-07-26
+
+首个公开版本。**0.x 阶段的兼容性承诺见[发布流程](docs/development/release-process.md)
+§1.2:升 MINOR 就要预期可能需要改配置或改数据。**
+
+这个版本可以 `docker compose up` 起一套完整系统(采集 → Kafka → Flink → 告警 →
+控制面),接入自己的流量做评估。**不能承接生产级流量**:全部组件单节点、无高可用,
+策略改动需重启作业才生效,Helm / Kubernetes 编排尚未开始。
 
 ### Added
 
@@ -211,4 +219,5 @@
 - 另有页面路径写成字面量、备注与实际条件不符等 4 类数据问题,逐条记录在
   `seeds/INVENTORY.md`。
 
-[Unreleased]: https://github.com/threathunterX/nebula2/commits/main
+[Unreleased]: https://github.com/threathunterX/nebula2/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/threathunterX/nebula2/releases/tag/v0.1.0
