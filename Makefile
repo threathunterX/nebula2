@@ -11,7 +11,7 @@ help: ## 显示本帮助
 # ---------- 校验 ----------
 
 .PHONY: validate
-validate: validate-schema validate-seeds docs-check links privacy-check check-env-untracked secrets-scan test-reference test-engine test-console lint ## 跑全部校验(等同 CI 的检查项)
+validate: validate-schema validate-seeds docs-check links test-tools privacy-check check-env-untracked secrets-scan test-reference test-engine test-console lint ## 跑全部校验(等同 CI 的检查项)
 
 .PHONY: validate-schema
 validate-schema: ## 校验 JSON Schema 自身合法
@@ -28,6 +28,10 @@ validate-seeds: ## 校验 seeds 资产符合 schema、引用完整、隐私标�
 .PHONY: links
 links: ## 校验文档内部链接可达
 	@$(PYTHON) tools/check_doc_links.py
+
+.PHONY: test-tools
+test-tools: ## 校验工具自身的测试(隐私检查器等)
+	@$(PYTHON) -m unittest discover -s tools/test -q
 
 .PHONY: privacy-check
 privacy-check: ## 扫描仓库中是否混入真实个人信息或客户标识
@@ -91,7 +95,7 @@ lint: ## 代码风格与静态检查
 	@echo "collector: 格式与静态检查通过"
 
 .PHONY: test
-test: test-reference test-collector test-engine test-console ## 单元测试
+test: test-reference test-collector test-engine test-console test-tools ## 单元测试
 
 .PHONY: test-console
 test-console: ## 控制面测试(认证与授权矩阵)

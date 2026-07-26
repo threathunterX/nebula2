@@ -18,29 +18,82 @@ SKIP_DIRS = {".git", "node_modules", "target", "build", "dist", ".venv", "venv",
 SKIP_SUFFIX = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".pdf", ".zip", ".gz", ".jar", ".woff", ".woff2"}
 
 # 允许的示例值 —— 出现这些不算违规
-ALLOWED_DOMAINS = re.compile(r"(example\.(com|net|org)|localhost|threathunter\.cn|github\.com|"
-                             r"nginx\.org|openresty\.org|apache\.org|json-schema\.org|"
-                             r"conventionalcommits\.org|shields\.io)")
+# 允许的邮箱域名。**按域名精确比对,不做子串匹配。**
+#
+# 早先这里是一条正则,拿整个邮箱地址去 search。于是域名写成 "not" + 允许域名、或者
+# 把允许域名放在自己域名中间(允许域名 + ".攻击者域名"),都会因为含有允许域名的
+# 子串而被放行 —— 想混一个真实邮箱进来,只要把允许的域名当作自己域名的一部分即可。
+# 这个绕过是发布前复审时用探针实测出来的。
+ALLOWED_DOMAINS = {
+    "example.com", "example.net", "example.org", "localhost",
+    "threathunter.cn", "github.com", "nginx.org", "openresty.org",
+    "apache.org", "json-schema.org", "conventionalcommits.org", "shields.io",
+}
 ALLOWED_PHONE = {"13800138000"}
 
 CHECKS = [
     ("真实手机号", re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)"),
      lambda m, line: m.group(0) not in ALLOWED_PHONE),
 
+    # 加校验位判断:真实身份证号必然通过 GB 11643 的 ISO 7064 mod 11-2 校验,
+    # 而形态相同的随机数字串(哈希片段、拼接的时间戳)基本不会。这是提高精确率
+    # 而不降低召回率的改动 —— 误报多了,人就会往允许列表里加例外,那才是真的危险。
     ("身份证号", re.compile(r"(?<!\d)[1-9]\d{5}(19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx](?!\d)"),
-     lambda m, line: True),
+     lambda m, line: _id_checksum_ok(m.group(0))),
 
     ("银行卡号", re.compile(r"(?<!\d)(62|4\d|5[1-5])\d{14,17}(?!\d)"),
-     lambda m, line: True),
+     lambda m, line: _luhn_ok(m.group(0))),
 
-    ("公网 IP 字面量", re.compile(r"(?<![\d.])((?!10\.|127\.|0\.|169\.254\.|192\.168\.|192\.0\.2\.|198\.51\.100\.|203\.0\.113\.|224\.|255\.)"
+    ("公网 IP 字面量", re.compile(r"(?<![\d.])((?!10\.|127\.|0\.|169\.254\.|192\.168\.|192\.0\.2\.|198\.51\.100\.|203\.0\.113\.|255\.)"
                                  r"(?:\d{1,3}\.){3}\d{1,3})(?![\d.])"),
      lambda m, line: _is_public_ip(m.group(0)) and not _looks_like_version(m, line)),
 
     ("非示例域名邮箱", re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
-     lambda m, line: not ALLOWED_DOMAINS.search(m.group(0))),
+     lambda m, line: not _domain_allowed(m.group(0))),
 ]
 
+
+
+def _luhn_ok(number):
+    """Luhn 校验(ISO/IEC 7812)。全部实际发行的银行卡号都满足。"""
+    total, alt = 0, False
+    for ch in reversed(number):
+        d = int(ch)
+        if alt:
+            d *= 2
+            if d > 9:
+                d -= 9
+        total += d
+        alt = not alt
+    return total % 10 == 0
+
+
+_ID_WEIGHTS = (7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2)
+_ID_CHECK = "10X98765432"
+
+
+def _id_checksum_ok(number):
+    """中国大陆身份证的校验位(GB 11643,ISO 7064 mod 11-2)。"""
+    if len(number) != 18:
+        return False
+    try:
+        total = sum(int(number[i]) * _ID_WEIGHTS[i] for i in range(17))
+    except ValueError:
+        return False
+    return number[17].upper() == _ID_CHECK[total % 11]
+
+
+def _domain_allowed(email):
+    """域名必须完全等于允许列表中的某一项,或是它的子域。
+
+    子域也放行(允许域名前面加一级),但「not + 允许域名」不行(它不以「.允许域名」
+    结尾),「允许域名 + 别的后缀」也不行(它的结尾不是允许域名)。
+    """
+    domain = email.rsplit("@", 1)[-1].lower().rstrip(".")
+    for allowed in ALLOWED_DOMAINS:
+        if domain == allowed or domain.endswith("." + allowed):
+            return True
+    return False
 
 
 def _looks_like_version(m, line):
@@ -68,6 +121,10 @@ def _is_public_ip(s):
         return False           # 私有段
     if parts[0] in (0, 10, 127):
         return False
+    if 224 <= parts[0] <= 239:
+        return False           # 组播 224.0.0.0/4 —— 早先只排除了字面量 "224."
+    if parts[0] >= 240:
+        return False           # 保留段 240.0.0.0/4
     return True
 
 
