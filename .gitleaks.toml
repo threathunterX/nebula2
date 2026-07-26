@@ -45,6 +45,11 @@ regexes = [
 paths = [
   '''(^|/)\.venv/''',
   '''(^|/)node_modules/''',
+  # 构建产物。与 node_modules 同理:它们不进版本库,但 --no-git 的工作区扫描会读到。
+  # 具体触发过一次:测试用的假令牌出现在 surefire 的 XML 报告里,被判成 API key,
+  # 于是「跑完测试再跑 make validate」必然失败 —— 一个只有跑全套的人才会撞上的假阳。
+  '''(^|/)target/''',
+  '''(^|/)dist/''',
   # 本机生成的运行时凭据文件。它由 gen-env.sh 生成、被 .gitignore 排除、永不进
   # 版本库,但 --no-git 的工作区扫描会读到它。
   # 这条路径排除会同时作用于历史扫描 —— 也就是说,万一它真被提交了,gitleaks

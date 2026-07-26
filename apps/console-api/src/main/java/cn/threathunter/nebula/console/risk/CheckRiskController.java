@@ -55,6 +55,19 @@ public class CheckRiskController {
                     continue;
                 }
                 for (Map<String, Object> n : notices.get(item.type(), item.value())) {
+                    // 测试态策略的告警不参与线上决策。
+                    //
+                    // 这是 test 状态的**全部意义**:照常计算、照常产出告警供校准,但
+                    // 不影响真实流量。少了这一句,test 与 online 对调用方毫无区别 ——
+                    // 而内置模板 170 条**全部**以 test 状态分发,也就是说全新部署会让
+                    // 这 170 条统统真的拦线上流量,与文档承诺的完全相反。
+                    //
+                    // 过滤放在这里而不是引擎侧:引擎要把 test 告警写进 ClickHouse 供
+                    // 运营观察误报率,那是它存在的理由。真正不能受影响的是这个同步
+                    // 决策接口。
+                    if (Boolean.TRUE.equals(n.get("test"))) {
+                        continue;
+                    }
                     if (req.scene_type() != null && !req.scene_type().isBlank()
                             && !req.scene_type().equalsIgnoreCase(String.valueOf(n.get("scene_name")))) {
                         continue;

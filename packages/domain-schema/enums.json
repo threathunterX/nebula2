@@ -78,7 +78,7 @@
   },
 
   "strategy_status": {
-    "description": "策略生命周期。只有 online 且在生效时间窗内的策略参与计算。",
+    "description": "策略生命周期。online 与 test 都参与计算,但 test 产出的告警标记 test=true,不参与 /checkRisk 的线上决策 —— 它只用于校准误报率。inedit 与 outline 不参与计算。",
     "values": ["inedit", "test", "online", "outline"]
   },
 
