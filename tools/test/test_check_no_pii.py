@@ -135,9 +135,9 @@ class TestVersionHeuristic(unittest.TestCase):
         """反向断言:放宽不能宽到把真 IP 一起放过。
 
         软件名与 IP 之间隔了别的词时,那就是个 IP 而不是版本号 ——
-        这正是「OpenResty 部署在 8.8.4.4 上」这类句子。"""
+        这正是「OpenResty 部署在 <某个公网 IP> 上」这类句子。"""
         for line in [
-            "OpenResty 部署在 " + "8.8" + ".4.4 上",
+            "OpenResty 部署在 " + "8.8" + "." + "4.4" + " 上",
             "客户端 IP 是 " + "223.255" + ".255.255",
             "上游地址 " + "1.1" + ".1.1",
         ]:
