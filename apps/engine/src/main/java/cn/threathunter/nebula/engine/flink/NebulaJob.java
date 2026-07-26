@@ -1,5 +1,6 @@
 package cn.threathunter.nebula.engine.flink;
 
+import cn.threathunter.nebula.engine.meta.MetadataClient;
 import cn.threathunter.nebula.engine.rule.StrategyEngine;
 import cn.threathunter.nebula.engine.sink.ClickHouseRows;
 import cn.threathunter.nebula.engine.sink.ClickHouseSink;
@@ -38,6 +39,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  *     --seeds /etc/nebula/seeds
  * </pre>
  *
+ * <p>元数据来源:给了 {@code --console-url} 就从控制面拉(数据库是唯一事实来源),
+ * 否则读本地 {@code --seeds} 目录。凭据从环境变量 {@code NEBULA_CONSOLE_TOKEN} 取。
+ *
  * <p><b>当前限制:并行度必须为 1。</b>变量按不同维度分组(ip / uid / did / page),
  * 一次 keyBy 无法同时满足。按维度拆链路再汇聚是下一步的工作,见
  * {@link RiskDetectionFunction} 的说明。
@@ -55,6 +59,9 @@ public final class NebulaJob {
         String sourceTopic = opts.getOrDefault("source-topic", "nebula.events");
         String sinkTopic = opts.getOrDefault("sink-topic", "nebula.notice");
         String seeds = opts.getOrDefault("seeds", "seeds");
+        // 元数据优先从控制面拉。给了 --console-url 就以数据库为唯一事实来源,
+        // 本地 seeds 目录退回它本来的角色:首次导入的种子数据。
+        String consoleUrl = opts.get("console-url");
         String group = opts.getOrDefault("group", "nebula-engine");
         // ClickHouse 凭据只从环境变量取,不接受命令行传入 —— 命令行会进程列表可见
         String chUrl = System.getenv().getOrDefault("CLICKHOUSE_URL", "http://127.0.0.1:8123");
@@ -89,11 +96,15 @@ public final class NebulaJob {
                     chUrl, chUser, chPassword)).name("clickhouse-events");
         }
 
+        Metadata meta = loadMetadata(consoleUrl, seeds);
+        System.out.println("元数据来源: " + meta.origin()
+                + "(事件 " + meta.events().size()
+                + " / 变量 " + meta.variables().size()
+                + " / 策略 " + meta.strategies().size() + ")");
+
         DataStream<StrategyEngine.Notice> notices = events.process(
                 new RiskDetectionFunction(
-                        loadDir(seeds, "strategies"),
-                        loadDir(seeds, "variables"),
-                        loadDir(seeds, "events")));
+                        meta.strategies(), meta.variables(), meta.events()));
 
         if (toClickHouse) {
             notices.addSink(new ClickHouseSink<StrategyEngine.Notice>(
@@ -173,6 +184,40 @@ public final class NebulaJob {
             return MAPPER.writeValueAsString(m);
         } catch (Exception e) {
             throw new IllegalStateException("序列化告警失败", e);
+        }
+    }
+
+    record Metadata(String origin,
+                    List<Map<String, Object>> strategies,
+                    List<Map<String, Object>> variables,
+                    List<Map<String, Object>> events) {
+    }
+
+    /**
+     * 加载元数据。
+     *
+     * <p>给了 {@code --console-url} 就从控制面拉,<b>失败即启动失败</b>,不回落到
+     * 本地文件。回落看起来「更健壮」,实际是最糟的结果:作业带着一份不知多旧的
+     * 策略跑起来,而且没有任何迹象表明它没连上控制面 —— 运营改了策略以为生效了,
+     * 线上判定却还是旧的。宁可起不来。
+     */
+    static Metadata loadMetadata(String consoleUrl, String seedsDir) {
+        if (consoleUrl == null || consoleUrl.isBlank()) {
+            return new Metadata("本地 seeds 目录 " + seedsDir,
+                    loadDir(seedsDir, "strategies"),
+                    loadDir(seedsDir, "variables"),
+                    loadDir(seedsDir, "events"));
+        }
+        try {
+            MetadataClient.Bundle b = MetadataClient.fromEnv(consoleUrl).bundle();
+            return new Metadata("控制面 " + consoleUrl + " v" + b.version(),
+                    b.strategies(), b.variables(), b.events());
+        } catch (IOException | RuntimeException e) {
+            // 网络不通、令牌缺失、令牌作用域不对 —— 原因不同,但对运维是同一件事:
+            // 元数据没拿到,作业不该起来。统一包装,别让「缺环境变量」这类异常
+            // 以另一种面貌冒出去,看着像是代码 bug 而不是配置问题。
+            throw new IllegalStateException(
+                    "从控制面加载元数据失败,作业不启动: " + e.getMessage(), e);
         }
     }
 

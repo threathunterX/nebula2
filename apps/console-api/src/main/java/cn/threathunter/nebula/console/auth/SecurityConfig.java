@@ -69,6 +69,12 @@ public class SecurityConfig {
                     .requestMatchers("/actuator/health").permitAll()
                     // /checkRisk 只接受服务令牌,且必须带 checkRisk 权限
                     .requestMatchers("/checkRisk").hasAuthority("SCOPE_checkRisk")
+                    // 元数据下发给引擎。引擎是服务不是人,走 metadata:read 作用域;
+                    // 人类角色也允许读,便于排查「引擎到底拿到了哪一版」。
+                    .requestMatchers(org.springframework.http.HttpMethod.GET,
+                            "/api/v2/metadata/**")
+                        .hasAnyAuthority("SCOPE_metadata:read",
+                                "ROLE_ADMIN", "ROLE_OPERATOR", "ROLE_VIEWER")
                     // 读接口:任意已认证的人类角色
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v2/**")
                         .hasAnyRole("ADMIN", "OPERATOR", "VIEWER")

@@ -112,6 +112,8 @@ curl -XPOST localhost:8080/checkRisk -H 'Content-Type: application/json' \
 | POST | `/api/v2/users` | 建号,口令由服务端生成且只返回一次,仅 ADMIN |
 | GET | `/api/v2/alerts` | 告警查询,必须带时间范围 |
 | GET | `/api/v2/alerts/trend` | 按小时的告警趋势 |
+| GET | `/api/v2/metadata/version` | 元数据版本号,供引擎轮询 |
+| GET | `/api/v2/metadata/bundle` | 事件 / 变量 / 策略全量,供引擎加载 |
 
 ### 告警查询
 
@@ -171,6 +173,30 @@ curl -u admin:<口令> -XPUT localhost:8080/api/v2/strategies/IP下单不支付 
 为什么突然报了十倍」查不出来:定义表里只有当前值,阈值被谁在什么时候从 100 改到
 10 没有任何痕迹;审计日志记了「发生过一次修改」,但记不下改前改后的完整定义 ——
 那是业务数据,不该塞进审计表。
+
+### 元数据下发
+
+引擎启动时带 `--console-url` 就从这里取事件、变量与策略,不再读本地 `seeds/`:
+
+```bash
+export NEBULA_CONSOLE_TOKEN='svc_xxx.yyy'   # 需要 metadata:read 作用域
+flink run nebula-engine.jar --console-url http://console:8080 --brokers ...
+```
+
+此前控制面把策略写进 PostgreSQL、引擎从文件加载,**同一份领域模型有两个事实
+来源**。运营改完策略引擎毫无察觉,而两边的分歧不会有任何报错 —— 1.x 就是这么
+走过来的。现在数据库是唯一事实来源,`seeds/` 退回它本来的角色:首次导入的种子
+数据。
+
+`/bundle` 默认只下发 `online` 与 `test` 状态的策略。`inedit` 是没写完的草稿,
+`outline` 是已下线的,把它们发给引擎等于让草稿直接影响线上判定。
+
+**拉取失败即启动失败,不回落到本地文件。** 回落看起来更健壮,实际是最糟的结果:
+作业带着一份不知多旧的策略跑起来,且没有任何迹象表明它没连上控制面。宁可起不来。
+
+`/version` 单独提供是为了让引擎轮询一个整数而不是每次传全量。响应里的 `version`
+先于内容读取 —— 反过来会得到「较新的版本号 + 偏旧的内容」,引擎认为自己已是最新,
+改动永远不生效。
 
 ## 元数据为什么用 JSONB
 

@@ -25,6 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class MetadataStore {
 
+    private static final Set<String> VALID_STATUS =
+            Set.of("inedit", "test", "online", "outline");
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final JdbcTemplate jdbc;
@@ -298,6 +301,42 @@ public class MetadataStore {
             all.addAll(inherited(p, own, parents, seen));
         }
         return all;
+    }
+
+    /** 全部事件定义,用于向引擎下发。 */
+    public List<JsonNode> allEventDefinitions() {
+        return jdbc.query("SELECT definition::text FROM event_models ORDER BY name",
+                (rs, i) -> parse(rs.getString(1)));
+    }
+
+    /** 全部变量定义。 */
+    public List<JsonNode> allVariableDefinitions() {
+        return jdbc.query("SELECT definition::text FROM variables ORDER BY name",
+                (rs, i) -> parse(rs.getString(1)));
+    }
+
+    /**
+     * 按状态筛选的策略定义。
+     *
+     * <p>状态取值走枚举校验:它会进 SQL 的 IN 列表,而 IN 列表的元素个数不定,
+     * 只能拼参数占位符。校验之后拼的是 {@code ?} 的个数,值仍然走绑定参数。
+     */
+    public List<JsonNode> strategyDefinitionsByStatus(String statusCsv) {
+        List<String> wanted = new ArrayList<>();
+        for (String s : statusCsv.split(",")) {
+            String t = s.trim();
+            if (!t.isEmpty() && VALID_STATUS.contains(t)) {
+                wanted.add(t);
+            }
+        }
+        if (wanted.isEmpty()) {
+            return List.of();
+        }
+        String placeholders = String.join(",", java.util.Collections.nCopies(wanted.size(), "?"));
+        return jdbc.query(
+                "SELECT definition::text FROM strategies WHERE status IN (" + placeholders + ") "
+                        + "ORDER BY name",
+                (rs, i) -> parse(rs.getString(1)), wanted.toArray());
     }
 
     public long metadataVersion() {
