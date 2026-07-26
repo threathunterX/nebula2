@@ -1,5 +1,5 @@
 # 采集器 —— Go,零外部依赖,静态编译
-FROM golang:1.23-alpine AS build
+FROM golang:1.26-alpine AS build
 WORKDIR /src
 COPY go.mod ./
 COPY . .
