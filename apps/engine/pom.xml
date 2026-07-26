@@ -22,7 +22,7 @@
     <junit.version>5.11.3</junit.version>
     <!-- 必须与 Flink 运行时自带的 jackson-core 对齐(Flink 1.20 为 2.15.2),
          否则运行期报 NoSuchMethodError -->
-    <jackson.version>2.15.2</jackson.version>
+    <jackson.version>2.22.1</jackson.version>
     <flink.version>1.20.0</flink.version>
   </properties>
 
