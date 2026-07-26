@@ -15,7 +15,7 @@ import (
 
 // Config 采集器完整配置。
 type Config struct {
-	// Source 数据源:stdin | file | http
+	// Source 数据源:stdin | file | http | syslog
 	Source SourceConfig `json:"source"`
 	// Sink 输出:stdout | file
 	Sink SinkConfig `json:"sink"`
@@ -31,7 +31,9 @@ type Config struct {
 type SourceConfig struct {
 	Type string `json:"type"`
 	Path string `json:"path,omitempty"` // file
-	Addr string `json:"addr,omitempty"` // http 监听地址
+	Addr string `json:"addr,omitempty"` // http / syslog 监听地址
+	// Network syslog 的传输,udp(默认)或 tcp。
+	Network string `json:"network,omitempty"`
 }
 
 // SinkConfig 输出配置。

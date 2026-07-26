@@ -110,8 +110,9 @@ echo '{"name":"ACCOUNT_LOGIN","timestamp":1784944800000,"c_ip":"198.51.100.1",
 
 | | |
 |---|---|
-| [采集器](apps/collector/)(Go 单二进制,含脱敏引擎) | ✅ stdin / 文件 / HTTP |
-| Kafka / syslog / Zeek 旁路数据源 | 🚧 |
+| [采集器](apps/collector/)(Go 单二进制,含脱敏引擎) | ✅ stdin / 文件 / HTTP / syslog |
+| [syslog 接入](apps/collector/#syslog)(RFC 3164 / 5424,UDP 与 TCP) | ✅ |
+| Kafka 数据源与输出 | 🚧 |
 
 **计算**
 
@@ -229,7 +230,7 @@ flowchart TB
 
 | 层 | 选型 | 说明 |
 |---|---|---|
-| 采集 | **Go** 单二进制 | 当前支持 stdin / 文件 / HTTP;Kafka、syslog、OpenResty Lua、Zeek 旁路 🚧 |
+| 采集 | **Go** 单二进制 | 当前支持 stdin / 文件 / HTTP / syslog(Zeek 配成 JSON 后走这两条);Kafka 与 OpenResty Lua 🚧 |
 | 计算 | **Apache Flink** | 事件时间语义、精确一次、状态可恢复;统一了 1.x 的实时与离线两套引擎 |
 | 规则表达式 | **CEL** | 类型安全、沙箱执行、跨语言实现一致 |
 | 消息 | **Kafka / Redpanda** | 兼作事件持久化与重放 |

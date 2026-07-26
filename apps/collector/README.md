@@ -11,12 +11,79 @@ Go 编写,零外部依赖,单二进制部署 —— 采集器要装到客户环�
 | 事件模型与单继承链 | ✅ |
 | 脱敏引擎(drop / hash / partial / regex) | ✅ |
 | 数据源:stdin、file、http | ✅ |
+| 数据源:syslog(RFC 3164 / 5424,UDP 与 TCP) | ✅ |
+| HTTP 接入口的共享令牌校验 | ✅ |
 | 输出:stdout、file(JSON Lines) | ✅ |
 | 运行指标与脱敏统计 | ✅ |
 | Prometheus 指标端点(零依赖,标准库实现) | ✅ |
-| 数据源:Kafka、syslog、Zeek 旁路 | 🚧 |
+| 数据源:Kafka | 🚧 |
 | 输出:Kafka | 🚧 |
 | 配置热加载 | 🚧 |
+
+## 接入方式
+
+### HTTP
+
+```bash
+NEBULA_COLLECTOR_TOKEN=$(openssl rand -hex 24) \
+  ./nebula-collector -source http -source-addr 127.0.0.1:8088 -events ../../seeds/events
+```
+
+```bash
+curl -X POST http://127.0.0.1:8088/v2/events \
+  -H "X-Nebula-Token: $NEBULA_COLLECTOR_TOKEN" \
+  -d '{"name":"ACCOUNT_LOGIN","uid":"u1","c_ip":"198.51.100.1"}'
+```
+
+令牌也接受 `Authorization: Bearer <token>` 写法。**令牌从环境变量读,不从命令行传** ——
+命令行参数会出现在 `ps` 输出、shell 历史与容器的 inspect 里。
+
+**不设 `NEBULA_COLLECTOR_TOKEN` 时不校验,但启动会打印警告。** 这是刻意的:
+「忘了配」和「明确决定不配」在日志里必须能区分开。采集器入口是名单投毒最直接的
+路径 —— 能连到端口的人都可以伪造事件,比如用受害者的账号名造一批假行为把它刷进
+黑名单。
+
+共享令牌**不区分调用方**,令牌泄露后没法只吊销一个。需要按客户端区分身份与吊销时,
+正确做法是在前面放反向代理做 mTLS,而不是把身份体系塞进采集器。
+
+### syslog
+
+```bash
+# UDP(默认)—— 绝大多数网络设备只支持它
+./nebula-collector -source syslog -source-addr 0.0.0.0:514 -events ../../seeds/events
+
+# TCP —— 不丢包,设备支持时优先用
+./nebula-collector -source syslog -syslog-network tcp -source-addr 0.0.0.0:514 -events ../../seeds/events
+```
+
+514 能不能以非 root 绑上,**取决于平台**:传统 Linux 要 root 或 `CAP_NET_BIND_SERVICE`;
+而 Docker / Colima 的内核把 `net.ipv4.ip_unprivileged_port_start` 设成了 0,容器里
+直接就能绑;macOS 也能。**别用本地能跑通来判断线上行不行** —— 起不来时给二进制加
+`CAP_NET_BIND_SERVICE`,或者监听高位端口再由设备/转发层改发过去,不要为了这个把
+采集器跑成 root。
+
+支持 RFC 3164(BSD syslog)与 RFC 5424,靠首部形态自动区分。
+
+**消息体是 JSON 时直接展开成事件字段**,这是唯一不用猜格式就能拿到结构化数据的
+路径 —— Zeek、Suricata 这类工具都能配成 JSON 输出。不是 JSON 时退化成一条带
+`message` 字段的事件,并保留首部里的 facility / severity / hostname / tag。
+
+**不做正则提取。** 各家设备的文本格式互不相同,内置一套正则等于承诺维护它们;
+而写错一个正则的表现是「某类日志的某个字段永远为空」,不会报错。
+
+两条要知道的:
+
+- **UDP 会丢包且不保证顺序**,丢的那条可能正是要命中策略的那条。设备支持 TCP 时用 TCP。
+- **syslog 协议没有认证的位置。** 只能绑定内网地址 + 网络策略限制来源,采集器启动时
+  会打印这条提示。
+
+### Zeek
+
+Zeek 配成 JSON 日志之后,两条路都通:写文件用 `-source file`,发 syslog 用
+`-source syslog`。**没有单独的 Zeek 驱动** —— 它的输出就是 JSON,再包一层只是
+多一个要维护的东西。
+
+---
 
 ## 快速试用
 
