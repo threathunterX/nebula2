@@ -11,4 +11,8 @@ set -a; . compose/.env; set +a
 
 echo "== ClickHouse =="
 python3 schema/apply_clickhouse.py
+
+echo "== PostgreSQL =="
+python3 schema/apply_postgres.py
+
 echo "  完成"

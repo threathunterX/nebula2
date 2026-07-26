@@ -3,6 +3,7 @@ package cn.threathunter.nebula.engine.flink;
 import cn.threathunter.nebula.engine.rule.StrategyEngine;
 import cn.threathunter.nebula.engine.sink.ClickHouseRows;
 import cn.threathunter.nebula.engine.sink.ClickHouseSink;
+import cn.threathunter.nebula.engine.sink.RedisNoticeSink;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -98,6 +99,16 @@ public final class NebulaJob {
             notices.addSink(new ClickHouseSink<StrategyEngine.Notice>(
                     "nebula.notices", ClickHouseRows::notice, 200, 2000,
                     chUrl, chUser, chPassword)).name("clickhouse-notices");
+        }
+
+        // 名单写 Redis,供控制面的 /checkRisk 同步查询
+        String redisHost = System.getenv().getOrDefault("REDIS_HOST", "127.0.0.1");
+        String redisPassword = System.getenv("REDIS_PASSWORD");
+        if (redisPassword != null && !redisPassword.isBlank()) {
+            int redisPort = Integer.parseInt(
+                    System.getenv().getOrDefault("REDIS_PORT", "6379"));
+            notices.addSink(new RedisNoticeSink(redisHost, redisPort, redisPassword,
+                    "nebula:notice:")).name("redis-notices");
         }
 
         KafkaSink<String> sink = KafkaSink.<String>builder()

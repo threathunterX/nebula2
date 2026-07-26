@@ -1,0 +1,38 @@
+server:
+  port: ${NEBULA_CONSOLE_PORT:8080}
+  shutdown: graceful
+
+spring:
+  application:
+    name: nebula-console-api
+  datasource:
+    # 凭据只从环境变量注入 —— 配置文件里不允许出现任何可用凭据,见 SECURITY.md。
+    # 缺少时启动即失败,不回落到默认值。
+    url: jdbc:postgresql://${POSTGRES_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/${POSTGRES_DB:nebula}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 5000
+
+nebula:
+  redis:
+    host: ${REDIS_HOST:127.0.0.1}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD}
+  # 名单键前缀。与引擎写入侧约定一致。
+  notice-key-prefix: "nebula:notice:"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: WARN
+    cn.threathunter.nebula: INFO

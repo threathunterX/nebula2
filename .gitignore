@@ -39,6 +39,7 @@ tmp/
 # 采集器构建产物(含斜杠的模式锚定在仓库根,必须写全路径)
 apps/collector/nebula-collector
 apps/engine/target/
+apps/console-api/target/
 
 # Python
 __pycache__/
@@ -46,3 +47,4 @@ __pycache__/
 .venv/
 venv/
 deploy/compose/.env
+console-api/target/
