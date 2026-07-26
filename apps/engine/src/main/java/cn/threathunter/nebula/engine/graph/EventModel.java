@@ -21,6 +21,21 @@ public final class EventModel {
 
     private final Map<String, Map<String, Object>> models = new HashMap<>();
 
+    /**
+     * 继承链缓存。
+     *
+     * <p><b>这是热路径上最贵的一处。</b>{@code isA} 被每条事件调用数百次(每条策略的
+     * trigger 匹配一次,变量图的每个节点再匹配一次),而原实现每次都新建一个
+     * {@code ArrayList} 加一个 {@code HashSet} 走一遍继承链,再做线性 {@code contains}。
+     * 10 万条事件 × 170 条策略就是上千万次这样的分配。
+     *
+     * <p>模型在构造后不再变化,链路可以一次算完。这里存 {@code Set} 而不是
+     * {@code List}:{@code isA} 要的是包含判断,而 {@code chainOf} 的顺序语义
+     * (由近及远)另有调用方依赖,所以两份都留。
+     */
+    private final Map<String, List<String>> chains = new HashMap<>();
+    private final Map<String, Set<String>> chainSets = new HashMap<>();
+
     public EventModel(List<Map<String, Object>> defs) {
         for (Map<String, Object> d : defs) {
             Object n = d.get("name");
@@ -28,11 +43,28 @@ public final class EventModel {
                 models.put(String.valueOf(n), d);
             }
         }
+        // 构造时一次算完:模型此后不变,而运行期每次现算是纯粹的浪费
+        for (String name : models.keySet()) {
+            List<String> chain = computeChain(name);
+            chains.put(name, List.copyOf(chain));
+            chainSets.put(name, Set.copyOf(chain));
+        }
     }
 
-    /** 事件自身 + 全部祖先,由近及远。根事件的 source 指向自身,到此为止。 */
-    @SuppressWarnings("unchecked")
+    /**
+     * 事件自身 + 全部祖先,由近及远。根事件的 source 指向自身,到此为止。
+     *
+     * <p>模型里没有的事件名不会被缓存 —— 现算一条只含它自己的链返回,与原行为一致。
+     * 这条路径在生产中不该出现(事件名不在模型里说明上游发了未知类型),但静默
+     * 返回空会让调用方看到「这条事件不属于任何链」而不是「这个名字是错的」。
+     */
     public List<String> chainOf(String name) {
+        List<String> cached = chains.get(name);
+        return cached != null ? cached : computeChain(name);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> computeChain(String name) {
         List<String> out = new ArrayList<>();
         Set<String> guard = new HashSet<>();
         String cur = name;
@@ -57,7 +89,8 @@ public final class EventModel {
     }
 
     public boolean isA(String name, String target) {
-        return chainOf(name).contains(target);
+        Set<String> cached = chainSets.get(name);
+        return cached != null ? cached.contains(target) : computeChain(name).contains(target);
     }
 
     public Set<String> names() {

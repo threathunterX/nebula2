@@ -46,6 +46,10 @@ public final class WindowedAggregate {
     private final List<Entry> events = new ArrayList<>(); // 滑动窗口用
     private Accumulator acc;                              // 滚动 / 无界用
     private Long currentWindowStart;
+    /** 上次求值的时刻与结果。cachedAt 为 MIN_VALUE 表示无效。 */
+    private long cachedAt = Long.MIN_VALUE;
+    private Object cachedValue;
+
     private long lateAccepted;
     private long lateDropped;
 
@@ -67,6 +71,9 @@ public final class WindowedAggregate {
     }
 
     public Outcome add(Object value, EventMeta meta) {
+        // 任何写入都让缓存失效。放在最前面 —— 放在后面的话中途 return 的分支
+        // (迟到丢弃)会漏掉,而那种漏掉表现为「某些情况下读到旧值」,极难查。
+        cachedAt = Long.MIN_VALUE;
         long ts = meta.timestamp();
         long wm = meta.watermark();
 
@@ -109,16 +116,40 @@ public final class WindowedAggregate {
      * 明面上,便于对照。生产实现应改为增量聚合,但结果必须一致。
      */
     public Object value(long now) {
+        // 同一时刻的重复读直接复用。这不是「近似」:滑动窗口的取值只由 now 与窗口内
+        // 的事件集合决定,两者都没变时结果必然相同。
+        //
+        // 为什么值得做:一条事件到达时,多条策略会各自读同一个变量,而每次读都要
+        // 裁剪 + 从头重算一遍窗口。170 条内置策略的变量引用大量重叠,重复读是常态。
+        if (now == cachedAt) {
+            return cachedValue;
+        }
+        Object result;
         if (period.kind() == Period.Kind.SLIDING) {
             long cutoff = now - period.sizeMs();
-            events.removeIf(e -> e.meta().timestamp() <= cutoff);
+            // 先看有没有需要裁剪的。removeIf 无论是否删除都要走一遍全表,而多数时候
+            // 一条都不过期 —— 窗口通常远长于事件间隔。
+            boolean anyExpired = false;
+            for (Entry e : events) {
+                if (e.meta().timestamp() <= cutoff) {
+                    anyExpired = true;
+                    break;
+                }
+            }
+            if (anyExpired) {
+                events.removeIf(e -> e.meta().timestamp() <= cutoff);
+            }
             Accumulator a = Operators.create(method, config);
             for (Entry e : events) {
                 a.add(e.value(), e.meta());
             }
-            return a.value();
+            result = a.value();
+        } else {
+            result = acc != null ? acc.value() : Operators.create(method, config).value();
         }
-        return acc != null ? acc.value() : Operators.create(method, config).value();
+        cachedAt = now;
+        cachedValue = result;
+        return result;
     }
 
     public long lateAccepted() {
