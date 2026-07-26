@@ -118,6 +118,75 @@ public final class VariableGraph {
         return List.copyOf(order);
     }
 
+    /**
+     * 按新的变量定义与引用集合扩展本图,**已存在的节点连同其累积状态原样保留**。
+     *
+     * <p>这是策略热更新能成立的前提。如果换策略时重建整张图,所有窗口计数会归零 ——
+     * 「IP 5 分钟内登录失败次数」在改完阈值的那一刻变回 0,攻击正好在那个窗口里溜过去。
+     * <b>改一个阈值的代价不该是丢掉全部在途状态。</b>
+     *
+     * <p><b>只增不减。</b>不再被引用的变量保留其节点:策略在 test / online 之间来回切
+     * 是常见操作,每切一次就清空状态会让热更新失去意义。变量总数有上界(内置 253 个),
+     * 保留全部的内存代价是有限的。
+     *
+     * <p>新引入的变量必然从零开始 —— 它此前没有在算,没有历史可继承。这是事实不是缺陷,
+     * 但运维需要知道:<b>新变量要经过一个完整窗口期才会给出有意义的值。</b>
+     *
+     * @return 本次新建的节点名,即冷启动的那些
+     */
+    public Set<String> extendTo(List<VariableDef> variables, Set<String> needed) {
+        for (VariableDef v : variables) {
+            // 定义可能被改过。替换 defs 中的定义,但不动已有 Node —— Node 持有的是
+            // 累积值,与定义的字面内容无关。
+            defs.put(v.name(), v);
+        }
+        Set<String> scope = needed == null ? new LinkedHashSet<>(defs.keySet()) : closureOf(needed);
+        Set<String> before = new LinkedHashSet<>(nodes.keySet());
+
+        // 重做拓扑排序:新变量可能插在已有变量之间。order 重建,nodes 保留。
+        order.clear();
+        Set<String> visiting = new LinkedHashSet<>();
+        Set<String> done = new HashSet<>();
+        Set<String> all = new LinkedHashSet<>(scope);
+        all.addAll(before);            // 已有节点即便不再被引用也留在图中
+        List<String> sorted = new ArrayList<>(all);
+        sorted.sort(Comparator.naturalOrder());
+        for (String n : sorted) {
+            visitPreserving(n, visiting, done, new ArrayList<>());
+        }
+
+        Set<String> added = new LinkedHashSet<>(nodes.keySet());
+        added.removeAll(before);
+        return added;
+    }
+
+    /** 与 {@link #visit} 相同,但已存在的 Node 不重建 —— 重建会丢掉它的累积状态。 */
+    private void visitPreserving(String name, Set<String> visiting, Set<String> done,
+                                 List<String> path) {
+        if (done.contains(name)) {
+            return;
+        }
+        if (!visiting.add(name)) {
+            List<String> cycle = new ArrayList<>(path);
+            cycle.add(name);
+            throw new IllegalStateException("变量定义存在循环依赖: " + String.join(" -> ", cycle));
+        }
+        VariableDef def = defs.get(name);
+        if (def != null && !"event".equals(def.type())) {
+            List<String> next = new ArrayList<>(path);
+            next.add(name);
+            for (String src : def.sources()) {
+                visitPreserving(src, visiting, done, next);
+            }
+        }
+        visiting.remove(name);
+        done.add(name);
+        if (def != null) {
+            order.add(name);
+            nodes.computeIfAbsent(name, k -> new Node(def));
+        }
+    }
+
     // ------------------------------------------------------------ Checkpoint
 
     /**

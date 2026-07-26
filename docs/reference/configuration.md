@@ -59,6 +59,7 @@
 | `--group` | `nebula-engine` | 消费组 |
 | `--console-url` | — | 控制面地址。**给了就从控制面加载元数据**,不再读 `--seeds` |
 | `--seeds` | `seeds` | 本地资产目录,仅在未给 `--console-url` 时使用 |
+| `--metadata-poll-seconds` | `30` | 元数据轮询间隔。仅在给了 `--console-url` 时生效 |
 
 **环境变量**:
 

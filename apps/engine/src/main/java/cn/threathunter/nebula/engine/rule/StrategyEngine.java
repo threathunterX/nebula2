@@ -70,6 +70,26 @@ public final class StrategyEngine {
     public StrategyEngine(List<Map<String, Object>> strategies,
                           VariableGraph graph,
                           EventModel eventModel) {
+        this(strategies, graph, eventModel, null);
+    }
+
+    /**
+     * 复用已有的 {@link LocalValueProvider} 构造 —— **策略热更新用这个入口**。
+     *
+     * <p>内置策略大量使用<b>内联 counter</b>(条件里直接写聚合定义,而不是引用具名变量),
+     * 它们的窗口状态存在 LocalValueProvider 里,<b>不在 VariableGraph 里</b>。
+     * 热更新时只复用变量图是不够的:内联 counter 会随新建的 provider 一起归零,
+     * 「IP 5 分钟内登录失败次数」在改完阈值的那一刻变回 0。
+     *
+     * <p>这一点是被测试抓出来的 —— 只凭「保留变量图」的直觉会漏掉它,而漏掉的后果是
+     * 静默的:不报错、不中断,只是告警在那一刻之后少了一批。
+     *
+     * @param reuse 复用的取值提供者;为 null 时新建
+     */
+    public StrategyEngine(List<Map<String, Object>> strategies,
+                          VariableGraph graph,
+                          EventModel eventModel,
+                          LocalValueProvider reuse) {
         for (Map<String, Object> s : strategies) {
             String status = String.valueOf(s.getOrDefault("status", ""));
             // 只有 online 与 test 状态参与计算;test 产出的告警标记 test=true
@@ -79,7 +99,12 @@ public final class StrategyEngine {
         }
         this.graph = graph;
         this.eventModel = eventModel;
-        this.localValues = new LocalValueProvider(graph);
+        this.localValues = reuse != null ? reuse : new LocalValueProvider(graph);
+    }
+
+    /** 供热更新复用,以保住内联 counter 的窗口状态。 */
+    public LocalValueProvider valueProvider() {
+        return localValues;
     }
 
     public List<Notice> notices() {
