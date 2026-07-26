@@ -97,6 +97,25 @@ colima stop                  # 停止虚拟机
 docker compose logs console-api | grep -A4 已创建初始管理员账号
 ```
 
+**这条命令只在首次启动后有输出。** 引导逻辑发现库里已有账号就不再执行,所以重跑
+`up` 不会重新打印。口令以 Argon2id 存储,任何地方都取不回明文。
+
+如果错过了或忘了,重置的办法是清掉账号让引导重新执行一次:
+
+```bash
+docker compose exec postgres sh -c \
+  'PGPASSWORD=$POSTGRES_PASSWORD psql -U $POSTGRES_USER -d nebula \
+   -c "DELETE FROM users WHERE username='"'"'admin'"'"';"'
+docker compose restart console-api
+docker compose logs console-api | grep -A4 已创建初始管理员账号
+```
+
+> 注意单引号:变量要在**容器内**展开。写成 `-e PGPASSWORD="$POSTGRES_PASSWORD"` 的话,
+> `$POSTGRES_PASSWORD` 在你的 shell 里展开 —— 除非你先 source 过 `.env`,否则拿到的是
+> 空值,报错是 `fe_sendauth: no password supplied`。容器里这些变量本来就有。
+
+> 这会删掉 admin 账号本身。如果你已经建了别的管理员,用那个登录再重设更稳妥。
+
 种子导入是编排的一部分,不是「起来之后再手动跑一下」—— 库空着的时候控制面能
 登录但什么也管不了,引擎拉到的 bundle 是空的,而这两者都不会报错。「起来了」
 和「能用」应该是同一件事。
