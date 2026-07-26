@@ -11,7 +11,7 @@ help: ## 显示本帮助
 # ---------- 校验 ----------
 
 .PHONY: validate
-validate: validate-schema validate-seeds docs-check links privacy-check check-env-untracked secrets-scan test-reference test-engine lint ## 跑全部校验(等同 CI 的检查项)
+validate: validate-schema validate-seeds docs-check links privacy-check check-env-untracked secrets-scan test-reference test-engine test-console lint ## 跑全部校验(等同 CI 的检查项)
 
 .PHONY: validate-schema
 validate-schema: ## 校验 JSON Schema 自身合法
@@ -91,7 +91,11 @@ lint: ## 代码风格与静态检查
 	@echo "collector: 格式与静态检查通过"
 
 .PHONY: test
-test: test-reference test-collector test-engine ## 单元测试
+test: test-reference test-collector test-engine test-console ## 单元测试
+
+.PHONY: test-console
+test-console: ## 控制面测试(认证与授权矩阵)
+	@cd apps/console-api && mvn -B -q test
 
 .PHONY: test-engine
 test-engine: ## 引擎算子层测试(含与参考引擎的共享向量对照)

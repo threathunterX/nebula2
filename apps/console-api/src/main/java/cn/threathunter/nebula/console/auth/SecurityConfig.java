@@ -1,8 +1,6 @@
 package cn.threathunter.nebula.console.auth;
 
 import jakarta.servlet.DispatcherType;
-import java.util.List;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -80,32 +78,5 @@ public class SecurityConfig {
             .httpBasic(basic -> {
             });
         return http.build();
-    }
-
-    /**
-     * 首次启动初始化。
-     *
-     * <p><b>零默认口令</b>:不内置 admin/admin,也不从配置文件读口令 —— 配置文件
-     * 会被提交、备份、复制到测试环境。改为生成随机口令并<b>只打印一次</b>,
-     * 运维必须当场记录。
-     */
-    @Bean
-    public ApplicationRunner bootstrapAdmin(UserStore store) {
-        return args -> {
-            if (store.count() > 0) {
-                return;
-            }
-            String password = UserStore.randomPassword();
-            store.create("admin", password, "初始管理员", List.of("ADMIN"));
-            System.out.println();
-            System.out.println("=".repeat(72));
-            System.out.println("  已创建初始管理员账号。此口令只显示这一次,请立即记录并尽快更换。");
-            System.out.println();
-            System.out.println("    用户名: admin");
-            System.out.println("    口令:   " + password);
-            System.out.println();
-            System.out.println("=".repeat(72));
-            System.out.println();
-        };
     }
 }
