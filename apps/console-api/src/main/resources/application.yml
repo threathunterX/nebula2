@@ -20,6 +20,13 @@ nebula:
     host: ${REDIS_HOST:127.0.0.1}
     port: ${REDIS_PORT:6379}
     password: ${REDIS_PASSWORD}
+  auth:
+    # 单个「来源 IP + 账号」组合的连续失败上限,达到后锁定。
+    # 按组合而不是按账号计数:按账号计意味着任何人都能故意输错几次锁死别人的账号。
+    max-login-failures: ${NEBULA_MAX_LOGIN_FAILURES:5}
+    lockout-seconds: ${NEBULA_LOCKOUT_SECONDS:900}
+    failure-window-seconds: ${NEBULA_FAILURE_WINDOW_SECONDS:900}
+
   # 名单键前缀。与引擎写入侧约定一致。
   notice-key-prefix: "nebula:notice:"
   clickhouse:

@@ -54,12 +54,19 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, ServiceTokenFilter tokenFilter)
+    public SecurityFilterChain filterChain(HttpSecurity http, ServiceTokenFilter tokenFilter,
+                                          LoginThrottleFilter throttleFilter)
             throws Exception {
         http
             // 无状态 API,不需要 CSRF 令牌;凭据每次请求携带
             .csrf(csrf -> csrf.disable())
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // 两个都锚在 UsernamePasswordAuthenticationFilter 之前,按插入顺序生效 ——
+            // addFilterBefore 的锚点必须是 Spring Security 已知的过滤器,不能是自定义的。
+            //
+            // 节流必须在认证之前:锁定期内即便口令正确也要拒绝,否则「是否立刻成功」
+            // 会告诉攻击者哪次猜中了,锁定就退化成延迟。
+            .addFilterBefore(throttleFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                     // 错误页转发必须放行。容器把 403/404/500 转发到 /error 时会再走一遍
