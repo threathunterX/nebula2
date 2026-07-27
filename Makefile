@@ -11,7 +11,7 @@ help: ## 显示本帮助
 # ---------- 校验 ----------
 
 .PHONY: validate
-validate: validate-schema validate-seeds docs-check links diagrams test-tools privacy-check check-env-untracked secrets-scan test-reference test-engine test-console test-web lint ## 跑全部校验(等同 CI 的检查项)
+validate: validate-schema validate-seeds docs-check links diagrams test-tools privacy-check check-env-untracked secrets-scan test-reference test-engine test-console test-web check-test-counts lint ## 跑全部校验(等同 CI 的检查项)
 
 .PHONY: validate-schema
 validate-schema: ## 校验 JSON Schema 自身合法
@@ -108,6 +108,10 @@ test: test-reference test-collector test-engine test-console test-web test-tools
 .PHONY: test-console
 test-console: ## 控制面测试(认证与授权矩阵)
 	@cd apps/console-api && mvn -B -q test
+
+.PHONY: check-test-counts
+check-test-counts: ## 校验文档里写的测试数量与实际一致(需先跑过 make test)
+	@$(PYTHON) tools/check_test_counts.py
 
 .PHONY: test-web
 test-web: ## 管理界面测试(schema 派生与「改动不丢字段」)

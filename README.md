@@ -261,7 +261,7 @@ nebula2/
 ├── packages/
 │   ├── domain-schema/   # 领域模型 JSON Schema —— 单一真相源
 │   ├── reference-engine/# 参考引擎(零依赖,语义规格的可执行版本)
-│   └── cel-functions/   # CEL 扩展函数的规范定义(🚧 仅有语义文档)
+│   └── cel-functions/   # CEL 扩展函数的规范(三个函数两个引擎均已实现)
 ├── seeds/               # 内置风控资产:事件/变量/策略/标签
 ├── deploy/
 │   ├── compose/         # Lite 部署(可用)

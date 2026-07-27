@@ -196,7 +196,14 @@ python3 -c "import json;print(json.load(open('seeds/tags.json'))['count'])"  # �
 ```
 
 - [ ] 上述数字与 README、`docs/README.md`、`seeds/INVENTORY.md` 中的表述一致
-- [ ] 测试数量、策略分类拆分等派生数字也已核对
+- [ ] `make check-test-counts` 通过(已并入 `make validate`)
+
+      > 测试数量此前是手写的,**v0.4.0 与 v0.5.0 连续两次发布都栽在这一处** ——
+      > 加了测试之后没人回来改文档。第一次靠人工核对发现并修好,第二次又错了。
+      > 现在由 `tools/check_test_counts.py` 盯着,`--update` 可一键改文档。
+      > 派生数字应当由检查器盯着,不是由纪律盯着。
+
+- [ ] 策略分类拆分等其它派生数字已核对
 
 ### 3.5 许可与归属
 
