@@ -139,6 +139,12 @@ jobs:
           cache: maven
       - name: 编译与测试(含共享向量对照)
         run: mvn -B verify
+      # 文档里「整个项目的测试分布」那句是手写的,v0.4.0 与 v0.5.0 连续两次发布
+      # 都栽在它上面。这里能校验的是本 job 跑过的那几项(引擎、参考引擎、管理界面、
+      # 采集器包数);控制面的数字在另一个 job 里,会**明确跳过**而不是静默通过。
+      - name: 文档里的测试数量
+        working-directory: .
+        run: python3 tools/check_test_counts.py
 
   console:
     name: 控制面(Java)
