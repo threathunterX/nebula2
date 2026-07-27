@@ -13,7 +13,7 @@
 
   <groupId>cn.threathunter.nebula</groupId>
   <artifactId>nebula-console-api</artifactId>
-  <version>0.4.0</version>
+  <version>0.5.0</version>
   <name>Nebula Console API</name>
   <description>星云 2.0 控制面:策略与变量管理、名单查询、/checkRisk 对外接口</description>
 
