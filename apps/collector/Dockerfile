@@ -1,5 +1,5 @@
 # 采集器 —— Go,静态编译。直接依赖只有 franz-go(Kafka 输出)
-FROM golang:1.26-alpine AS build
+FROM golang:1.27-alpine AS build
 WORKDIR /src
 COPY go.mod ./
 COPY . .
