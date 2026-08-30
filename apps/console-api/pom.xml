@@ -62,7 +62,7 @@
     <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
-      <version>1.5.4</version>
+      <version>3.0.7</version>
     </dependency>
 
     <!-- Prometheus 指标端点。actuator 只提供框架,导出格式要靠这个。 -->
